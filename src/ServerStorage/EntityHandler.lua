@@ -6,7 +6,7 @@ end
 function Entitys.Spawn(Entity,Position)
 	local entity = game.Workspace:FindFirstChild(Entity)
 	if entity then
-		Entitys[Entity]  
+		--Entitys[Entity]  
 	end
 end
 return Entitys
