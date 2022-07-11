@@ -19,6 +19,7 @@ local Block = {
 	["LoadedBlocks"] ={
 
 	}
+	["Entitys"]
 }
 
 local function pack(pos:Vector3)
@@ -154,4 +155,5 @@ function Block.Old(Player,RD,firsttime)
 end
 RS.Events.Block.GetChunck.OnServerInvoke = Block.GetChunck
 RS.Events.Block.QuickRender.OnServerInvoke = Block.render
+RS.Events.Entitys.NearByEntitys.OnServerInvoke = Block.render
 return Block

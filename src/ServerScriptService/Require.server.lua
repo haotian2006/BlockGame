@@ -1,1 +1,1 @@
-require(game.ServerStorage.BlockModule)
+require(game.ServerStorage.MainHandler)
