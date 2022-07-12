@@ -1,9 +1,16 @@
 local RS = game:GetService("ReplicatedStorage")
+local HTTPs = game:GetService("HttpService")
 local functions = require(RS.Functions)
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
+local exampleentity = {
+	["Name"] = "Example",
+	["Age"] = "0",
+	["CFrame"] = {},
+	["IsChild"] = false,
+}
 local Main = {
 	["Chunck"] ={
 		--[["0x0"] ={t
@@ -27,9 +34,7 @@ local Main = {
 			["IsChild"] = false,
 		}]]
 	},
-	["LoadedEntitys"] ={
-		
-	}
+	["LoadedEntitys"] ={}
 }
 
 local function pack(pos:Vector3)
@@ -128,6 +133,9 @@ function Main.render(Player,RD,RenderedChuncks)
 		lc = Main.GetSortedTable(Main.Chunck[v],v,RenderedChuncks,lc)
 	end
 	return lc--,array
+end
+function Main.CreateEntity()
+	
 end
 function Main.GetNearByEntitys(Player,Distance)
 	for uuid,nbt in pairs(Main.Entitys) do
