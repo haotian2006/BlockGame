@@ -19,10 +19,14 @@ local Main = {
 	["LoadedBlocks"] ={
 
 	},
+	["Nbt_Info"] ={"Name","Age","CFrame","IsChild",},
 	["Entitys"] ={
-		--[[
-			
-		]]
+	--[[	["190-099-3210"] { -- a uuid
+			["Name"] = "Example",
+			["Age"] = "0",
+			["CFrame"] = {},
+			["IsChild"] = false,
+		}]]
 	},
 }
 
@@ -57,6 +61,9 @@ function Main.CheckForBlock(x,y,z,CanBeTransParent)
 		return bock[1],bock[2]
 	end
 	return false
+end
+function Main.RayCast(Origion:Vector3,Direaction:Vector3,Range:number,Velocity:number,WhiteList)
+--	local pos1,pos2,pos3 = Origion
 end
 function Main.GetFloor(x,y,z)
 	x,z,y  = functions.GetBlockCoords(Vector3.new(x,y,z))
@@ -124,7 +131,9 @@ function Main.render(Player,RD,RenderedChuncks)
 	return lc--,array
 end
 function Main.GetNearByEntitys(Player,Distance)
-	
+	for uuid,nbt in pairs(Main.Entitys) do
+			
+	end
 end
 RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
