@@ -19,7 +19,6 @@ local Main = {
 	["LoadedBlocks"] ={
 
 	},
-	["Nbt_Info"] ={"Name","Age","CFrame","IsChild",},
 	["Entitys"] ={
 	--[[	["190-099-3210"] { -- a uuid
 			["Name"] = "Example",
@@ -28,6 +27,9 @@ local Main = {
 			["IsChild"] = false,
 		}]]
 	},
+	["LoadedEntitys"] ={
+		
+	}
 }
 
 local function pack(pos:Vector3)
@@ -80,9 +82,6 @@ function Main.GetChunck(Player,Chunck,firsttime)
 	if not Main.Chunck[Chunck] then
 		Main.Chunck[Chunck] = {}
 		for index,coord in ipairs(functions.XZCoordInChunck(Chunck)) do
-				if index%90 == 0 and firsttime then
-					--task.wait(0)
-				end
 				for y = 0,80,4 do
 					local coords = string.split(coord,"x")
 					local position = Vector3.new(coords[1],y,coords[2])
