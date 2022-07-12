@@ -1,3 +1,4 @@
+---@diagnostic disable: unused-function
 local RS = game:GetService("ReplicatedStorage")
 local HTTPs = game:GetService("HttpService")
 local functions = require(RS.Functions)
@@ -37,16 +38,21 @@ local Main = {
 	},
 	["LoadedEntitys"] ={}
 }
+
 local Connections = {}
-local function runentity(entity)
-	if not Connections[entity] then
+local function checkforplayers(uuid)
+
+end
+local function runentity(uuid)
+	if not Connections[uuid] then
 		local self
 		self = runservice.Stepped:Connect(function(time, deltaTime)
-			if not Connections[entity] then
+			if not Connections[uuid] or not Main.LoadedEntitys[uuid] then
+				Connections[uuid] = nil
 				self:Disconnect()
 			end
 		end)
-		Connections[entity] = self
+		Connections[uuid] = self
 	end
 end
 local function pack(pos:Vector3)
@@ -153,11 +159,15 @@ function Main.CreateEntity(Name)
 	Main.Entitys[uuid].CFrame = {CFrame.new(Main.GetFloor(0,80,0)):GetComponents()}
 end
 function updateentitytable(Player,Distance)
-	local player_Distance = Player.Character.PrimaryPart.Position
-	for uuid,nbt in pairs(Main.Entitys) do
-			local EntityPos = CFrame.new(unpack(nbt.CFrame)).Position
-			if (player_Distance - EntityPos).magnitude <= Distance then
+	if Player and Player.Character and Player.Character.PrimaryPart then
+		local player_Distance = Player.Character.PrimaryPart.Position
+		for uuid,nbt in pairs(Main.Entitys) do
+				if Main.LoadedEntitys[uuid] then continue end	
+				runentity(uuid)	
+				local EntityPos = CFrame.new(unpack(nbt.CFrame)).Position
+				if (player_Distance - EntityPos).magnitude <= Distance then
 				Main.LoadedEntitys[uuid] = nbt
+			end
 		end		
 	end
 end
