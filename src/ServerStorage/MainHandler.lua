@@ -5,6 +5,7 @@ local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
+local runservice = game:GetService("RunService")
 local exampleentity = {
 	["Name"] = "Example",
 	["Age"] = "0",
@@ -36,7 +37,18 @@ local Main = {
 	},
 	["LoadedEntitys"] ={}
 }
-
+local Connections = {}
+local function runentity(entity)
+	if not Connections[entity] then
+		local self
+		self = runservice.Stepped:Connect(function(time, deltaTime)
+			if not Connections[entity] then
+				self:Disconnect()
+			end
+		end)
+		Connections[entity] = self
+	end
+end
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement
@@ -134,14 +146,28 @@ function Main.render(Player,RD,RenderedChuncks)
 	end
 	return lc--,array
 end
-function Main.CreateEntity()
-	
+function Main.CreateEntity(Name)
+	local uuid = HTTPs:GenerateGUID()
+	Main.Entitys[uuid] =exampleentity
+	Main.Entitys[uuid].Name = Name
+	Main.Entitys[uuid].CFrame = {CFrame.new(Main.GetFloor(0,80,0)):GetComponents()}
+end
+function updateentitytable(Player,Distance)
+	local player_Distance = Player.Character.PrimaryPart.Position
+	for uuid,nbt in pairs(Main.Entitys) do
+			local EntityPos = CFrame.new(unpack(nbt.CFrame)).Position
+			if (player_Distance - EntityPos).magnitude <= Distance then
+				Main.LoadedEntitys[uuid] = nbt
+		end		
+	end
 end
 function Main.GetNearByEntitys(Player,Distance)
+	local placeentity = {}
 	for uuid,nbt in pairs(Main.Entitys) do
 			
 	end
 end
+
 RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
