@@ -13,6 +13,7 @@ local exampleentity = {
 	["CFrame"] = {},
 	["IsChild"] = false,
 }
+local EntitysDeloadDistance = 7 --chuncks
 local Main = {
 	["Chunck"] ={
 		--[["0x0"] ={t
@@ -22,7 +23,7 @@ local Main = {
 			} --Old Saving Method
 		};]]
 	--[["0x0"] ={
-		["0,0,0"] = {"Stone",1}
+		["0,0,0"] = {1,1{}}--(name,state,nbt)
 	};]]-- New Method Easier to get blocks less resorce intensive
 	},
 	["LoadedBlocks"] ={
@@ -40,14 +41,23 @@ local Main = {
 }
 
 local Connections = {}
-local function checkforplayers(uuid)
-
+local function Echeckfornearbyplayers(uuid,Distance)
+	local deload = false
+	for i,v in ipairs(game.Players:GetPlayers()) do
+		if v.Character and v.character.PrimaryPart then
+			if (v.character.PrimaryPart.position-Main.LoadedEntitys[uuid].CFrame.position).magnitude < EntitysDeloadDistance*16 then
+				deload = true
+				break
+			end
+		end
+	end
+	return deload
 end
 local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
 		self = runservice.Stepped:Connect(function(time, deltaTime)
-			if not Connections[uuid] or not Main.LoadedEntitys[uuid] then
+			if not Connections[uuid] or not Main.LoadedEntitys[uuid] or Echeckfornearbyplayers(uuid) then
 				Connections[uuid] = nil
 				self:Disconnect()
 			end

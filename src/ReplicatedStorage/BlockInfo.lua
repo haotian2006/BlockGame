@@ -5,6 +5,7 @@ local Blocks = {
 		["Model"] = Blocks_Folder.Block;
 		["Override"] = true;
 		["IsTransparent"] = false;
+		["Id"] = 0;
 	}
 }
 return Blocks
