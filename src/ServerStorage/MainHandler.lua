@@ -23,10 +23,13 @@ local Main = {
 			} --Old Saving Method
 		};]]
 	--[["0x0"] ={
-		["0,0,0"] = {1,1{}}--(name,state,nbt)
+		["0,0,0"] = {"Stone",1,1}--(name,Direaction,State)
 	};]]-- New Method Easier to get blocks less resorce intensive
 	},
 	["LoadedBlocks"] ={
+
+	},
+	["BlockNbt"] ={
 
 	},
 	["Entitys"] ={
