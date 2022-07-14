@@ -186,9 +186,17 @@ function updateentitytable(Player,Distance)
 end
 function Main.GetNearByEntitys(Player,Distance)
 	local placeentity = {}
-	for uuid,nbt in pairs(Main.Entitys) do
-			
+	if Player and Player.character and Player.character.PrimaryPart then
+		local playerpos = Player.character.PrimaryPart.position
+		for uuid,nbt in pairs(Main.LoadedEntitys) do
+				local position = CFrame.new(unpack(nbt.CFrame))
+				if (playerpos-position).magnitude <= Distance*16 then
+					placeentity[uuid] = nbt
+				end
+		end
+
 	end
+	return placeentity
 end
 
 RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
