@@ -1,5 +1,4 @@
-local event = game.ReplicatedStorage
-game.Workspace.Entity:ClearAllChildren()
+local event = game.ReplicatedStorage.Events.Entitys.NearByEntitys
 
 event.OnClientEvent:Connect(function(Model)
     

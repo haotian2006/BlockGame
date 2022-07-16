@@ -194,7 +194,6 @@ function Main.GetNearByEntitys(Player,Distance)
 					placeentity[uuid] = nbt
 				end
 		end
-
 	end
 	return placeentity
 end
