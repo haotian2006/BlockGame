@@ -39,6 +39,12 @@ local Main = {
 			["CFrame"] = {},
 			["IsChild"] = false,
 		}]]
+		["190-099-3210"]= { -- a uuid
+			["Name"] = "Mar",
+			["Age"] = "0",
+			["CFrame"] = {0,100,0},
+			["IsChild"] = false,
+		}
 	},
 	["LoadedEntitys"] ={}
 }
