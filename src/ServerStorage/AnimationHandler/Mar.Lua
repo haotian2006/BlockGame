@@ -1,2 +1,6 @@
-local data ={}
+local data ={
+    CustomNbtData ={
+        
+    }
+}
 return data

@@ -8,7 +8,9 @@ local Function = {}
 local function Round(x:number)
 	return math.floor(x+0.5)
 end
-
+function Function.GetVector3Componnets(pos:Vector3)
+	return pos.X,pos.Y,pos.Z
+end
 function Function.GetBlockCoords(Position:Vector3)
 	local x = Round((0 + Position.X)/4)
 	local z = Round((0 + Position.Z)/4)

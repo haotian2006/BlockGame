@@ -7,11 +7,22 @@ local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
 local runservice = game:GetService("RunService")
-local exampleentity = {
-	["Name"] = "Example",
-	["Age"] = "0",
-	["CFrame"] = {},
-	["IsChild"] = false,
+local BasicNbtData = {
+	Name = "Example",
+	Air = 20,
+	MaxAir = 20,
+	CustomName = nil,
+	CustomNameRenderHoverDistance = 0, --*4
+	CustomNameRenderDistance = 0, --*4
+	Position  = {},
+	Rotation = {},
+	Health = 0,
+	FallDistance = 0,
+	CanTakeDamage = false,
+	FireLast = 0,
+	RenderFire = true,
+
+
 }
 local EntitysDeloadDistance = 7 --chuncks
 local Main = {
@@ -36,13 +47,13 @@ local Main = {
 	--[[	["190-099-3210"] { -- a uuid
 			["Name"] = "Example",
 			["Age"] = "0",
-			["CFrame"] = {},
+			["position"] = {},
 			["IsChild"] = false,
 		}]]
 		["190-099-3210"]= { -- a uuid
 			["Name"] = "Mar",
 			["Age"] = "0",
-			["CFrame"] = {0,100,0},
+			["Position"] = {0,100,0},
 			["IsChild"] = false,
 		}
 	},
@@ -54,8 +65,8 @@ local function Echeckfornearbyplayers(uuid,Distance)
 	local deload = false
 	for i,v in ipairs(game.Players:GetPlayers()) do
 		if v.Character and v.character.PrimaryPart then
-			--print( (v.character.PrimaryPart.position-CFrame.new(unpack(Main.LoadedEntitys[uuid].CFrame)).Position).magnitude )
-			if (v.character.PrimaryPart.position-CFrame.new(unpack(Main.LoadedEntitys[uuid].CFrame)).Position).magnitude > EntitysDeloadDistance*16*4 then
+			--print( (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude )
+			if (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude > EntitysDeloadDistance*16*4 then
 				deload = true
 				break
 			end
@@ -67,7 +78,7 @@ local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
 		self = runservice.Stepped:Connect(function(time, deltaTime)
-			Main.LoadedEntitys[uuid]["CFrame"][1] += 0.5
+			Main.LoadedEntitys[uuid]["Position"][1] += 0.5
 			if not Connections[uuid] or not Main.LoadedEntitys[uuid] or Echeckfornearbyplayers(uuid) then
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
@@ -181,9 +192,9 @@ function Main.render(Player,RD,RenderedChuncks)
 end
 function Main.CreateEntity(Name)
 	local uuid = HTTPs:GenerateGUID()
-	Main.Entitys[uuid] =exampleentity
+	Main.Entitys[uuid] =BasicNbtData
 	Main.Entitys[uuid].Name = Name
-	Main.Entitys[uuid].CFrame = {CFrame.new(Main.GetFloor(0,80,0)):GetComponents()}
+	Main.Entitys[uuid].Position = {functions.GetVector3Componnets(Main.GetFloor(0,80,0))}
 end
 function updateentitytable(Player,Distance)
 	if Player and Player.Character and Player.Character.PrimaryPart then
@@ -192,7 +203,7 @@ function updateentitytable(Player,Distance)
 		--	print(nbt)
 				if Main.LoadedEntitys[uuid] then continue end	
 				runentity(uuid)	
-				local EntityPos = CFrame.new(unpack(nbt.CFrame)).Position
+				local EntityPos = Vector3.new(unpack(nbt.Position))
 				if (player_Distance - EntityPos).magnitude <= Distance*16*4 then
 				Main.LoadedEntitys[uuid] = nbt
 			end
@@ -204,7 +215,7 @@ function Main.GetNearByEntitys(Player,Distance)
 	if Player and Player.character and Player.character.PrimaryPart then
 		local playerpos = Player.character.PrimaryPart.position
 		for uuid,nbt in pairs(Main.LoadedEntitys) do
-				local position = CFrame.new(unpack(nbt.CFrame)).Position
+				local position =Vector3.new(unpack(nbt.position))
 				if (playerpos-position).magnitude <= Distance*16*4 then
 					placeentity[uuid] = nbt
 				end
