@@ -10,7 +10,7 @@ game.Players.PlayerAdded:Connect(function(player)
 	end)
 end)
 
-local render = 10
+local render = 6
 local function pack(x,y,z)
 	return x..","..y..","..z
 end

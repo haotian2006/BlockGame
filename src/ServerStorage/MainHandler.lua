@@ -39,6 +39,12 @@ local Main = {
 			["CFrame"] = {},
 			["IsChild"] = false,
 		}]]
+		["190-099-3210"]= { -- a uuid
+			["Name"] = "Mar",
+			["Age"] = "0",
+			["CFrame"] = {0,100,0},
+			["IsChild"] = false,
+		}
 	},
 	["LoadedEntitys"] ={}
 }
@@ -48,7 +54,8 @@ local function Echeckfornearbyplayers(uuid,Distance)
 	local deload = false
 	for i,v in ipairs(game.Players:GetPlayers()) do
 		if v.Character and v.character.PrimaryPart then
-			if (v.character.PrimaryPart.position-Main.LoadedEntitys[uuid].CFrame.position).magnitude < EntitysDeloadDistance*16 then
+			--print( (v.character.PrimaryPart.position-CFrame.new(unpack(Main.LoadedEntitys[uuid].CFrame)).Position).magnitude )
+			if (v.character.PrimaryPart.position-CFrame.new(unpack(Main.LoadedEntitys[uuid].CFrame)).Position).magnitude > EntitysDeloadDistance*16*4 then
 				deload = true
 				break
 			end
@@ -60,8 +67,11 @@ local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
 		self = runservice.Stepped:Connect(function(time, deltaTime)
+			Main.LoadedEntitys[uuid]["CFrame"][1] += 0.5
 			if not Connections[uuid] or not Main.LoadedEntitys[uuid] or Echeckfornearbyplayers(uuid) then
+			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
+				Main.LoadedEntitys[uuid] = nil
 				self:Disconnect()
 			end
 		end)
@@ -114,6 +124,9 @@ function Main.GetFloor(x,y,z)
 end
 
 function Main.GetChunck(Player,Chunck,firsttime)
+	if not firsttime then
+		updateentitytable(Player,EntitysDeloadDistance-2)	
+	end
 	local lc = {}
 	if not Main.Chunck[Chunck] then
 		Main.Chunck[Chunck] = {}
@@ -138,6 +151,7 @@ function Main.render(Player,RD,RenderedChuncks)
 	local lc = {}
 	local nearbychuncks = functions.GetSurroundingChunck(Player.Character.PrimaryPart.Position,RD)
 	local incease = 0
+	updateentitytable(Player,EntitysDeloadDistance-2)	
 	for i,v in ipairs(nearbychuncks)do
 		if RenderedChuncks[v] then continue end
 		if not Main.Chunck[v] then
@@ -175,10 +189,11 @@ function updateentitytable(Player,Distance)
 	if Player and Player.Character and Player.Character.PrimaryPart then
 		local player_Distance = Player.Character.PrimaryPart.Position
 		for uuid,nbt in pairs(Main.Entitys) do
+		--	print(nbt)
 				if Main.LoadedEntitys[uuid] then continue end	
 				runentity(uuid)	
 				local EntityPos = CFrame.new(unpack(nbt.CFrame)).Position
-				if (player_Distance - EntityPos).magnitude <= Distance then
+				if (player_Distance - EntityPos).magnitude <= Distance*16*4 then
 				Main.LoadedEntitys[uuid] = nbt
 			end
 		end		
@@ -189,12 +204,11 @@ function Main.GetNearByEntitys(Player,Distance)
 	if Player and Player.character and Player.character.PrimaryPart then
 		local playerpos = Player.character.PrimaryPart.position
 		for uuid,nbt in pairs(Main.LoadedEntitys) do
-				local position = CFrame.new(unpack(nbt.CFrame))
-				if (playerpos-position).magnitude <= Distance*16 then
+				local position = CFrame.new(unpack(nbt.CFrame)).Position
+				if (playerpos-position).magnitude <= Distance*16*4 then
 					placeentity[uuid] = nbt
 				end
 		end
-
 	end
 	return placeentity
 end
