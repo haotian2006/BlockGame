@@ -5,8 +5,10 @@ local data ={
           ArmorSlot = {},
           Slot = {}  
         },
-        RespawnPoint = {nil,nil} -- Postion,IsBed
-        
+        RespawnPoint =nil, -- Postion
+        HasBed = false,
+        Health = 20,
+
     }
 }
 return data
