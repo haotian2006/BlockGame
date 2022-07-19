@@ -8,20 +8,26 @@ local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
 local runservice = game:GetService("RunService")
 local BasicNbtData = {
-	Name = "Example",
+	Effects ={},
+	Name = nil,
 	Air = 20,
 	MaxAir = 20,
+	CurrentSpeed = 0, -- this is the speed used 
+	Speed = 0,
 	CustomName = nil,
 	CustomNameRenderHoverDistance = 0, --*4
 	CustomNameRenderDistance = 0, --*4
 	Position  = {},
 	Rotation = {},
 	Health = 0,
+	MaxHealth = 0,
 	FallDistance = 0,
-	CanTakeDamage = false,
+	CanTakeDamage = true,
 	FireLast = 0,
 	RenderFire = true,
-
+	IgnoreBlocks ={},
+	IgnoreMobs ={},
+	RegenRate = 0,
 
 }
 local EntitysDeloadDistance = 7 --chuncks
@@ -227,4 +233,4 @@ end
 RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
-return Main
+return Main,BasicNbtData
