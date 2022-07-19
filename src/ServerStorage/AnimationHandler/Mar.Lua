@@ -1,5 +1,5 @@
 local data ={
-    CustomNbtData ={
+    NbtData ={
         
     }
 }
