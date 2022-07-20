@@ -22,13 +22,13 @@ local Data ={
 	IgnoreMobs ={},
 	RegenRate = 0,
    },
-   MainFunctions ={
+   Events ={
 
    },
    conditions ={
 
    },
 }
-Data.MainFunctions.Baby_Grow_Up = function(uuid)
+Data.Events.Baby_Grow_Up = function(uuid)
     
 end

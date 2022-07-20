@@ -6,7 +6,7 @@ local data ={
         },
         component_groups = {
             baby = {
-               [ "nbt.isbaby"] = {},
+               [ "nbt.is_baby"] = {},
                 ["nbt.scale"] = {0.5},
                 ageable = {
                     ["nbt.duration"] = 200,
@@ -30,7 +30,11 @@ local data ={
                 experience_reward = {
                     on_bred = {xp = math.random(1,7)},
                     on_death  = {
-                        condition = "hit_by-player",
+                        condition = {
+                          If =  "hit_by_player",
+                          Is = "=",
+                          To = true,
+                    },
                         xp = math.random(1,7),
                     },
                 },
