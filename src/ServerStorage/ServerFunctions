@@ -1,0 +1,88 @@
+local func = {
+    event ={
+
+    },
+    condition = {
+        
+    },
+    Definations = {
+        ["nbt"] = "The value is part of the nbt of a entity",
+        ["behavior"] = "Defines which function00",
+    },
+    conditionSigns = {
+        ["="] = function(c1,c2)
+            local is = false
+            if c1 == c2 then
+                is = true
+            end
+            return is
+        end,
+        [">"] = function(c1,c2)
+            local is = false
+            if c1 > c2 then
+                is = true
+            end
+            return is
+        end,
+        ["<"] = function(c1,c2)
+            local is = false
+            if c1 < c2 then
+                is = true
+            end
+            return is
+        end,
+        ["<="] = function(c1,c2)
+            local is = false
+            if c1 <= c2 then
+                is = true
+            end
+            return is
+        end,
+        [">="] = function(c1,c2)
+            local is = false
+            if c1 >= c2 then
+                is = true
+            end
+            return is
+        end,
+        ["found"] = function(c1)
+            local is = false
+            if c1 then
+                is = true
+            end
+            return is
+        end,
+        ["not"] = function(c1)
+            local is = false
+            if not c1 then
+                is = true
+            end
+            return is
+        end,
+    },
+}
+function func.GetValue(uuid,name)
+    local splitedstring = string.split(name,".")
+end
+function func.condition.Check(uuid,condition)
+    local If = condition.If
+    local Is = condition.Is
+    local To = condition.To
+    if To == "true" then
+        To = true
+    elseif To == "false" then
+        To = false
+    end
+   if func.conditionSigns[is] then
+    func.conditionSigns[is](If,To)
+   else
+    warn("SIGN DOES NOT EXSIT")
+end
+
+function func.event.Listen(data)
+    local Name = data["Name"]
+    local DcWhenConditionIsReached = data["DcWhenConditionIsReached"]
+    local condition = data["condition"]
+     
+end
+return func

@@ -13,7 +13,15 @@ local data ={
                     feeditems = {
                         stone = 10,
                     },
-                    event = "Baby_Grow_Up"
+                    event = {
+                        Name = "Baby_Grow_Up",
+                        DcWhenConditionIsReached = false,
+                        condition = {
+                            ["if"] = "nbt.duration",
+                            ["is"] = "=",
+                            ["to"] = "0",
+                        }
+                    },
                 },
                 ["behavior.follow_parent"] ={
                     priority = 5,
@@ -31,9 +39,8 @@ local data ={
                     on_bred = {xp = math.random(1,7)},
                     on_death  = {
                         condition = {
-                          If =  "hit_by_player",
-                          Is = "=",
-                          To = true,
+                          If =  "nbt.Last_hit_by_player",
+                          Is = "Found",
                     },
                         xp = math.random(1,7),
                     },
