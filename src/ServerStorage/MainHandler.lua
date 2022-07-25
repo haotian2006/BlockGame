@@ -60,13 +60,37 @@ end
 local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
+		local startclock = os.clock
+		local timepassed = 0
 		self = runservice.Stepped:Connect(function(time, deltaTime)
 			Main.LoadedEntitys[uuid]["Position"][1] += 0.5
-			if not Connections[uuid] or not Main.LoadedEntitys[uuid] or Echeckfornearbyplayers(uuid) then
+			if not Connections[uuid] or not Main.Entitys[uuid] or Echeckfornearbyplayers(uuid) then
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
+				Main.Entitys[uuid] = Main.Entitys[uuid] and Main.LoadedEntitys[uuid] or nil
 				Main.LoadedEntitys[uuid] = nil
 				self:Disconnect()
+			end
+			if os.clock() - startclock >0.1 then
+				startclock = os.clock()
+				timepassed += 1
+				for eventname,info in pairs(Main.LoadedEntitys[uuid].Events)do
+					if (timepassed*0.1)%(info[2] or 1) == 0 then
+							for index,stuff in ipairs(info[1])do
+								local value,goal,increase = stuff[1],stuff[2],stuff[3]
+								if type(value) == "string" then
+									value = Main.LoadedEntitys[uuid][value] or goal
+								end
+								if increase then
+								value += increase
+								end
+								if value == goal then
+									
+									continue
+								end
+							end
+					end
+				end
 			end
 		end)
 		Connections[uuid] = self

@@ -6,14 +6,18 @@ local data ={
         },
         component_groups = {
             baby = {
-               [ "nbt.is_baby"] = {},
-                ["nbt.scale"] = {0.5},
-                ageable = {
-                    ["nbt.duration"] = 200,
+               [ "componet.is_baby"] = {},
+                ["componet.scale"] = {
+                    value = 0.5,
+                },
+                ["componet.ageable"] = {
+                    ["duration"] = 200,
                     feeditems = {
                         stone = 10,
                     },
-                    event = "Baby_Grow_Up"
+                    grow_up = {
+                        event ="Baby_Grow_Up"
+                    }
                 },
                 ["behavior.follow_parent"] ={
                     priority = 5,
@@ -41,6 +45,6 @@ local data ={
             },
         },
     },
-    CustomEvents ={},
+    event ={},
 }
 return data

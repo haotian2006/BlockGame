@@ -133,7 +133,6 @@ game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 		if currentChunck ~= oldchunck  then
 			oldchunck = currentChunck
 			frender(char)
-			print("c")
 		end
 		task.wait(0.1)
 	end

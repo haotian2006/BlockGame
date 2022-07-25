@@ -1,4 +1,4 @@
-local MainHander = require(game.ServerStorage.MainHandler)
+local MainHandler = require(game.ServerStorage.MainHandler)
 local Data ={
    BasicNbt ={
     Effects ={},
@@ -28,7 +28,27 @@ local Data ={
    conditions ={
 
    },
+   componets ={
+
+   }
 }
-Data.Events.Baby_Grow_Up = function(uuid)
-    
+--localfunctions
+local function getentityfromuuid(uuid)
+	return MainHandler.LoadedEntitys[uuid] or  MainHandler.Entitys[uuid]
+end
+local function addevent(event,entity,values,time)
+	entity.Events[event] = {values,time} --{value,endgoal,increase}
+end
+--mobcomponets
+--true = add false == remove
+function  Data.componets.ageable(uuid,data,d)
+	local entity = getentityfromuuid(uuid)
+	local duration = data["duration"]
+	local feeditems = data["feeditems"]
+	local grow_up = data["grow_up"]
+	if d then
+		entity["Age"] = -duration
+	else
+		entity["Age"] = 0
+	end
 end
