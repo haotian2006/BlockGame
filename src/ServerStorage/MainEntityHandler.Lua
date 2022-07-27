@@ -37,7 +37,7 @@ local function getentityfromuuid(uuid)
 	return MainHandler.LoadedEntitys[uuid] or  MainHandler.Entitys[uuid]
 end
 local function addevent(event,entity,values,time)
-	entity.Events[event] = {values,time} --{value,endgoal,increase}
+	entity.Events[event] = {values,time} --{}
 end
 --mobcomponets
 --true = add false == remove

@@ -10,7 +10,7 @@ game.Players.PlayerAdded:Connect(function(player)
 	end)
 end)
 
-local render = 6
+local render = 3
 local function pack(x,y,z)
 	return x..","..y..","..z
 end
@@ -32,14 +32,14 @@ local function GetPosition(Table)
 	return Position
 end
 local function can(position,tabl,player)
-	local c = false
+	--[[local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
-	if tabl[pack(x+4,y,z)] and tabl[pack(x+4,y,z)][4] and  tabl[pack(x-4,y,z)] and  tabl[pack(x-4,y,z)][4]  and tabl[pack(x,y+4,z)]and  tabl[pack(x,y+4,z)][4] and tabl[pack(x,y-4,z)] and tabl[pack(x,y-4,z)][4]  and  tabl[pack(x,y,z-4)] and  tabl[pack(x,y,z-4)][4] and  tabl[pack(x,y,z+4)] and tabl[pack(x,y,z+4)][4] --[[and math.abs(player -y) <=16*(render)]] then
+	if tabl[pack(x+4,y,z)] and tabl[pack(x+4,y,z)][4] and  tabl[pack(x-4,y,z)] and  tabl[pack(x-4,y,z)][4]  and tabl[pack(x,y+4,z)]and  tabl[pack(x,y+4,z)][4] and tabl[pack(x,y-4,z)] and tabl[pack(x,y-4,z)][4]  and  tabl[pack(x,y,z-4)] and  tabl[pack(x,y,z-4)][4] and  tabl[pack(x,y,z+4)] and tabl[pack(x,y,z+4)][4] --[[and math.abs(player -y) <=16*(render) then
 	else
 		c = true
-	end
-	return c
+	end]]
+	return true
 end
 local old
 local firsttime = false
@@ -72,15 +72,15 @@ end
 local function QuickRender(char)
 
 	local nearbychuncks = functions.GetSurroundingChunck(char.PrimaryPart.Position,render)
+	local blockdate ={}
 	for i,chunk in ipairs(nearbychuncks)do
-		local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
+		table.insert(blockdate,events.Block.GetChunck:InvokeServer(chunk,firsttime))
+	end
+	for i,Blocks in ipairs(blockdate)do
 		task.spawn(function()
 		for Position,blockdata in pairs(Blocks) do
 			if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
-				task.spawn(function()
-					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
-				end)
-			
+					functions.PlaceBlock(blockdata[1],Position,blockdata[2])		
 			end
 		end
 	end)
@@ -109,11 +109,10 @@ local function frender(char)
 	local index = 0
 	for Position,blockdata in pairs(Blocks) do
 		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
-				task.spawn(function()
 					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
-				end)
+
 			index+=1
-			if index == 400 and firsttime then
+			if index == 200 and firsttime then
 				index = 0
 				task.wait()
 			end

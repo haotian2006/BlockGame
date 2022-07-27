@@ -33,12 +33,12 @@ local Main = {
 			["position"] = {},
 			["IsChild"] = false,
 		}]]
-		["190-099-3210"]= { -- a uuid
+		--[[["190-099-3210"]= { -- a uuid
 			["Name"] = "Mar",
 			["Age"] = "0",
 			["Position"] = {0,100,0},
 			["IsChild"] = false,
-		}
+		}]]
 	},
 	["LoadedEntitys"] ={}
 }
@@ -108,9 +108,24 @@ function Main.new(Name:string,Position:Vector3)
 	local newblock = GetPath(Name):Clone()
 	return newblock
 end 
-function Main.GetSortedTable(Data,Chunck,lc)
+local function pack2(x,y,z)
+	return x..","..y..","..z
+end
+local function can(position,tabl,player)
+	local c = false
+	local splittedstring = string.split(position,",")
+	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
+	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
+	else
+		c = true
+	end
+	return c
+end
+function Main.GetSortedTable(Data,Chunck,lc,Player)
 	for coord,data in pairs(Data) do
+		if can(coord,Data,Player.Character.PrimaryPart.Position.Y)  then	
 		lc[coord] ={data[1],data[2],Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		end
 		Main["LoadedBlocks"][coord] ={data[1],data[2],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 	end
 	return lc
@@ -140,7 +155,6 @@ function Main.GetFloor(x,y,z)
 		end
 	end
 end
-
 function Main.GetChunck(Player,Chunck,firsttime)
 	if not firsttime then
 		updateentitytable(Player,EntitysDeloadDistance-2)	
@@ -163,7 +177,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 			end
 
 		end
-	return Main.GetSortedTable(Main.Chunck[Chunck],Chunck,{})--,array
+	return Main.GetSortedTable(Main.Chunck[Chunck],Chunck,{},Player)--,array
 end
 function Main.render(Player,RD,RenderedChuncks)
 	local lc = {}
