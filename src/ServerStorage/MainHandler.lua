@@ -96,6 +96,7 @@ local function runentity(uuid)
 		Connections[uuid] = self
 	end
 end
+
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement

@@ -1,6 +1,6 @@
 local MainHandler = require(game.ServerStorage.MainHandler)
-local Data ={
-   BasicNbt ={
+local Data = {
+   ["BasicNbt"] ={
     Effects ={},
 	Name = nil,
 	Air = 20,
@@ -30,16 +30,26 @@ local Data ={
    },
    componets ={
 
+   },
+   statements ={
+	
    }
+
 }
---localfunctions
+--<----localfunctions---->
 local function getentityfromuuid(uuid)
 	return MainHandler.LoadedEntitys[uuid] or  MainHandler.Entitys[uuid]
 end
 local function addevent(event,entity,values,time)
 	entity.Events[event] = {values,time} --{}
 end
---mobcomponets
+
+--<----statements---->
+function  Data.statements()
+	
+end
+
+--<----mobcomponets---->
 --true = add false == remove
 function  Data.componets.ageable(uuid,data,d)
 	local entity = getentityfromuuid(uuid)
@@ -51,4 +61,8 @@ function  Data.componets.ageable(uuid,data,d)
 	else
 		entity["Age"] = 0
 	end
+end
+--<----mainfunctions---->
+function  Data.EventRead(data)
+	
 end

@@ -1,8 +1,8 @@
 local data ={
     entity = {
-        description = {
+        ["description"] = {
             is_spawnable = true,
-            is_summonable = true,
+            is_summonable = true
         },
         component_groups = {
             baby = {
@@ -16,7 +16,7 @@ local data ={
                         stone = 10,
                     },
                     grow_up = {
-                        event ="Baby_Grow_Up"
+                        event ="custom.Baby_Grow_Up"
                     }
                 },
                 ["behavior.follow_parent"] ={
@@ -45,6 +45,10 @@ local data ={
             },
         },
     },
-    event ={},
+    event ={
+        ["Baby_Grow_Up"] ={
+
+        },
+    },
 }
 return data

@@ -10,7 +10,7 @@ game.Players.PlayerAdded:Connect(function(player)
 	end)
 end)
 
-local render = 9
+local render = 4
 local function pack(x,y,z)
 	return x..","..y..","..z
 end
@@ -70,20 +70,16 @@ local function removechunck(chunck)
 	chunck:Destroy()
 end
 local function QuickRender(char)
-
-	local nearbychuncks = functions.GetSurroundingChunck(char.PrimaryPart.Position,render)
-	local blockdate ={}
+	local nearbychuncks = sortchunck(functions.GetSurroundingChunck(char.PrimaryPart.Position,render))
 	for i,chunk in ipairs(nearbychuncks)do
-		table.insert(blockdate,events.Block.GetChunck:InvokeServer(chunk,firsttime))
-	end
-	for i,Blocks in ipairs(blockdate)do
-		task.spawn(function()
-		for Position,blockdata in pairs(Blocks) do
-			if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
-					functions.PlaceBlock(blockdata[1],Position,blockdata[2])		
-			end
+		chunk = chunk[1]
+	local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
+	firsttime = true
+	for Position,blockdata in pairs(Blocks) do
+		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
+					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
 		end
-	end)
+		end
 	end
 	return
 end
