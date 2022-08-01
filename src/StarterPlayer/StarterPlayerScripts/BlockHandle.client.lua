@@ -90,9 +90,7 @@ local function frender(char)
 		local vector = Vector2.new(splited[1],splited[2])
 		local currentvecotr = Vector2.new(functions.GetChunck(char.PrimaryPart.Position))
 		if (vector-currentvecotr).Magnitude > (render+3) then
-			task.spawn(function()
 				removechunck(v)
-			end)
 		else
 			renderedchuncks[v.Name] = true
 			end
@@ -106,7 +104,6 @@ local function frender(char)
 	for Position,blockdata in pairs(Blocks) do
 		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
 					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
-
 			index+=1
 			if index == 200 and firsttime then
 				index = 0
