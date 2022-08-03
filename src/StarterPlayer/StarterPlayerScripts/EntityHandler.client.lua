@@ -1,7 +1,13 @@
 local event = game.ReplicatedStorage.Events.Entitys.NearByEntitys
+local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservice = game:GetService("RunService")
+
 runservice.Stepped:Connect(function(time, deltaTime)
+    if Players.LocalPlayer.Character and Players.LocalPlayer.Character.PrimaryPart and Players.LocalPlayer.Character.PrimaryPart.Position then
+    else
+        return
+    end
 	local data = event:InvokeServer(17)
     for i,v in ipairs(workspace.Entity:GetChildren())do
         if data[v.Name] then
@@ -22,7 +28,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
         entity.Parent = game.Workspace.Entity
         entity.Name = uuid
         entity.Position = Vector3.new(unpack(nbt["Position"]))
-        entity.Orientation = unpack(nbt["Rotation"])
+        entity.Orientation = Vector3.new(unpack(nbt["Rotation"]))
 		entity.Anchored = true
 	end
 end)

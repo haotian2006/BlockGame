@@ -117,7 +117,7 @@ local function frender(char)
 end
 local oldchunck =""
 game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
-	task.wait()
+	task.wait(0.1)
 	QuickRender(char)
 	while char do
 		local currentChunck,c = functions.GetChunck(char.PrimaryPart.Position)

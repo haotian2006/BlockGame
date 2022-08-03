@@ -1,4 +1,4 @@
----@diagnostic disable: unused-function
+local LocalizationService = game:GetService("LocalizationService")
 local RS = game:GetService("ReplicatedStorage")
 local HTTPs = game:GetService("HttpService")
 local functions = require(RS.Functions)
@@ -6,80 +6,59 @@ local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
+local entityhandler = require(game.ServerStorage.MainEntityHandler)
+local pathfinding = require(game.ServerStorage.PathFinding)
+local maindata = require(game.ServerStorage.MainData)
 local runservice = game:GetService("RunService")
+local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local EntitysDeloadDistance = 7 --chuncks
+
+
 local Main = {
-	["Chunck"] ={
-		--[["0x0"] ={t
-			["Stone"]={
-				["Position"] = {{0,0,0},{4,0,4},{4,-4,8},{8,-4,8},{4,-4,16},{4,-4,12},{4,-4,24},{-32,-4,-32},{28,-4,28},{-32, -4, 28}},
-				["Id"] ={0,0,0,0}
-			} --Old Saving Method
-		};]]
-	--[["0x0"] ={
-		["0,0,0"] = {"Stone",1,1}--(name,Direaction,State)
-	};]]-- New Method Easier to get blocks less resorce intensive
-	},
-	["LoadedBlocks"] ={
-
-	},
-	["BlockNbt"] ={
-
-	},
-	["Entitys"] ={
-	--[[	["190-099-3210"] { -- a uuid
-			["Name"] = "Example",
-			["Age"] = "0",
-			["position"] = {},
-			["IsChild"] = false,
-		}]]
-		--[[["190-099-3210"]= { -- a uuid
-			["Name"] = "Mar",
-			["Age"] = "0",
-			["Position"] = {0,100,0},
-			["IsChild"] = false,
-		}]]
-	},
-	["LoadedEntitys"] ={}
+	
 }
 
 local Connections = {}
 local function Echeckfornearbyplayers(uuid,Distance)
 	local deload = false
+	local player 
 	for i,v in ipairs(game.Players:GetPlayers()) do
-		if v.Character and v.character.PrimaryPart then
+		if v.Character and v.character.PrimaryPart and v.character.PrimaryPart.position then
+			player = v
 			--print( (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude )
-			if (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude > EntitysDeloadDistance*16*4 then
+			if (v.character.PrimaryPart.position-Vector3.new(unpack(maindata.LoadedEntitys[uuid].Position))).magnitude > EntitysDeloadDistance*16*4 then
 				deload = true
 				break
 			end
 		end
 	end
-	return deload
+	return deload,player
 end
 local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
-		local startclock = os.clock
+		local startclock = os.clock()
 		local timepassed = 0
+		local once = false
 		self = runservice.Stepped:Connect(function(time, deltaTime)
-			Main.LoadedEntitys[uuid]["Position"][1] += 0.5
-			if not Connections[uuid] or not Main.Entitys[uuid] or Echeckfornearbyplayers(uuid) then
+			local entity = 	maindata.LoadedEntitys[uuid]
+			local player, closestplayer =  Echeckfornearbyplayers(uuid)
+			if not Connections[uuid] or not maindata.Entitys[uuid] or player then
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
-				Main.Entitys[uuid] = Main.Entitys[uuid] and Main.LoadedEntitys[uuid] or nil
-				Main.LoadedEntitys[uuid] = nil
+				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
+				maindata.LoadedEntitys[uuid] = nil
 				self:Disconnect()
 			end
 			if os.clock() - startclock >0.1 then
 				startclock = os.clock()
 				timepassed += 1
-				for eventname,info in pairs(Main.LoadedEntitys[uuid].Events)do
+				for eventname,info in pairs(maindata.LoadedEntitys[uuid].Events)do
 					if (timepassed*0.1)%(info[2] or 1) == 0 then
 							for index,stuff in ipairs(info[1])do
 								local value,goal,increase = stuff[1],stuff[2],stuff[3]
 								if type(value) == "string" then
-									value = Main.LoadedEntitys[uuid][value] or goal
+									value = maindata.LoadedEntitys[uuid][value] or goal
 								end
 								if increase then
 								value += increase
@@ -90,6 +69,19 @@ local function runentity(uuid)
 								end
 							end
 					end
+				end
+				--print(entity)
+				if (timepassed*0.1)%(1) == 0 and once == false then
+					once = true
+				local path =pathfinding.GetPath({entity.Position[1],entity.Position[2]-4,entity.Position[3]},closestplayer.Character.PrimaryPart.position)
+					if path then
+						print(path)
+						for i,v in ipairs(path)do
+							entity.Position = functions.convertPositionto(v.position,"table")
+							entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
+							task.wait(1)
+						end
+					end	
 				end
 			end
 		end)
@@ -127,7 +119,7 @@ function Main.GetSortedTable(Data,Chunck,lc,Player)
 		if can(coord,Data,Player.Character.PrimaryPart.Position.Y)  then	
 		lc[coord] ={data[1],data[2],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 		end
-		Main["LoadedBlocks"][coord] ={data[1],data[2],Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		maindata["LoadedBlocks"][coord] ={data[1],data[2],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 	end
 	return lc
 end
@@ -138,7 +130,7 @@ end
 function Main.CheckForBlock(x,y,z,CanBeTransParent)
 	x,z,y  = functions.GetBlockCoords(Vector3.new(x,y,z))
 	local cx,cz = functions.GetChunck(Vector3.new(x,0,z))
-	local bock = Main.Chunck[cx.."x"..cz][x..y..z]
+	local bock = maindata.Chunck[cx.."x"..cz][x..y..z]
 	if bock then
 		return bock[1],bock[2]
 	end
@@ -161,8 +153,8 @@ function Main.GetChunck(Player,Chunck,firsttime)
 		updateentitytable(Player,EntitysDeloadDistance-2)	
 	end
 	local lc = {}
-	if not Main.Chunck[Chunck] then
-		Main.Chunck[Chunck] = {}
+	if not maindata.Chunck[Chunck] then
+		maindata.Chunck[Chunck] = {}
 		for index,coord in ipairs(functions.XZCoordInChunck(Chunck)) do
 				for y = 0,80,4 do
 					local coords = string.split(coord,"x")
@@ -171,14 +163,14 @@ function Main.GetChunck(Player,Chunck,firsttime)
 					id = 0
 					if  block ~= nil and block ~="Air" then
 						local packpos = pack(position)
-						Main.Chunck[Chunck][packpos] = {block,id}
+						maindata.Chunck[Chunck][packpos] = {block,id}
 
 					end
 				end
 			end
 
 		end
-	return Main.GetSortedTable(Main.Chunck[Chunck],Chunck,{},Player)--,array
+	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
 end
 function Main.render(Player,RD,RenderedChuncks)
 	local lc = {}
@@ -187,8 +179,8 @@ function Main.render(Player,RD,RenderedChuncks)
 	updateentitytable(Player,EntitysDeloadDistance-2)	
 	for i,v in ipairs(nearbychuncks)do
 		if RenderedChuncks[v] then continue end
-		if not Main.Chunck[v] then
-			Main.Chunck[v] = {}
+		if not maindata.Chunck[v] then
+			maindata.Chunck[v] = {}
 			for index,coord in ipairs(functions.XZCoordInChunck(v)) do
 				incease += 1
 				if index%200 == 0  then
@@ -201,33 +193,33 @@ function Main.render(Player,RD,RenderedChuncks)
 					id = 0
 					if  block ~= nil and block ~="Air" then
 						local packpos = pack(position)
-						Main.Chunck[v][packpos] = {block,id}
+						maindata.Chunck[v][packpos] = {block,id}
 
 					end
 				end
 			end
 	
 		end
-		lc = Main.GetSortedTable(Main.Chunck[v],v,RenderedChuncks,lc)
+		lc = Main.GetSortedTable(maindata.Chunck[v],v,RenderedChuncks,lc)
 	end
 	return lc--,array
 end
 function Main.CreateEntity(Name)
 	local uuid = HTTPs:GenerateGUID()
-	Main.Entitys[uuid] =BasicNbtData
-	Main.Entitys[uuid].Name = Name
-	Main.Entitys[uuid].Position = {functions.GetVector3Componnets(Main.GetFloor(0,80,0))}
+	maindata.Entitys[uuid] = entityhandler.BasicNbt
+	maindata.Entitys[uuid].Name = Name
+	maindata.Entitys[uuid].Position = {functions.GetVector3Componnets(Main.GetFloor(0,80,0))}
 end
 function updateentitytable(Player,Distance)
 	if Player and Player.Character and Player.Character.PrimaryPart then
 		local player_Distance = Player.Character.PrimaryPart.Position
-		for uuid,nbt in pairs(Main.Entitys) do
+		for uuid,nbt in pairs(maindata.Entitys) do
 		--	print(nbt)
-				if Main.LoadedEntitys[uuid] then continue end	
-				runentity(uuid)	
+				if maindata.LoadedEntitys[uuid] then continue end	
 				local EntityPos = Vector3.new(unpack(nbt.Position))
 				if (player_Distance - EntityPos).magnitude <= Distance*16*4 then
-				Main.LoadedEntitys[uuid] = nbt
+					maindata.LoadedEntitys[uuid] = nbt
+					runentity(uuid)	
 			end
 		end		
 	end
@@ -236,8 +228,9 @@ function Main.GetNearByEntitys(Player,Distance)
 	local placeentity = {}
 	if Player and Player.character and Player.character.PrimaryPart then
 		local playerpos = Player.character.PrimaryPart.position
-		for uuid,nbt in pairs(Main.LoadedEntitys) do
-				local position =Vector3.new(unpack(nbt.position))
+		--print(maindata.LoadedEntitys)
+		for uuid,nbt in pairs(maindata.LoadedEntitys) do
+				local position =Vector3.new(unpack(nbt.Position))
 				if (playerpos-position).magnitude <= Distance*16*4 then
 					placeentity[uuid] = nbt
 				end

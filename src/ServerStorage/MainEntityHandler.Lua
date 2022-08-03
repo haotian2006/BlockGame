@@ -1,4 +1,4 @@
-local MainHandler = require(game.ServerStorage.MainHandler)
+local MainHandler = require(game.ServerStorage.MainData)
 local handlers = game.ServerStorage.EntityHandlers
 local Data = {
    ["BasicNbt"] ={
@@ -96,3 +96,4 @@ end
 function  Data.EventRead(data)
 	
 end
+return Data

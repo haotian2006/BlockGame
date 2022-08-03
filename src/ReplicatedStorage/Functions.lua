@@ -17,7 +17,17 @@ function Function.GetBlockCoords(Position:Vector3)
 	local y = Round((0 + Position.Y)/4)
 	return x,z,y
 end
-
+function Function.returnDatastringcomponets(data:string)
+    local splited = string.split(data,",")
+    return splited[1],splited[2],splited[3]
+end
+function Function.GetMagnituide(pos1:string,pos2:string)
+	pos1 = Function.convertPositionto(pos1,"string")
+    pos2 = Function.convertPositionto(pos2,"string")
+	local x,y,z = Function.returnDatastringcomponets(pos1)
+	local x2,y2,z2 = Function.returnDatastringcomponets(pos2)
+	return math.sqrt((x2-x)^2+(y2-y)^2+(z2-z)^2)
+end
 function Function.GetChunck(Position:Vector3)
 	local x,z = Function.GetBlockCoords(Position)
 	local cx =	Round(x/16)
@@ -26,6 +36,8 @@ function Function.GetChunck(Position:Vector3)
 end
 function Function.convertPositionto(cout,etype)
     local ty = typeof(cout)
+	ty = string.lower(ty)
+	etype = string.lower(etype)
     local x,y,z 
     local ret 
     if ty == "string" then
@@ -33,15 +45,21 @@ function Function.convertPositionto(cout,etype)
         x,y,z = unpack(splited)
     elseif ty == "table" then
         x,y,z = unpack(cout)
-    elseif ty =="Vector3" then
+    elseif ty =="vector3" then
         x,y,z = cout.X,cout.Y,cout.Z
+	else
+		warn(cout.." is a(n) "..ty.." which is not a valid input")
+		etype ="skip"
     end
     if etype == "string" then
         ret = x..","..y..","..z
     elseif etype == "table" then
         ret = {x,y,z}
-     elseif etype =="Vector3" then
+     elseif etype =="vector3" then
         ret = Vector3.new(x,y,z)
+	elseif etype =="skip" then
+	 else
+		warn(etype.." is not a valid input")
     end
     return ret
 end 

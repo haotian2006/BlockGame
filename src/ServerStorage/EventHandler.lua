@@ -1,5 +1,5 @@
 local events ={loops ={}}
-local MainHandler = require(game.ServerStorage.MainHandler)
+local MainHandler = require(game.ServerStorage.MainData)
 local function getentityfromuuid(uuid)
 	return MainHandler.LoadedEntitys[uuid] or  MainHandler.Entitys[uuid]
 end
