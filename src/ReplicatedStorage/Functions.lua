@@ -24,6 +24,27 @@ function Function.GetChunck(Position:Vector3)
 	local cz= 	Round(z/16)
 	return cx,cz
 end
+function Function.convertPositionto(cout,etype)
+    local ty = typeof(cout)
+    local x,y,z 
+    local ret 
+    if ty == "string" then
+        local splited = string.split(cout,",")
+        x,y,z = unpack(splited)
+    elseif ty == "table" then
+        x,y,z = unpack(cout)
+    elseif ty =="Vector3" then
+        x,y,z = cout.X,cout.Y,cout.Z
+    end
+    if etype == "string" then
+        ret = x..","..y..","..z
+    elseif etype == "table" then
+        ret = {x,y,z}
+     elseif etype =="Vector3" then
+        ret = Vector3.new(x,y,z)
+    end
+    return ret
+end 
 function Function.LoadCharacter(Player)
 	
 end
