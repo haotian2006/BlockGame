@@ -36,8 +36,13 @@ local function can(coord:string,current,model)
     if false then
         return true
     end
-    local gridpos = convertPositionto({functions.GetBlockCoords(convertPositionto(coord,"vector3"))},"string")
-    print(gridpos)
+
+    local gridpos = convertPositionto(
+        {
+        functions.GetBlockCoords(convertPositionto(coord,"vector3"))
+        }
+    ,"string")
+    print(gridpos," | ",coord)
     if mainhandler.LoadedBlocks[gridpos] then
         print("e")
         can = true

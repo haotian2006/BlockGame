@@ -15,7 +15,7 @@ function Function.GetBlockCoords(Position:Vector3)
 	local x = Round((0 + Position.X)/4)
 	local z = Round((0 + Position.Z)/4)
 	local y = Round((0 + Position.Y)/4)
-	return x,z,y
+	return x,y,z
 end
 function Function.returnDatastringcomponets(data:string)
     local splited = string.split(data,",")
