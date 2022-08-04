@@ -29,7 +29,7 @@ function Function.GetMagnituide(pos1:string,pos2:string)
 	return math.sqrt((x2-x)^2+(y2-y)^2+(z2-z)^2)
 end
 function Function.GetChunck(Position:Vector3)
-	local x,z = Function.GetBlockCoords(Position)
+	local x,y,z = Function.GetBlockCoords(Position)
 	local cx =	Round(x/16)
 	local cz= 	Round(z/16)
 	return cx,cz
@@ -65,6 +65,10 @@ function Function.convertPositionto(cout,etype)
 end 
 function Function.LoadCharacter(Player)
 	
+end
+function Function.ConvertGridToReal(positon,typeofp)
+	local converted = Function.convertPositionto(positon,"table")
+	return Function.convertPositionto({converted[1]*4,converted[2]*4,converted[3]*4},typeofp)
 end
 function Function.GetSurroundingChunck(Position:Vector3,render:number)
 	local cx,cz =  Function.GetChunck(Position)

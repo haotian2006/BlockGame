@@ -62,7 +62,7 @@ local function sortchunck(TAB)
 end
 local function removechunck(chunck)
 	for i,v in pairs(chunck:GetChildren()) do
-		if i%50 == 0 and firsttime then
+		if i%200 == 0 and firsttime then
 			task.wait(0.01)
 		end
 		v:Destroy()
@@ -117,14 +117,16 @@ local function frender(char)
 end
 local oldchunck =""
 game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
-	task.wait(0.1)
-	QuickRender(char)
+	task.wait(0.2)
+	local newchar = game.Players.LocalPlayer.Character
+	QuickRender(newchar)
 	while char do
-		local currentChunck,c = functions.GetChunck(char.PrimaryPart.Position)
+		newchar = game.Players.LocalPlayer.Character
+		local currentChunck,c = functions.GetChunck(newchar.PrimaryPart.Position)
 		currentChunck = currentChunck.."x"..c
 		if currentChunck ~= oldchunck  then
 			oldchunck = currentChunck
-			frender(char)
+			frender(newchar)
 		end
 		task.wait(0.1)
 	end

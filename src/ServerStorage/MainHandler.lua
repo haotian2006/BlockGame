@@ -40,6 +40,7 @@ local function runentity(uuid)
 		local startclock = os.clock()
 		local timepassed = 0
 		local once = false
+		local oldplayerpos = "0,1a"
 		self = runservice.Stepped:Connect(function(time, deltaTime)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
@@ -71,12 +72,20 @@ local function runentity(uuid)
 					end
 				end
 				--print(entity)
-				if (timepassed*0.1)%(1) == 0 and once == false then
-					once = true
-				local path =pathfinding.GetPath({entity.Position[1],entity.Position[2]-4,entity.Position[3]},closestplayer.Character.PrimaryPart.position)
+				local playerpos = closestplayer.Character.PrimaryPart.position
+				playerpos = Main.GetFloor(playerpos,true)
+			--	print(playerpos)
+				local px,py,pz = functions.GetBlockCoords(playerpos)
+				if (timepassed*0.1)%(1) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
+					print("newpathfind")
+					oldplayerpos = px..","..pz
+				local path =pathfinding.GetPath({entity.Position[1],entity.Position[2]-4,entity.Position[3]},playerpos)
 					if path then
-						print(path)
+						local lplayerpos = oldplayerpos
 						for i,v in ipairs(path)do
+							if oldplayerpos ~= lplayerpos then
+								break
+							end
 							entity.Position = functions.convertPositionto(v.position,"table")
 							entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
 							task.wait(1)
@@ -128,25 +137,29 @@ function Main.GetSurFace(X,Z)
 	
 end
 function Main.CheckForBlock(x,y,z,CanBeTransParent)
-	x,z,y  = functions.GetBlockCoords(Vector3.new(x,y,z))
-	local cx,cz = functions.GetChunck(Vector3.new(x,0,z))
-	local bock = maindata.Chunck[cx.."x"..cz][x..y..z]
+	local cx,cz = functions.GetChunck(functions.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
+	if not maindata.Chunck[cx.."x"..cz] then
+		return false
+	end
+	local bock = maindata.Chunck[cx.."x"..cz][x..','..y..","..z]
 	if bock then
-		return bock[1],bock[2]
+		return true,bock[1],bock[2]
 	end
 	return false
 end
 function Main.RayCast(Origion:Vector3,Direaction:Vector3,Range:number,Velocity:number,WhiteList)
 --	local pos1,pos2,pos3 = Origion
 end
-function Main.GetFloor(x,y,z)
-	x,z,y  = functions.GetBlockCoords(Vector3.new(x,y,z))
-	local cx,cz = functions.GetChunck(Vector3.new(x,0,z))
+function Main.GetFloor(pos,CanBeTransParent)
+	pos = functions.convertPositionto(pos,"vector3")
+	local x,y,z = functions.returnDatastringcomponets(functions.ConvertGridToReal({functions.GetBlockCoords(pos)},"string"))
+	local cx,cz = functions.GetChunck(Vector3.new(pos.X,0,pos.Z))
 	for i = y , 0,-1 do
-		if not Main.CheckForBlock(x,i,z) then
-			return Vector3.new(x,i+1,z)
+		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
+			return Vector3.new(x,i,z)
 		end
 	end
+	return nil
 end
 function Main.GetChunck(Player,Chunck,firsttime)
 	if not firsttime then
@@ -173,6 +186,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
 end
 function Main.render(Player,RD,RenderedChuncks)
+	--print(Player.Character.PrimaryPart.Position)
 	local lc = {}
 	local nearbychuncks = functions.GetSurroundingChunck(Player.Character.PrimaryPart.Position,RD)
 	local incease = 0

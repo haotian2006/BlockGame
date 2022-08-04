@@ -1,9 +1,9 @@
-local mainhandler = require(game.ServerStorage.MainData)
+local MainData = require(game.ServerStorage.MainData)
 local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
 
 -- debugging
-local visualise = true
+local visualise = false
 local OnlyvisualiseFinal = true
 
 local pathfinding ={}
@@ -23,8 +23,26 @@ local function convertheighttomax(height)
 	end
     return rounded
 end
+local onceeeee = true
+local function getblockfromchunck(coordnites)
+    local chunck,z = functions.GetChunck(convertPositionto(coordnites,"vector3"))
+    chunck = MainData.Chunck[chunck.."x"..z]
+    if chunck then
+    return chunck[coordnites] or nil
+    else
+        return nil
+    end
+end
 local function can(coord:string,current,model)
     local cx,cy,cz = returnstringcomponets(current.position)
+   
+local vector =  {functions.GetBlockCoords(convertPositionto(coord,"vector3"))}
+
+    local gridpos = convertPositionto(
+        
+            {vector[1]*4,vector[2]*4,vector[3]*4}
+        
+    ,"string")
     local x,y,z = returnstringcomponets(coord)
     local height = 4--model.Size.Y
    -- local width = model.Size.X
@@ -32,34 +50,24 @@ local function can(coord:string,current,model)
     if diffrence == -4 then
         height+=4  
     end
+    x,y,z = returnstringcomponets(gridpos)
     local can = false
-    if false then
-        return true
-    end
-
-    local gridpos = convertPositionto(
-        {
-        functions.GetBlockCoords(convertPositionto(coord,"vector3"))
-        }
-    ,"string")
-    print(gridpos," | ",coord)
-    if mainhandler.LoadedBlocks[gridpos] then
-        print("e")
+    if getblockfromchunck(gridpos) then
         can = true
-        --[[for i = 1 ,convertheighttomax(height),1 do -- checks if the height fits
-            if mainhandler.LoadedBlocks[convertPositionto({x,y+4*i,z},"string")]then
-                if mainhandler.BlockNbt[convertPositionto({x,y+4*i,z},"string")] then
-                    if  mainhandler.BlockNbt[convertPositionto({x,y+4*i,z},"string")].Open and mainhandler.BlockNbt[convertPositionto({x,y+4*i,z,"string"})].Open.Value then
+        for i = 1 ,convertheighttomax(height),1 do -- checks if the height fits
+            if MainData.LoadedBlocks[convertPositionto({x,y+4*i,z},"string")]then
+                if MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")] then
+                    if  MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")].Open and MainData.BlockNbt[convertPositionto({x,y+4*i,z,"string"})].Open.Value then
                         continue
                     end
-                    if  mainhandler.BlockNbt[convertPositionto({x,y+4*i,z},"string")].CanCollide and  mainhandler.BlockNbt[convertPositionto({x,y+4*i,z,"string"})].CanCollide.Value == true then
+                    if  MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")].CanCollide and  MainData.BlockNbt[convertPositionto({x,y+4*i,z,"string"})].CanCollide.Value == true then
                         return false
                     end
                 else
                     return false
                 end
             end
-        end]]
+        end
         -- checks if its wide enought wip
       --  for i = 1 ,convertheighttomax(width),1 do
             
@@ -70,12 +78,12 @@ local function can(coord:string,current,model)
             for i = 1 ,convertheighttomax(height),1 do -- checks if the height fits
                 local positon = convertPositionto({cx+mx,y+4*i,cz},"string")
                 local positon1 = convertPositionto({cx,y+4*i,cz+mz},"string")
-                if mainhandler.LoadedBlocks[positon]then
-                    if mainhandler.BlockNbt[positon] then
-                        if  mainhandler.BlockNbt[positon].Open and mainhandler.BlockNbt[positon].Open.Value then
+                if MainData.LoadedBlocks[positon]then
+                    if MainData.BlockNbt[positon] then
+                        if  MainData.BlockNbt[positon].Open and MainData.BlockNbt[positon].Open.Value then
                             continue
                         end
-                        if  mainhandler.BlockNbt[positon].CanCollide and  mainhandler.BlockNbt[positon].CanCollide.Value == true then
+                        if  MainData.BlockNbt[positon].CanCollide and  MainData.BlockNbt[positon].CanCollide.Value == true then
                             C1 = false
                             break
                         end
@@ -84,12 +92,12 @@ local function can(coord:string,current,model)
                         break
                     end
                 end
-                if mainhandler.LoadedBlocks[positon1]then
-                    if mainhandler.BlockNbt[positon1] then
-                        if  mainhandler.BlockNbt[positon1].Open and mainhandler.BlockNbt[positon1].Open.Value then
+                if MainData.LoadedBlocks[positon1]then
+                    if MainData.BlockNbt[positon1] then
+                        if  MainData.BlockNbt[positon1].Open and MainData.BlockNbt[positon1].Open.Value then
                             continue
                         end
-                        if  mainhandler.BlockNbt[positon1].CanCollide and  mainhandler.BlockNbt[positon1].CanCollide.Value == true then
+                        if  MainData.BlockNbt[positon1].CanCollide and  MainData.BlockNbt[positon1].CanCollide.Value == true then
                             C2= false
                             break
                         end
@@ -130,33 +138,25 @@ local function getneighbours(coords:string,start)
     end
     return data
 end
-local function tablefind(tablea,target)
-    local index
-    for i,v in ipairs(tablea)do
-        if v.position == target then
-            index = i
-            break
-        end
-    end
-    return index
-end
-local function visulise(position)
-    local part = Instance.new("Part")
+local function visulise(position,yes)
+    local part = yes and script.Debug:clone() or Instance.new("Part")
     part.Size = Vector3.new(1,1,1)
     part.Position = convertPositionto(position,"vector3")
     part.Anchored = true
     part.Material = Enum.Material.Neon
     part.Parent = workspace
+    part.Name = "debugged"
 end
 function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:string,model)
     local open ={}
     local open2 ={}
     local closed ={}
+    local closed2 ={}
     local path 
     local current2 
     table.insert(open,{position = startposition,gcost = 0,fcost =0,hcost = 0})
      table.insert(open2,startposition)
-    while #open >0 do
+    while #open >0 and  #open <200 do
         
         local current = open[1]
         for index,node in ipairs(open)do
@@ -170,17 +170,18 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
         table.remove(open,table.find(open2,current.position))
         table.remove(open2,table.find(open2,current.position))
         table.insert(closed,current)
-        if visualise and not OnlyvisualiseFinal then
+        table.insert(closed2,current.position)
+        if visualise  then
             visulise(current.position)
         end
         if convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") == convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string") then
-            print( convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string")," | ", convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string"))
+        --    print( convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string")," | ", convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string"))
             return pathfinding.retracepath(convertPositionto(startposition,"string"),current),true
         end
     
 
         for index,neighbor in ipairs(getneighbours(current.position,startposition))do
-            if tablefind(closed,neighbor.position) or not can(neighbor.position,current) then continue end
+            if table.find(closed2,neighbor.position) or not can(neighbor.position,current) then continue end
             local newcost = current.gcost + getdistance(current.position,neighbor.position)
             if (newcost<neighbor.gcost) or not table.find(open2,neighbor.position) then
                 neighbor.gcost = newcost
@@ -194,6 +195,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
              end
         end
     end
+    print("not dsone")
     return current2 and pathfinding.retracepath(convertPositionto(startposition,"string"),current2) or nil,false
 end
 function pathfinding.retracepath(start,goal)
@@ -202,7 +204,7 @@ function pathfinding.retracepath(start,goal)
     while convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") ~= convertPositionto({functions.GetBlockCoords(convertPositionto(start,"vector3"))},"string") do
         table.insert(path,current)
         if  OnlyvisualiseFinal then
-            visulise(current.position)
+            visulise(current.position,true)
         end
         current = current.parent
     end
