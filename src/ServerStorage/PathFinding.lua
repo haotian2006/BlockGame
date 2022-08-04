@@ -3,8 +3,8 @@ local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
 
 -- debugging
-local visualise = true
-local OnlyvisualiseFinal = false
+local visualise = false
+local OnlyvisualiseFinal = true
 
 local pathfinding ={}
 local function convertPositionto(cout,etype)
