@@ -3,8 +3,8 @@ local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
 
 -- debugging
-local visualise = false
-local OnlyvisualiseFinal = true
+local visualise = true
+local OnlyvisualiseFinal = false
 
 local pathfinding ={}
 local function convertPositionto(cout,etype)
@@ -156,7 +156,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
     local current2 
     table.insert(open,{position = startposition,gcost = 0,fcost =0,hcost = 0})
      table.insert(open2,startposition)
-    while #open >0 and  #open <200 do
+    while #open >0 and  #closed <200 do
         
         local current = open[1]
         for index,node in ipairs(open)do
@@ -175,6 +175,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
             visulise(current.position)
         end
         if convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") == convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string") then
+            print(#closed)
         --    print( convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string")," | ", convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string"))
             return pathfinding.retracepath(convertPositionto(startposition,"string"),current),true
         end
