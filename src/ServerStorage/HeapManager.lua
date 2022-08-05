@@ -27,8 +27,8 @@ local function sortup(self,item)
     local parentindex = (item.HeapIndex-1)/2
     while true do
         local parentitem = self.Items[parentindex]
-        if comparenode(item,parentitem) > 0 then
-            swap(item,parentitem)
+        if parentitem and comparenode(item,parentitem) > 0 then
+            swap(self,item,parentitem)
         else
             break
         end
@@ -43,12 +43,12 @@ local function sortdown(self,item)
         if indexofchildleft < self.CurrentSize then
             swapindex = indexofchildleft
             if indexofchildright < self.CurrentSize then
-                if comparenode(self.Items[indexofchildleft],self.Items[indexofchildright] <0) then
+                if comparenode(self.Items[indexofchildleft],self.Items[indexofchildright])<0 then
                     swapindex = indexofchildright
                 end
             end
-            if comparenode(item,self.Items[swapindex]<0) then
-                swap(item,self.Items[swapindex])
+            if comparenode(item,self.Items[swapindex])<0 then
+                swap(self,item,self.Items[swapindex])
             else
                 return
             end
@@ -72,11 +72,11 @@ function heap:add(item)
     self.CurrentSize += 1
 end
 function heap:RemoveFirst()
-   local firstitme = self.Items[1]
+   local firstitme = self.Items[0]
    self.CurrentSize -= 1
-   self.Items[1] = self.Items[self.CurrentSize]
-   self.Items[1].HeapIndex = 0 
-   sortdown(self.Items[1])
+   self.Items[0] = self.Items[self.CurrentSize]
+   self.Items[0].HeapIndex = 0 
+   sortdown(self,self.Items[0])
    return firstitme
 end
 return heap

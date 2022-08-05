@@ -1,12 +1,13 @@
 local MainData = require(game.ServerStorage.MainData)
-local LocalizationService = game:GetService("LocalizationService")
+local HttpService = game:GetService("HttpService")
 local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
 local heapmanager = require(game.ServerStorage.HeapManager)
 -- debugging
 local visualise = false
-local OnlyvisualiseFinal = true
+local OnlyvisualiseFinal = false
 local gettimeper = true
+local removeold = true
 
 local pathfinding ={}
 local function convertPositionto(cout,etype)
@@ -140,24 +141,42 @@ local function getneighbours(coords:string,start)
     end
     return data
 end
-local function visulise(position,yes)
-    local part = yes and script.Debug:clone() or Instance.new("Part")
+local function visulise(position,yes,uuid,debuguuid)
+
+    local folder = game.Workspace:FindFirstChild("DebugFolder") or Instance.new("Folder",workspace)
+    folder.Name = "DebugFolder"
+    local foldertwo = folder:FindFirstChild("debug") or folder:FindFirstChild("uuid") or Instance.new("Folder",folder)
+    foldertwo.Name = debuguuid and uuid or "debug"
+    local folder3 = debuguuid and (foldertwo:FindFirstChild(debuguuid)or Instance.new("Folder",foldertwo))
+    if folder3 then
+        folder3.Name = debuguuid
+        for i,v in ipairs(foldertwo:GetChildren())do
+            if v.Name ~= debuguuid then
+                v:Destroy()
+            end
+        end
+    end
+    local part = yes and script.Parent.Debug:clone() or Instance.new("Part")
     part.Size = Vector3.new(1,1,1)
     part.Position = convertPositionto(position,"vector3")
     part.Position = Vector3.new(part.Position.X, part.Position.Y+4, part.Position.Z)
     part.Anchored = true
     part.Material = Enum.Material.Neon
-    part.Parent = workspace
+    part.Parent = folder3 or foldertwo
     part.Name = "debugged"
+    part.CanCollide = false
 end
-function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:string,model)
+function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
     local open ={}
     local open2 ={}
     local closed ={}
     local closed2 ={}
     local path 
     local current2 
-    local folder 
+    local debugfolder = nil
+    if removeold then
+        debugfolder = HttpService:GenerateGUID()
+    end
     local heap = heapmanager.new(10)
     table.insert(open,{position = startposition,gcost = 0,fcost =0,hcost = 0})
      table.insert(open2,startposition)
@@ -180,15 +199,15 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
         table.insert(closed,current)
         table.insert(closed2,current.position)
         if visualise  then
-            visulise(current.position)
+            visulise(current.position,false,uuid,debugfolder)
         end
         if convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") == convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string") then
                 if gettimeper then
-                    print(DateTime.now().UnixTimestampMillis-starttime)
+                    print(DateTime.now().UnixTimestampMillis-starttime.." ms |", convertPositionto(goal,"string").." goal")
                 end
 
         --    print( convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string")," | ", convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string"))
-            return pathfinding.retracepath(convertPositionto(startposition,"string"),current),true
+            return pathfinding.retracepath(convertPositionto(startposition,"string"),current,uuid,debugfolder),true
         end
     
 
@@ -208,16 +227,16 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
              end
         end
     end
-    print("not dsone")
+ --   print("not dsone")
     return current2 and pathfinding.retracepath(convertPositionto(startposition,"string"),current2) or nil,false
 end
-function pathfinding.retracepath(start,goal)
+function pathfinding.retracepath(start,goal,uuid,debugfolder)
     local path = {}
     local current = goal
     while convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") ~= convertPositionto({functions.GetBlockCoords(convertPositionto(start,"vector3"))},"string") do
         table.insert(path,current)
         if  OnlyvisualiseFinal then
-            visulise(current.position,true)
+            visulise(current.position,true,uuid,debugfolder)
         end
         current = current.parent
     end

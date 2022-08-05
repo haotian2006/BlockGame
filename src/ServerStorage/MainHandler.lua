@@ -77,7 +77,7 @@ local function runentity(uuid)
 			--	print(playerpos)
 				local px,py,pz = functions.GetBlockCoords(playerpos)
 				if (timepassed*0.1)%(1) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
-					print("newpathfind")
+					--print("newpathfind")
 					oldplayerpos = px..","..pz
 				local path =pathfinding.GetPath({entity.Position[1],entity.Position[2]-4,entity.Position[3]},playerpos)
 					if path then
