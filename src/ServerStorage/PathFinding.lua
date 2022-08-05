@@ -1,10 +1,12 @@
 local MainData = require(game.ServerStorage.MainData)
+local LocalizationService = game:GetService("LocalizationService")
 local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
-
+local heapmanager = require(game.ServerStorage.HeapManager)
 -- debugging
 local visualise = false
 local OnlyvisualiseFinal = true
+local gettimeper = true
 
 local pathfinding ={}
 local function convertPositionto(cout,etype)
@@ -142,6 +144,7 @@ local function visulise(position,yes)
     local part = yes and script.Debug:clone() or Instance.new("Part")
     part.Size = Vector3.new(1,1,1)
     part.Position = convertPositionto(position,"vector3")
+    part.Position = Vector3.new(part.Position.X, part.Position.Y+4, part.Position.Z)
     part.Anchored = true
     part.Material = Enum.Material.Neon
     part.Parent = workspace
@@ -154,18 +157,23 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
     local closed2 ={}
     local path 
     local current2 
+    local folder 
+    local heap = heapmanager.new(10)
     table.insert(open,{position = startposition,gcost = 0,fcost =0,hcost = 0})
      table.insert(open2,startposition)
-    while #open >0 and  #closed <200 do
+     heap:add({position = startposition,gcost = 0,fcost =0,hcost = 0})
+    local starttime = DateTime.now().UnixTimestampMillis
+    
+    while #open >0 do
         
-        local current = open[1]
-        for index,node in ipairs(open)do
+        local current = heap:RemoveFirst() --open[1]
+    --[[    for index,node in ipairs(open)do
             if node.fcost < current.fcost or node.fcost == current.fcost then
                 if node.hcost <current.hcost then
                     current = node
                 end
             end
-        end
+        end]]
         current2 = current
         table.remove(open,table.find(open2,current.position))
         table.remove(open2,table.find(open2,current.position))
@@ -175,7 +183,10 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
             visulise(current.position)
         end
         if convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") == convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string") then
-            print(#closed)
+                if gettimeper then
+                    print(DateTime.now().UnixTimestampMillis-starttime)
+                end
+
         --    print( convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string")," | ", convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string"))
             return pathfinding.retracepath(convertPositionto(startposition,"string"),current),true
         end
@@ -187,11 +198,12 @@ function  pathfinding.GetPath(startposition:table,goal:table,nbtdata:table,uuid:
             if (newcost<neighbor.gcost) or not table.find(open2,neighbor.position) then
                 neighbor.gcost = newcost
                 neighbor.hcost = getdistance(neighbor.position,goal)
-                neighbor.fcost = neighbor.hcost + getdistance(neighbor.position,startposition)
+                neighbor.fcost = neighbor.hcost + newcost--getdistance(neighbor.position,startposition)
                 neighbor.parent =current
                 if not table.find(open2,neighbor.position) then
                         table.insert(open,neighbor)
                         table.insert(open2,neighbor.position)
+                        heap:add(neighbor)
                 end
              end
         end
