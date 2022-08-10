@@ -34,6 +34,14 @@ local function Echeckfornearbyplayers(uuid,Distance)
 	end
 	return deload,player
 end
+local paths ={
+	--[[
+		["startpos"] ={
+			class = familytype
+			path ={path}
+		}
+	]]
+}
 local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
@@ -49,6 +57,7 @@ local function runentity(uuid)
 				Connections[uuid] = nil
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
 				maindata.LoadedEntitys[uuid] = nil
+				--print(maindata.Entitys[uuid] )
 				self:Disconnect()
 			end
 			if os.clock() - startclock >0.1 then
@@ -76,11 +85,13 @@ local function runentity(uuid)
 				playerpos = Main.GetFloor(playerpos,true)
 			--	print(playerpos)
 				local px,py,pz = functions.GetBlockCoords(playerpos)
-				if (timepassed*0.1)%(1) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
+				if (timepassed*0.1)%(2) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
 					--print("newpathfind")
+					--once = true
 					oldplayerpos = px..","..pz
-				local path =pathfinding.GetPath({entity.Position[1],entity.Position[2]-4,entity.Position[3]},playerpos)
-					if path then
+					--{entity.Position[1],entity.Position[2]-4,entity.Position[3]}
+				local path =pathfinding.Queue(uuid,closestplayer.Name,uuid)
+					if path and true then
 						local lplayerpos = oldplayerpos
 						for i,v in ipairs(path)do
 							if oldplayerpos ~= lplayerpos then
@@ -88,7 +99,7 @@ local function runentity(uuid)
 							end
 							entity.Position = functions.convertPositionto(v.position,"table")
 							entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
-							task.wait(1)
+							task.wait(0.5)
 						end
 					end	
 				end
@@ -162,9 +173,7 @@ function Main.GetFloor(pos,CanBeTransParent)
 	return nil
 end
 function Main.GetChunck(Player,Chunck,firsttime)
-	if not firsttime then
 		updateentitytable(Player,EntitysDeloadDistance-2)	
-	end
 	local lc = {}
 	if not maindata.Chunck[Chunck] then
 		maindata.Chunck[Chunck] = {}

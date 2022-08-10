@@ -20,7 +20,7 @@ HEIGHT_SCALE = 40
 OCTAVES = 4
 LACUNARITY = 0
 PERSISTENCE = 2
-SEED = 0
+SEED = 123
 function Generation.GetBlock(position:Vector3)
 	local Surface = (2+ Generation.Noise(position.X,position.Z,OCTAVES,LACUNARITY,PERSISTENCE,NOISE_SCALE,SEED))*HEIGHT_SCALE
 	return (position.Y<Surface) and "Stone" or nil

@@ -61,13 +61,15 @@ local function sortchunck(TAB)
 	return chunckst
 end
 local function removechunck(chunck)
-	for i,v in pairs(chunck:GetChildren()) do
-		if i%200 == 0 and firsttime then
-			task.wait(0.01)
+	task.spawn(function()
+		for i,v in pairs(chunck:GetChildren()) do
+			if i%100 == 0 and firsttime then
+				task.wait(0.01)
+			end
+			v:Destroy()
 		end
-		v:Destroy()
-	end
-	chunck:Destroy()
+		chunck:Destroy()
+	end)
 end
 local function QuickRender(char)
 	local nearbychuncks = sortchunck(functions.GetSurroundingChunck(char.PrimaryPart.Position,render))
@@ -124,7 +126,7 @@ game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 		newchar = game.Players.LocalPlayer.Character
 		local currentChunck,c = functions.GetChunck(newchar.PrimaryPart.Position)
 		currentChunck = currentChunck.."x"..c
-		if currentChunck ~= oldchunck  then
+		if currentChunck ~= oldchunck and true then
 			oldchunck = currentChunck
 			frender(newchar)
 		end

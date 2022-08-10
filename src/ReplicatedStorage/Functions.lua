@@ -2,7 +2,10 @@ local RS = game:GetService("ReplicatedStorage")
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Texture = RS.Block_Texture
-
+local maindata 
+if game:GetService("RunService"):IsServer() then
+	maindata = require(game.ServerStorage.MainData)
+end
 local Function = {}
 
 local function Round(x:number)
@@ -28,6 +31,20 @@ function Function.GetMagnituide(pos1:string,pos2:string)
 	local x2,y2,z2 = Function.returnDatastringcomponets(pos2)
 	return math.sqrt((x2-x)^2+(y2-y)^2+(z2-z)^2)
 end
+function Function.GetFloor(pos,CanBeTransParent)
+	if maindata then else return end
+	pos = Function.convertPositionto(pos,"vector3")
+
+	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal({Function.GetBlockCoords(pos)},"string"))
+	local cx,cz = Function.GetChunck(Vector3.new(pos.X,0,pos.Z))
+	--print(x,y,z,cx,cz)
+	for i = y , 0,-1 do
+		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
+			return Vector3.new(x,i,z)
+		end
+	end
+	return pos
+end
 function Function.GetChunck(Position:Vector3)
 	local x,y,z = Function.GetBlockCoords(Position)
 	local cx =	Round(x/16)
@@ -48,7 +65,7 @@ function Function.convertPositionto(cout,etype)
     elseif ty =="vector3" then
         x,y,z = cout.X,cout.Y,cout.Z
 	else
-		warn(cout.." is a(n) "..ty.." which is not a valid input")
+		warn(cout,"is a(n) "..ty.." which is not a valid input")
 		etype ="skip"
     end
     if etype == "string" then
@@ -59,7 +76,7 @@ function Function.convertPositionto(cout,etype)
         ret = Vector3.new(x,y,z)
 	elseif etype =="skip" then
 	 else
-		warn(etype.." is not a valid input")
+		warn(etype,"is not a valid input")
     end
     return ret
 end 

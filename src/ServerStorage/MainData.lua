@@ -8,11 +8,11 @@ return {
 		};]]
 	--[["0x0"] ={
 		["0,0,0"] = {"Stone",1,1,{0,90,0}}--(name,Direaction,State,rotation)
-	};]]-- New Method Easier to get blocks less resorce intensive
+	};]]-- New quicker method
 	},
 	["LoadedBlocks"] ={
 
-	},
+	}, 
 	["BlockNbt"] ={
 
 	},
@@ -23,14 +23,15 @@ return {
 			["position"] = {},
 			["IsChild"] = false,
 		}]]
-		["190-099-3210"]= { -- a uuid
+		["clone"]= { -- a uuid
 			["Name"] = "Mar",
 			["Age"] = "0",
-			["Position"] = {-68,84,-129},
+			["Position"] = {-68,84,-120},
 			["IsChild"] = false,
             Rotation = {0,0,0},
             Events = {}
-		}
+		},
+	
 	},
 	["LoadedEntitys"] ={}
 }

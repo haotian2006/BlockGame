@@ -6,11 +6,9 @@ local heapmanager = require(game.ServerStorage.HeapManager)
 local debug = require(game.ReplicatedStorage.Debughandler)
 -- debugging
 local visualise = false
-local OnlyvisualiseFinal = true
-local gettimeper = false
+local OnlyvisualiseFinal = false
+local gettimeper = true
 local removeold = true
-local haveonlyone = true
-local displaytext = false
 
 local pathfinding ={}
 local function convertPositionto(cout,etype)
@@ -40,7 +38,7 @@ local function getblockfromchunck(coordnites)
     end
 end
 local function can(coord:string,current,model)
-    if false then
+    if true then
         return true 
     end
     local cx,cy,cz = returnstringcomponets(current.position)
@@ -105,15 +103,13 @@ local function getneighbours(coords:string,start)
     end
     return data
 end
-local debugcolor ={}
 local function visulise(position,yes,uuid,debuguuid)
 
     local folder = game.Workspace:FindFirstChild("DebugFolder") or Instance.new("Folder",workspace)
     folder.Name = "DebugFolder"
-
-    local foldertwo = folder:FindFirstChild("debug") or folder:FindFirstChild(uuid) or Instance.new("Folder",folder)
-    foldertwo.Name = (debuguuid and not haveonlyone) and uuid or "debug"
-    local folder3 =  debuguuid and (foldertwo:FindFirstChild(debuguuid)or Instance.new("Folder",foldertwo))
+    local foldertwo = folder:FindFirstChild("debug") or folder:FindFirstChild("uuid") or Instance.new("Folder",folder)
+    foldertwo.Name = debuguuid and uuid or "debug"
+    local folder3 = debuguuid and (foldertwo:FindFirstChild(debuguuid)or Instance.new("Folder",foldertwo))
     if folder3 then
         folder3.Name = debuguuid
         for i,v in ipairs(foldertwo:GetChildren())do
@@ -131,62 +127,9 @@ local function visulise(position,yes,uuid,debuguuid)
     part.Parent = folder3 or foldertwo
     part.Name = "debugged"
     part.CanCollide = false
-    part.BrickColor =  yes and (debugcolor[uuid] or  part.BrickColor)
-    if part.bil then
-        part.bil.Enabled = displaytext
-    end
-end
-local current = {}
-local inqueue = {}
-local indexxx = 0
-function pathfinding.Queue(startposition:table,goal:table,uuid:string,model)
-    table.insert(inqueue,uuid)
-    while true do
-        if #current < 4 then
-        --    print(uuid,"eee")
-            table.insert(current,uuid)
-            table.remove(inqueue,table.find(inqueue,uuid))
-            break
-        end
-        task.wait()
-    end
-    indexxx += 1
-    if indexxx >= 7 then
-        task.wait(0.05)
-        indexxx = 0
-    end
-    print("eeeeee")
-  --  print(#current)
-    if typeof(goal) ~= "table" then
-        local playerpos = game.Players:FindFirstChild(goal).Character.PrimaryPart.position
-				playerpos = functions.GetFloor(playerpos,true)
-			--	print(playerpos)
-        goal = convertPositionto(playerpos,"table")
-    end
-    if typeof(startposition) ~= "table" then
-      --  print(MainData.LoadedEntitys[startposition].Position)
-				--local pos = convertPositionto(MainData.LoadedEntitys[startposition].Position,"vector3")
-             --   print(MainData.LoadedEntitys[startposition].Position)
-              local  pos = functions.GetFloor(MainData.LoadedEntitys[startposition].Position)
-				--print(pos)
-            startposition = pos
-    end
-   -- print(startposition)
-    local path = pathfinding.GetPath(startposition,goal,uuid)
-    table.remove(current,table.find(current,uuid))
-    return path
-end
-local function getRandomBrickColor()
-    local randomR = math.random();
-    local randomG = math.random();
-    local randomB = math.random();
-    local randomBrickColor = BrickColor.new(randomR, randomG, randomB);
-    return randomBrickColor;
 end
 function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
-  --  print(startposition)
     startposition = convertPositionto(startposition,"vector3")
-  --  print(startposition)
     goal = convertPositionto(goal,"vector3")
     local open ={}
     local open2 ={}
@@ -196,7 +139,6 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
     local current2 
     local debugfolder = nil
     if removeold then
-        debugcolor[uuid] = debugcolor[uuid] or getRandomBrickColor()
         debugfolder = HttpService:GenerateGUID()
     end
     local maxsize =math.clamp(math.abs(startposition.X- goal.X)/4,1,math.huge)*math.clamp(math.abs(startposition.Y- goal.Y)/4,1,math.huge)*math.clamp(math.abs(startposition.Z- goal.Z)/4,1,math.huge)
@@ -210,27 +152,24 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
     local index = 0
     local deb = debug.new(true)
     while #open >0  do--#closed < 400
-        if timesreachedgoal >2 then
-            break
-        end
 
-        local current,index = open[1],1 --eap:RemoveFirst() 
+
+        local current = open[1] --eap:RemoveFirst() 
         --print("a")
         
         for index,node in ipairs(open)do
             if node.fcost < current.fcost or node.fcost == current.fcost then
                 if node.hcost <current.hcost then
                     current = node
-                    index = index
                 end
             end
         end
-       if DateTime.now().UnixTimestampMillis-starttimes >= 150 then break end 
+        if DateTime.now().UnixTimestampMillis-starttimes >= 350 then break end 
         current2 = current
-        table.remove(open,index)
-        open2[current2.position] = nil
+        table.remove(open,table.find(open2,current.position))
+        table.remove(open2,table.find(open2,current.position))
         table.insert(closed,current)
-        closed2[current.position] = true
+        table.insert(closed2,current.position)
         if visualise  then
             visulise(current.position,false,uuid,debugfolder)
      end
@@ -249,22 +188,21 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
      --   print(DateTime.now().UnixTimestampMillis-starttime.." ms |")
      deb:set("b")
   --  print("c")
-        for index,neighbor in ipairs(getneighbours(current.position,startposition))do
-            --[[if convertPositionto({goal.X,convertPositionto(neighbor.position,"vector3").Y,goal.Y},"string") == neighbor.position then
-                timesreachedgoal+= 1 
-            end]]
+  local nnn = getneighbours(current.position,startposition)
+  deb:set("c")
+        for index,neighbor in ipairs(nnn)do
             deb:set("e")
-            if     closed2[neighbor.position] or not can(neighbor.position,current) then continue end
+            if table.find(closed2,neighbor.position) or not can(neighbor.position,current) then continue end
             deb:set("eA")
             local newcost = current.gcost + getdistance(current.position,neighbor.position)
-            if (newcost<neighbor.gcost) or not open2[neighbor.position] then
+            if (newcost<neighbor.gcost) or not table.find(open2,neighbor.position) then
                 neighbor.gcost = newcost
                 neighbor.hcost = getdistance(neighbor.position,goal)
                 neighbor.fcost = neighbor.hcost + newcost--getdistance(neighbor.position,startposition)
                 neighbor.parent =current
-                if not   open2[neighbor.position] then
+                if not table.find(open2,neighbor.position) then
                         table.insert(open,neighbor)
-                        open2[neighbor.position] = "a"
+                        table.insert(open2,neighbor.position)
                         deb:set("d")
                         --heap:add(neighbor)
                 end
