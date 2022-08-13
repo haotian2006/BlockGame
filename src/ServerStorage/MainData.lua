@@ -27,9 +27,9 @@ return {
 			["Name"] = "Mar",
 			["Age"] = "0",
 			["Position"] = {-68,84,-120},
-			["IsChild"] = false,
             Rotation = {0,0,0},
-            Events = {}
+            Events = {},
+			["NotSaved"] = {}
 		},
 	
 	},

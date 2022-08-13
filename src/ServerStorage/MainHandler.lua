@@ -42,6 +42,11 @@ local paths ={
 		}
 	]]
 }
+local function move(uuid)
+	local entity =  maindata.LoadedEntitys[uuid]
+	local Velocity = maindata.LoadedEntitys[uuid].NotSaved.Velocity
+	entity.Position = 
+end
 local function runentity(uuid)
 	if not Connections[uuid] then
 		local self
@@ -116,7 +121,9 @@ end
 local function GetPath(block:string)
 	return Block_Path[block].Model
 end
-
+function Main.Move()
+	
+end
 function Main.new(Name:string,Position:Vector3)
 	local newblock = GetPath(Name):Clone()
 	return newblock
@@ -194,6 +201,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 		end
 	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
 end
+
 function Main.render(Player,RD,RenderedChuncks)
 	--print(Player.Character.PrimaryPart.Position)
 	local lc = {}

@@ -3,7 +3,7 @@ game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 	require(game.ReplicatedStorage.Debughandler):printglobal()
 end)
 local data = require(game.ServerStorage.MainData)
-local amount = 50
+local amount = 10
 if true then
   --  return
 end

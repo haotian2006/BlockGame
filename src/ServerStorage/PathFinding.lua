@@ -7,7 +7,7 @@ local debug = require(game.ReplicatedStorage.Debughandler)
 -- debugging
 local visualise = false
 local OnlyvisualiseFinal = true
-local gettimeper = false
+local gettimeper = true
 local removeold = true
 local haveonlyone = true
 local displaytext = false
@@ -136,26 +136,26 @@ local function visulise(position,yes,uuid,debuguuid)
         part.bil.Enabled = displaytext
     end
 end
-local current = {}
+local currentq = {}
 local inqueue = {}
 local indexxx = 0
 function pathfinding.Queue(startposition:table,goal:table,uuid:string,model)
     table.insert(inqueue,uuid)
     while true do
-        if #current < 4 then
+        if #currentq < 2 then
         --    print(uuid,"eee")
-            table.insert(current,uuid)
+            table.insert(currentq,uuid)
             table.remove(inqueue,table.find(inqueue,uuid))
             break
         end
         task.wait()
     end
     indexxx += 1
-    if indexxx >= 7 then
+    task.wait(0.05+(#inqueue/50/10)) 
+  --[[ if indexxx >= 50/(#inqueue+1) then
         task.wait(0.05)
         indexxx = 0
-    end
-    print("eeeeee")
+    end]]
   --  print(#current)
     if typeof(goal) ~= "table" then
         local playerpos = game.Players:FindFirstChild(goal).Character.PrimaryPart.position
@@ -173,7 +173,7 @@ function pathfinding.Queue(startposition:table,goal:table,uuid:string,model)
     end
    -- print(startposition)
     local path = pathfinding.GetPath(startposition,goal,uuid)
-    table.remove(current,table.find(current,uuid))
+    table.remove(currentq,table.find(currentq,uuid))
     return path
 end
 local function getRandomBrickColor()
@@ -225,7 +225,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
                 end
             end
         end
-       if DateTime.now().UnixTimestampMillis-starttimes >= 150 then break end 
+       if DateTime.now().UnixTimestampMillis-starttimes >= 150 -#currentq*3 then break end 
         current2 = current
         table.remove(open,index)
         open2[current2.position] = nil
@@ -239,7 +239,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
       --  print("b")
         if convertPositionto({functions.GetBlockCoords(convertPositionto(current.position,"vector3"))},"string") == convertPositionto({functions.GetBlockCoords(convertPositionto(goal,"vector3"))},"string") then
                 if gettimeper then
-                    deb:gettime()
+                 --   deb:gettime()
                     print(DateTime.now().UnixTimestampMillis-starttimes.." ms |", convertPositionto(goal,"string").." goal")
                 end
 
