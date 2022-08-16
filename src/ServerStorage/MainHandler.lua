@@ -13,7 +13,7 @@ local runservice = game:GetService("RunService")
 local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local EntitysDeloadDistance = 7 --chuncks
 local movefunctions = require(game.ServerStorage.Move)
-
+local value_changer = require(game.ServerStorage.ValueListener)
 local Main = {
 	
 }
@@ -72,6 +72,7 @@ local function runentity(uuid)
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
 				maindata.LoadedEntitys[uuid] = nil
 				--print(maindata.Entitys[uuid] )
+				value_changer:DcAll(uuid)
 				self:Disconnect()
 			end
 			if os.clock() - startclock >0.1 then
