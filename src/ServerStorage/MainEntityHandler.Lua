@@ -81,19 +81,50 @@ end
 
 --<----mobcomponets---->
 --true = add false == remove
-function  Data.componets.ageable(uuid,data,d)
-	local entity = getentityfromuuid(uuid)
-	local duration = data["duration"]
-	local feeditems = data["feeditems"]
-	local grow_up = data["grow_up"]
-	if d then
-		entity["Age"] = -duration
-	else
-		entity["Age"] = 0
-	end
+Data.componets.ageable ={
+	["func"] = function(uuid,data,d)
+		local entity = getentityfromuuid(uuid)
+		local duration = data["duration"]
+		local feeditems = data["feeditems"]
+		local grow_up = data["grow_up"]
+		if d then
+			entity["Age"] = -duration
+		else
+			entity["Age"] = 0
+		end
+	end,
+	["type"] = "", 
+}
+--<----mob_behavior---->
+function  Data.behavior.nearest_attackable_target(uuid,data,d)
+	local priority = data.priority 
+	local must_see = data.must_see or false 
+	local reselect_targets = data.reselect_targets or false
+	local within_radius = data.within_radius or 0 
+
+end
+function  Data.behavior.random_stroll(uuid,data,d)
+	local priority = data.priority 
+	local speed_multiplier = data.speed_multiplier or 1 
+	local xy_dist = data.xy_dist or 10
+	local y_dist = data.y_dist or 7
+	local interval = data.interval or 120
+
 end
 --<----mainfunctions---->
 function  Data.EventRead(data)
 	
+end
+function  Data.addremovebehavior(uuid,bhname,data,aor)
+	local bead = getentityfromuuid(uuid).behaviors
+	if not bead then
+		getentityfromuuid(uuid).behaviors = {}
+		bead = getentityfromuuid(uuid).behaviors
+	end
+	if aor then
+		bead[bhname] = data
+	else
+		bead[bhname] = nil
+	end
 end
 return Data

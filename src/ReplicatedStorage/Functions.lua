@@ -31,6 +31,11 @@ function Function.GetMagnituide(pos1:string,pos2:string)
 	local x2,y2,z2 = Function.returnDatastringcomponets(pos2)
 	return math.sqrt((x2-x)^2+(y2-y)^2+(z2-z)^2)
 end
+function Function.GetUnit(pos1,pos2)
+	pos1 = Function.convertPositionto(pos1,"vector3")
+	pos2 = Function.convertPositionto(pos2,"vector3")
+	return (pos1-pos2).Unit
+end
 function Function.GetFloor(pos,CanBeTransParent)
 	if maindata then else return end
 	pos = Function.convertPositionto(pos,"vector3")

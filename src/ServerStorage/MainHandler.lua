@@ -12,7 +12,7 @@ local maindata = require(game.ServerStorage.MainData)
 local runservice = game:GetService("RunService")
 local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local EntitysDeloadDistance = 7 --chuncks
-
+local movefunctions = require(game.ServerStorage.Move)
 
 local Main = {
 	
@@ -42,10 +42,18 @@ local paths ={
 		}
 	]]
 }
+local function behaviors()
+	
+end
 local function move(uuid)
 	local entity =  maindata.LoadedEntitys[uuid]
+	if not entity.NotSaved then
+		entity.NotSaved = {}
+	end
 	local Velocity = maindata.LoadedEntitys[uuid].NotSaved.Velocity
-	entity.Position = 
+	if not Velocity  then return end
+	entity.Position = functions.convertPositionto(functions.convertPositionto(Velocity,"vector3")+functions.convertPositionto(entity.Position,"vector3"),"table")
+	--print(Velocity)
 end
 local function runentity(uuid)
 	if not Connections[uuid] then
@@ -55,6 +63,7 @@ local function runentity(uuid)
 		local once = false
 		local oldplayerpos = "0,1a"
 		self = runservice.Stepped:Connect(function(time, deltaTime)
+			move(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
 			if not Connections[uuid] or not maindata.Entitys[uuid] or player then
@@ -102,9 +111,11 @@ local function runentity(uuid)
 							if oldplayerpos ~= lplayerpos then
 								break
 							end
-							entity.Position = functions.convertPositionto(v.position,"table")
-							entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
-							task.wait(0.5)
+							local goalpos = functions.convertPositionto(v.position,"table")
+						--	print(goalpos)
+							local done = movefunctions.MoveTo(uuid,{goalpos[1],goalpos[2]+4,goalpos[3]})
+							--entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
+							--task.wait(0.5)
 						end
 					end	
 				end

@@ -279,7 +279,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
     end
 
     print("not dsone")
-    return nil--{{position = convertPositionto(goal,"string")}}
+    return {{position = convertPositionto(goal,"string")}}
 end
 function pathfinding.retracepath(start,goal,uuid,debugfolder)
     local path = {}

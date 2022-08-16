@@ -4,6 +4,27 @@ local data ={
             is_spawnable = true,
             is_summonable = true
         },
+        components ={
+          ["behavior.nearest_attackable_target"] ={
+            ["priority"]= 2,
+            ["must_see"]=true,
+            ["reselect_targets"]= true,
+            ["within_radius"]= 25.0,
+            ["entity_types"]={
+              {
+                
+                },
+                ["max_dist"]=32,
+              },
+            },
+        },
+        ["behavior.random_stroll"] ={
+           [ "priority"]= 2,
+           ["interval"]= 50,
+           ["speed_multiplier"]= 1.0,
+           ["xy_dist"]= 10,
+           ["y_dist"]= 7
+        },
         component_groups = {
             baby = {
                [ "componet.is_baby"] = {},
