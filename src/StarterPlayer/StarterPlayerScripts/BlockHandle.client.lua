@@ -11,6 +11,8 @@ game.Players.PlayerAdded:Connect(function(player)
 end)
 
 local render = 4
+game.Lighting.FogStart = render*4*16
+game.Lighting.FogEnd = render*4*16*1.5
 local function pack(x,y,z)
 	return x..","..y..","..z
 end

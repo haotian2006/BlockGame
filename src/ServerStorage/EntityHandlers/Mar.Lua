@@ -17,13 +17,22 @@ local data ={
                 ["max_dist"]=32,
               },
             },
-        },
-        ["behavior.random_stroll"] ={
-           [ "priority"]= 2,
-           ["interval"]= 50,
-           ["speed_multiplier"]= 1.0,
-           ["xy_dist"]= 10,
-           ["y_dist"]= 7
+           --[[ ["behavior.random_stroll"] ={
+                ["priority"]= 2,
+                ["interval"]= 20,
+                ["speed_multiplier"]= 1.0,
+                ["xz_dist"]= 25,
+                ["y_dist"]= 0,
+             },]]
+             ["componet.health"] = {
+                value = 10,
+                max = 10,
+             },
+             ["componet.HitBoxSize"] = {
+               x = 1.5,
+               y = 4,
+               z = 1.5,
+             },
         },
         component_groups = {
             baby = {

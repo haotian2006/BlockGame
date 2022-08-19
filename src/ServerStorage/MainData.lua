@@ -20,18 +20,26 @@ return {
 	--[[	["190-099-3210"] { -- a uuid
 			["Name"] = "Example",
 			["Age"] = "0",
-			["position"] = {},
+			["Position"] = {},
 			["IsChild"] = false,
 		}]]
-		["clone"]= { -- a uuid
+		--[[["clone"]= { -- a uuid
 			["Name"] = "Mar",
 			["Age"] = "0",
 			["Position"] = {-68,84,-120},
+			behaviors = {
+				["random_stroll"] ={
+					["priority"]= 2,
+					["interval"]= 50,
+					["speed_multiplier"]= 1.0,
+					["xz_dist"]= 10,
+					["y_dist"]= 7
+				},
+			},
             Rotation = {0,0,0},
             Events = {},
 			["NotSaved"] = {}
-		},
-	
+		},]]
 	},
 	["LoadedEntitys"] ={}
 }

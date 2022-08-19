@@ -14,12 +14,7 @@ end
 function Function.GetVector3Componnets(pos:Vector3)
 	return pos.X,pos.Y,pos.Z
 end
-function Function.GetBlockCoords(Position:Vector3)
-	local x = Round((0 + Position.X)/4)
-	local z = Round((0 + Position.Z)/4)
-	local y = Round((0 + Position.Y)/4)
-	return x,y,z
-end
+
 function Function.returnDatastringcomponets(data:string)
     local splited = string.split(data,",")
     return splited[1],splited[2],splited[3]
@@ -36,19 +31,15 @@ function Function.GetUnit(pos1,pos2)
 	pos2 = Function.convertPositionto(pos2,"vector3")
 	return (pos1-pos2).Unit
 end
-function Function.GetFloor(pos,CanBeTransParent)
-	if maindata then else return end
-	pos = Function.convertPositionto(pos,"vector3")
-
-	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal({Function.GetBlockCoords(pos)},"string"))
-	local cx,cz = Function.GetChunck(Vector3.new(pos.X,0,pos.Z))
-	--print(x,y,z,cx,cz)
-	for i = y , 0,-1 do
-		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
-			return Vector3.new(x,i,z)
-		end
+function Function.GetBlockCoords(Position,retype)
+	local Position = Function.convertPositionto(Position,"vector3")
+	local x = Round((0 + Position.X)/4)
+	local z = Round((0 + Position.Z)/4)
+	local y = Round((0 + Position.Y)/4)
+	if retype then
+		return Function.convertPositionto({x,y,z},retype) 
 	end
-	return pos
+	return x,y,z
 end
 function Function.GetChunck(Position:Vector3)
 	local x,y,z = Function.GetBlockCoords(Position)
@@ -92,6 +83,12 @@ function Function.ConvertGridToReal(positon,typeofp)
 	local converted = Function.convertPositionto(positon,"table")
 	return Function.convertPositionto({converted[1]*4,converted[2]*4,converted[3]*4},typeofp)
 end
+function Function.ConvertPositionToReal(position,typ)
+	if typ then
+		return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),typ)
+	end
+	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
+end 
 function Function.GetSurroundingChunck(Position:Vector3,render:number)
 	local cx,cz =  Function.GetChunck(Position)
 	local coords ={cx.."x"..cz}
@@ -122,7 +119,9 @@ function Function.XZCoordInChunck(chunck:string)
 	end
 	return pos
 end
-
+function Function.AddPosition(Position,Position2)
+	return Function.convertPositionto(Position,"vector3") + Function.convertPositionto(Position2,"vector3")
+end
 function Function.PlaceBlock(Name:string,Position,Id:number)
 	if typeof(Position) ~= Vector3 then
 		local splited = string.split(Position,",")
@@ -141,5 +140,117 @@ function Function.PlaceBlock(Name:string,Position,Id:number)
 		clonedblock.Parent =chunckfolder
 	end
 end
+local rotationstuffaaaa = {
+	["0,0,0"] = function(datao) return datao end,
+	["0,1,0"] = function(datao) return {datao[3],datao[2],datao[1]} end,
+	["0,1,1"] = function(datao) return {datao[3],datao[1],datao[2]} end,
+	["1,1,0"] = function(datao) return {datao[2],datao[3],datao[1]} end,
+	["1,0,0"] = function(datao) return {datao[1],datao[3],datao[2]} end,
+	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
+}
+function Function.CheckForCollision(P1,S1,O1,P2,S2,O2)
+	P1 = Function.convertPositionto(P1,"table")
+	P2 = Function.convertPositionto(P2,"table")
+	S1 = Function.convertPositionto(S1,"table")
+	S2 = Function.convertPositionto(S2,"table")
+	if O1 then
+		O1 = Function.convertPositionto(O1,"table")
+		local setup = {
+			math.abs(O1[1])== 90 and 1 or 0,
+			math.abs(O1[2])== 90 and 1 or 0,
+			math.abs(O1[3])== 90 and 1 or 0,
+		}
+		S1 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S1) or S2
+	end
+	if O2 then
+		O2 = Function.convertPositionto(O2,"table")
+		local setup = {
+			math.abs(O2[1])== 90 and 1 or 0,
+			math.abs(O2[2])== 90 and 1 or 0,
+			math.abs(O2[3])== 90 and 1 or 0,
+		}
+		S2 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S2) or S2
+	end
+	local xmax = P1[1] + S1[1]*0.5
+	local xmin = P1[1] - S1[1]*0.5
+	local ymax = P1[2] + S1[2]*0.5
+	local ymin = P1[2] - S1[2]*0.5
+	local zmax = P1[3] + S1[3]*0.5
+	local zmin = P1[3] - S1[3]*0.5
+	local xmax2 = P2[1] + S2[1]*0.5
+	local xmin2 = P2[1] - S2[1]*0.5
+	local ymax2 = P2[2] + S2[2]*0.5
+	local ymin2 = P2[2] - S2[2]*0.5
+	local zmax2 = P2[3] + S2[3]*0.5
+	local zmin2 = P2[3] - S2[3]*0.5
+	return(xmin <= xmax2 and xmax >= xmin2) and
+		  (ymin <= ymax2 and ymax >= ymin2) and
+		  (zmin <= zmax2 and zmax >= zmin2)
+end
+--<Server_functions>
+if maindata then 
+function Function.GetFloor(pos,CanBeTransParent)
+	pos = Function.convertPositionto(pos,"vector3")
 
+	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal({Function.GetBlockCoords(pos)},"string"))
+	local cx,cz = Function.GetChunck(Vector3.new(pos.X,0,pos.Z))
+	--print(x,y,z,cx,cz)
+	for i = y , 0,-1 do
+		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
+			return Vector3.new(x,i,z)
+		end
+	end
+	return nil
+end
+function Function.GetBlock(pos,HasToBeLoaded)
+
+	pos = Function.convertPositionto(pos,"vector3")
+	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
+	local cx,cz = Function.GetChunck(Vector3.new(pos.X,y,pos.Z))
+	if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
+		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
+	elseif maindata.LoadedBlocks[x..","..y..","..z]  and HasToBeLoaded then
+		return maindata.LoadedBlocks[x..","..y..","..z],x..","..y..","..z
+	end
+	return nil
+end
+function Function.RayCast(StartingPosition,Direaction)
+	local StartingPosition,Direaction = Function.convertPositionto(StartingPosition,"table"),Function.convertPositionto(Direaction,"table")
+	local curentdireaction = {0,0,0}
+	local pos  = StartingPosition
+	while true do
+		local added = 0
+		if curentdireaction[1] < Direaction[1] then
+			curentdireaction[1] += 0.1
+			added +=1
+		end
+		if curentdireaction[2] < Direaction[2] then
+			curentdireaction[2] += 0.1
+			added +=1
+		end
+		if curentdireaction[3] < Direaction[3] then
+			curentdireaction[3] += 0.1
+			added +=1
+		end
+		pos = Function.AddPosition(curentdireaction,pos)
+		if Function.GetBlock(pos) then
+			return Function.GetBlock(pos)
+		end
+		if added == 0 then break end
+	end
+	return nil
+end
+
+
+
+
+
+
+
+
+
+
+
+
+end
 return Function

@@ -7,7 +7,7 @@ local debug = require(game.ReplicatedStorage.Debughandler)
 -- debugging
 local visualise = false
 local OnlyvisualiseFinal = true
-local gettimeper = true
+local gettimeper = false
 local removeold = true
 local haveonlyone = true
 local displaytext = false

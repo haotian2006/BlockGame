@@ -1,8 +1,10 @@
-local MainHandler = require(game.ServerStorage.MainData)
+local MainData = require(game.ServerStorage.MainData)
 local handlers = game.ServerStorage.EntityHandlers
+local moveto = require(game.ServerStorage.Move)
+local httpsservice = game:GetService("HttpService")
 local Data = {
    ["BasicNbt"] ={
-    Effects ={},
+	--nbtstuff
 	Name = nil,
 	Air = 20,
 	MaxAir = 20,
@@ -11,17 +13,22 @@ local Data = {
 	CustomName = nil,
 	CustomNameRenderHoverDistance = 0, --*4
 	CustomNameRenderDistance = 0, --*4
-	Position  = {},
-	Rotation = {},
-	Health = 0,
-	MaxHealth = 0,
+	Position  = {0,0,0},
+	Rotation = {0,0,0},
 	FallDistance = 0,
+	FallTicks = 0,
+	maxfallvelocity = 3.92,
 	CanTakeDamage = true,
 	FireLast = 0,
 	RenderFire = true,
 	IgnoreBlocks ={},
 	IgnoreMobs ={},
 	RegenRate = 0,
+	--otherstuff
+	["NotSaved"] = {},
+	["behaviors"] = {},
+	Events = {},
+	Effects ={},
    },
    Events ={
 
@@ -29,7 +36,7 @@ local Data = {
    conditions ={
 
    },
-   componets ={
+   componet ={
 
    },
    statements ={
@@ -40,17 +47,28 @@ local Data = {
    },
    events ={
 
-   }
+   },
+
 }
 --<----localfunctions---->
+local function shallowCopy(original)
+	local copy = {}
+	for key, value in pairs(original) do
+		copy[key] = value
+	end
+	return copy
+end
 local function getentityfromuuid(uuid)
-	return MainHandler.LoadedEntitys[uuid] or  MainHandler.Entitys[uuid]
+	return MainData.LoadedEntitys[uuid] or  MainData.Entitys[uuid]
 end
 local function addevent(event,entity,values,time)
 	entity.Events[event] = {values,time} --{}
 end
 local function getentityhandlerfromuuid(uuid)
 	return require(handlers[getentityfromuuid(uuid).Name])
+end
+local function getentityhandlerfromname(name)
+	return require(handlers[name])
 end
 local function spit_component(stuff)
 	local a = string.split(stuff,".")
@@ -65,8 +83,8 @@ local function gettrashbehfromuuid(uuid)
 	end
 	if not bh["behaviors"] then
 		bh["behaviors"] = {}
-		bh = bh["behaviors"]
 	end
+	bh = bh["behaviors"]
 	return bh
 end
 local function getypeofbeh(beh)
@@ -80,36 +98,67 @@ local function comparebeh(beh1,beh2)
 			return  beh2 == beh1
 		else
 			for i,v in ipairs(beh2) do
-				if beh1 ~= v then
-					return false
+				if beh1 == v then
+					return true
 				end
 			end
 		end
 	else
 		if typeof(beh2) == "string" then
 			for i,v in ipairs(beh1) do
-				if beh2 ~= v then
-					return false
+				if beh2 == v then
+					return true
 				end
 			end
 		else
 			for i,v in ipairs(beh2) do
 				for i,v1 in ipairs(beh1) do
-					if v1 ~= v then
-						return false
+					if v1 == v then
+						return true
 					end
 				end
 			end
 		end
 	end
-	return true
+	return false
+end
+local function behcanrun(uuid,beh,Stop,canbesame)
+	local garbage = gettrashbehfromuuid(uuid)
+	local behs = getentityfromuuid(uuid).behaviors
+	local priority  = behs[beh].priority
+	local ishighest = true
+	for bename,value in pairs(garbage) do
+		if comparebeh(beh,bename) and value  then
+			if (bename == beh and not canbesame) then
+				ishighest = false
+			end
+			if behs[bename].priority > priority then--if the other valve is lower
+				ishighest = false
+				if Stop then
+					garbage[bename] = false
+				else
+					break
+				end
+			else--if they are the same or value is higher
+								
+			end
+		end
+	end
+	return ishighest
+end
+local function add(uuid_or_entity:string|table,bfullhname:string,data:table,isadd:boolean)
+	local entity = (typeof(uuid_or_entity) == "table") and uuid_or_entity or getentityfromuuid(uuid_or_entity)
+	local splited_string = string.split(bfullhname,".")
+	if 	Data[splited_string[1]] and Data[splited_string[1]].add then
+		Data[splited_string[1]].add(entity,splited_string[2],data,isadd)
+	end
 end
 --<----statements---->
 function  Data.statements.readcomponet(component,componentdata,uuid,add)
 	local entity = getentityfromuuid(uuid)
 	local index,name = spit_component(component)
 	if index == "componet" then
-		Data.componets[name](uuid,componentdata,add)
+		Data.componet[name](uuid,componentdata,add)
 	elseif index == "behavior" then
 	end
 end
@@ -134,8 +183,7 @@ end
 
 --<----mobcomponets---->
 --true = add false == remove
-function Data.componets.ageable(uuid,data,d)
-	local entity = getentityfromuuid(uuid)
+function Data.componet.ageable(entity,data,d)
 	local duration = data["duration"]
 	local feeditems = data["feeditems"]
 	local grow_up = data["grow_up"]
@@ -143,6 +191,32 @@ function Data.componets.ageable(uuid,data,d)
 		entity["Age"] = -duration
 	else
 		entity["Age"] = 0
+	end
+end
+function Data.componet.health(entity,data,isadd)
+	local value = data["value"] 
+	local max = data["max"] 
+	if isadd then
+		entity["health"] = value
+		entity["maxhealth"] = max
+	else
+		entity["health"] = nil
+		entity["maxhealth"] = nil
+	end
+end
+function Data.componet.HitBoxSize(entity,data,isadd)
+	local x = data["x"]  or 0
+	local y = data["y"] or 0
+	local z = data["z"] or data["x"] 
+	entity.HitBoxSize = entity.HitBoxSize or {}
+	if isadd then
+		entity.HitBoxSize["x"] = x
+		entity.HitBoxSize["y"] = y
+		entity.HitBoxSize["z"] = z
+	else
+		entity.HitBoxSize["x"] -= x
+		entity.HitBoxSize["y"] -= y
+		entity.HitBoxSize["z"] -= z
 	end
 end
 --<----mob_behavior---->
@@ -157,30 +231,59 @@ Data.behavior.nearest_attackable_target = {
 	btype = "Target"
 }
 Data.behavior.random_stroll = {
-	func = function (uuid,data,d)
+	func = function (uuid,data)
+		local interval = data.interval or 120
+		if math.random(1,interval) ~= 1 then return end
+		if not behcanrun(uuid,"random_stroll",true,false) then return end
 		local priority = data.priority 
-	local speed_multiplier = data.speed_multiplier or 1 
-	local xy_dist = data.xy_dist or 10
-	local y_dist = data.y_dist or 7
-	local interval = data.interval or 120
-	local entity = getentityfromuuid(uuid)
-	local bh = gettrashbehfromuuid(uuid)
-
+		local speed_multiplier = data.speed_multiplier or 1 
+		local xz_dist = (data.xz_dist or 10)*4
+		local y_dist = (data.y_dist or 7)*4
+		local entity = getentityfromuuid(uuid)
+		local bh = gettrashbehfromuuid(uuid)
+		local EPosition = entity.Position
+		local offsetx = math.random(-xz_dist,xz_dist)
+		local offsetz = math.random(-xz_dist,xz_dist)
+		local offsety = math.random(-y_dist,y_dist)
+		local targetpos = {EPosition[1]+offsetx,EPosition[2]+offsety,EPosition[3]+offsetz}
+		bh.random_stroll = true
+		print("ran")
+		moveto.MoveTo(uuid,targetpos)
+		bh.random_stroll = false
 	end,
+	runonupdate = true,
 	btype = "Movement"
 }
 
 --<----mainfunctions---->
-function  Data.addremovebehavior(uuid,bhname,data,aor)
-	local bead = getentityfromuuid(uuid).behaviors
+function  Data.behavior.add(entity,bhname,data,isadd:boolean)
+	local bead = entity.behaviors
 	if not bead then
-		getentityfromuuid(uuid).behaviors = {}
-		bead = getentityfromuuid(uuid).behaviors
+		entity.behaviors = {}
+		bead = entity.behaviors
 	end
-	if aor then
+	if not data.priority then
+		warn(bhname,"Does not have a set priority in entity", bead.Name)
+	end
+	if isadd then
 		bead[bhname] = data
 	else
 		bead[bhname] = nil
 	end
 end
-return Data
+function  Data.componet.add(entity,cname,data,isadd:boolean)
+	Data.componet[cname](entity,data,isadd)
+end
+function  Data.CreateEntity(entityName,Position)
+	local generateduuid = httpsservice:GenerateGUID(false)
+	local current_nbt = shallowCopy(Data.BasicNbt)
+	current_nbt.Name = entityName
+	local entityhandler = getentityhandlerfromname(entityName)
+	current_nbt.Position = Position
+	for name,data in pairs(entityhandler.entity.components)do
+		add(current_nbt,name,data,true)
+	end
+	MainData.Entitys[generateduuid] = current_nbt
+	return generateduuid
+end
+return Data 

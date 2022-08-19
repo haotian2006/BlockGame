@@ -10,7 +10,6 @@ local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local pathfinding = require(game.ServerStorage.PathFinding)
 local maindata = require(game.ServerStorage.MainData)
 local runservice = game:GetService("RunService")
-local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local EntitysDeloadDistance = 7 --chuncks
 local movefunctions = require(game.ServerStorage.Move)
 local value_changer = require(game.ServerStorage.ValueListener)
@@ -46,38 +45,61 @@ local function behaviors()
 	
 end
 local function move(uuid)
-	local entity =  maindata.LoadedEntitys[uuid]
+	--[[local entity =  maindata.LoadedEntitys[uuid]
 	if not entity.NotSaved then
 		entity.NotSaved = {}
 	end
 	local Velocity = maindata.LoadedEntitys[uuid].NotSaved.Velocity
 	if not Velocity  then return end
 	entity.Position = functions.convertPositionto(functions.convertPositionto(Velocity,"vector3")+functions.convertPositionto(entity.Position,"vector3"),"table")
-	--print(Velocity)
+	--print(Velocity)]]
 end
-local function runentity(uuid)
+function Main.runentity(uuid)
 	if not Connections[uuid] then
 		local self
 		local startclock = os.clock()
 		local timepassed = 0
 		local once = false
 		local oldplayerpos = "0,1a"
+		for behavior,dataa in pairs(maindata.LoadedEntitys[uuid].behaviors)do
+			if not entityhandler.behavior[behavior].runonupdate then
+				task.spawn(function()
+					entityhandler.behavior[behavior].func(uuid,dataa)
+				end)
+			end
+		end
+		local elapsed = 0
 		self = runservice.Stepped:Connect(function(time, deltaTime)
-			move(uuid)
+			elapsed += deltaTime
+			if elapsed > .05 then
+				--eachtick
+				movefunctions.HandleFall(uuid)
+				elapsed = 0
+			end
+			movefunctions.update(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
-			if not Connections[uuid] or not maindata.Entitys[uuid] or player then
+			if not Connections[uuid] or not maindata.Entitys[uuid] or player or not maindata.LoadedEntitys[uuid] then
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
 				maindata.LoadedEntitys[uuid] = nil
 				--print(maindata.Entitys[uuid] )
-				value_changer:DcAll(uuid)
+				--value_changer:DcAll(uuid)
 				self:Disconnect()
 			end
 			if os.clock() - startclock >0.1 then
 				startclock = os.clock()
 				timepassed += 1
+				
+				for behavior,dataa in pairs(maindata.LoadedEntitys[uuid].behaviors)do
+					if entityhandler.behavior[behavior].runonupdate then
+						task.spawn(function()
+							entityhandler.behavior[behavior].func(uuid,dataa)
+						end)
+					end
+				end
+				--if true then return end
 				for eventname,info in pairs(maindata.LoadedEntitys[uuid].Events)do
 					if (timepassed*0.1)%(info[2] or 1) == 0 then
 							for index,stuff in ipairs(info[1])do
@@ -106,6 +128,7 @@ local function runentity(uuid)
 					oldplayerpos = px..","..pz
 					--{entity.Position[1],entity.Position[2]-4,entity.Position[3]}
 				local path =pathfinding.Queue(uuid,closestplayer.Name,uuid)
+				--print("eeae")
 					if path and true then
 						local lplayerpos = oldplayerpos
 						for i,v in ipairs(path)do
@@ -262,7 +285,7 @@ function updateentitytable(Player,Distance)
 				local EntityPos = Vector3.new(unpack(nbt.Position))
 				if (player_Distance - EntityPos).magnitude <= Distance*16*4 then
 					maindata.LoadedEntitys[uuid] = nbt
-					runentity(uuid)	
+					Main.runentity(uuid)	
 			end
 		end		
 	end
