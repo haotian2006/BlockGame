@@ -23,23 +23,20 @@ return {
 			["Position"] = {},
 			["IsChild"] = false,
 		}]]
-		--[[["clone"]= { -- a uuid
-			["Name"] = "Mar",
+		["haotian2006"]= { -- a uuid
+			["Name"] = "aar",
 			["Age"] = "0",
-			["Position"] = {-68,84,-120},
+			["Position"] = {-68,86,-120},
+			HitBoxSize = {x =1.5,y=4,z=1.5},
 			behaviors = {
-				["random_stroll"] ={
-					["priority"]= 2,
-					["interval"]= 50,
-					["speed_multiplier"]= 1.0,
-					["xz_dist"]= 10,
-					["y_dist"]= 7
-				},
 			},
             Rotation = {0,0,0},
             Events = {},
-			["NotSaved"] = {}
-		},]]
+			["NotSaved"] = {Velocity={}},
+			FallTicks = 0,
+			maxfallvelocity = 3.92,
+			FallDistance = 0,
+		},
 	},
 	["LoadedEntitys"] ={}
 }

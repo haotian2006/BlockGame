@@ -73,9 +73,9 @@ function Main.runentity(uuid)
 			elapsed += deltaTime
 			if elapsed > .05 then
 				--eachtick
-				movefunctions.HandleFall(uuid)
 				elapsed = 0
 			end
+			movefunctions.HandleFall(uuid)
 			movefunctions.update(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
@@ -99,7 +99,7 @@ function Main.runentity(uuid)
 						end)
 					end
 				end
-				--if true then return end
+				if true then return end
 				for eventname,info in pairs(maindata.LoadedEntitys[uuid].Events)do
 					if (timepassed*0.1)%(info[2] or 1) == 0 then
 							for index,stuff in ipairs(info[1])do

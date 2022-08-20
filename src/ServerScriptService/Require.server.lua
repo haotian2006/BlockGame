@@ -4,7 +4,7 @@ game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 end)
 local mainenetity = require(game.ServerStorage.MainEntityHandler)
 local data = require(game.ServerStorage.MainData)
-local amount = 0
+local amount = -1
 if true then
   --  return
 end

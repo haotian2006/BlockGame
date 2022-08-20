@@ -10,8 +10,9 @@ runservice.Stepped:Connect(function(time, deltaTime)
     end
 	local data = event:InvokeServer(17)
     for i,v in ipairs(workspace.Entity:GetChildren())do
+
         if data[v.Name] then
-            tweenservice:Create(v,TweenInfo.new(0.5),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.Angles(
+            tweenservice:Create(v,TweenInfo.new(0.4),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.Angles(
                 math.rad((data[v.Name].Rotation[1])),
                 math.rad((data[v.Name].Rotation[2])),
                 math.rad((data[v.Name].Rotation[3]))
@@ -30,5 +31,8 @@ runservice.Stepped:Connect(function(time, deltaTime)
         entity.Position = Vector3.new(unpack(nbt["Position"]))
         entity.Orientation = Vector3.new(unpack(nbt["Rotation"]))
 		entity.Anchored = true
+        if uuid == game.Players.LocalPlayer.Name then
+            game.Workspace.CurrentCamera.CameraSubject = entity
+        end
 	end
 end)

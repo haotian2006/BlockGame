@@ -122,6 +122,9 @@ end
 function Function.AddPosition(Position,Position2)
 	return Function.convertPositionto(Position,"vector3") + Function.convertPositionto(Position2,"vector3")
 end
+function Function.SubPosition(Position,Position2)
+	return Function.convertPositionto(Position,"vector3") - Function.convertPositionto(Position2,"vector3")
+end
 function Function.PlaceBlock(Name:string,Position,Id:number)
 	if typeof(Position) ~= Vector3 then
 		local splited = string.split(Position,",")
@@ -183,6 +186,8 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2)
 	local ymin2 = P2[2] - S2[2]*0.5
 	local zmax2 = P2[3] + S2[3]*0.5
 	local zmin2 = P2[3] - S2[3]*0.5
+	--print(xmax,xmin,ymax,ymin,zmax,zmin)
+	--print(xmax2,xmin2,ymax2,ymin2,zmax2,zmin2)
 	return(xmin <= xmax2 and xmax >= xmin2) and
 		  (ymin <= ymax2 and ymax >= ymin2) and
 		  (zmin <= zmax2 and zmax >= zmin2)
