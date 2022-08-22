@@ -226,7 +226,7 @@ function move.canMove(uuid,velocity)
         end
     end
     if closesty  then
-        print("y")
+        --print("y")
         local endhitboxX = (entity.Position[2] + (hitboxsize.y/2)*(vy/math.abs(vy)))+velocity[2]
 		local enhitboxclose = closesty[2] + (4/2)*(-(vy/math.abs(vy)))
         local distance = endhitboxX-enhitboxclose
