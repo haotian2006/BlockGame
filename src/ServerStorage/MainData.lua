@@ -13,6 +13,9 @@ return {
 	["LoadedBlocks"] ={
 
 	}, 
+	["LoadedChuncks"] ={
+
+	}, 
 	["BlockNbt"] ={
 
 	},
@@ -26,7 +29,7 @@ return {
 		["haotian2006"]= { -- a uuid
 			["Name"] = "aar",
 			["Age"] = "0",
-			["Position"] = {-68,86,-120},
+			["Position"] = {-68,90,-120},
 			HitBoxSize = {x =1.5,y=4,z=1.5},
 			behaviors = {
 			},

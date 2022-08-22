@@ -234,6 +234,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 			end
 
 		end
+		maindata.LoadedChuncks[Chunck] = true
 	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
 end
 

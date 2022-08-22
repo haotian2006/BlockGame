@@ -151,7 +151,7 @@ local rotationstuffaaaa = {
 	["1,0,0"] = function(datao) return {datao[1],datao[3],datao[2]} end,
 	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
 }
-function Function.CheckForCollision(P1,S1,O1,P2,S2,O2)
+function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 	P1 = Function.convertPositionto(P1,"table")
 	P2 = Function.convertPositionto(P2,"table")
 	S1 = Function.convertPositionto(S1,"table")
@@ -174,6 +174,7 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2)
 		}
 		S2 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S2) or S2
 	end
+	 --print(P1[2])
 	local xmax = P1[1] + S1[1]*0.5
 	local xmin = P1[1] - S1[1]*0.5
 	local ymax = P1[2] + S1[2]*0.5
@@ -186,8 +187,13 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2)
 	local ymin2 = P2[2] - S2[2]*0.5
 	local zmax2 = P2[3] + S2[3]*0.5
 	local zmin2 = P2[3] - S2[3]*0.5
+	--print(ymin, ymax2 , ymax >= ymin2)
 	--print(xmax,xmin,ymax,ymin,zmax,zmin)
 	--print(xmax2,xmin2,ymax2,ymin2,zmax2,zmin2)
+	if printa then
+		print( zmin , zmax2 , zmax , zmin2)
+		print(zmin <= zmax2 , zmax >= zmin2)
+	end
 	return(xmin <= xmax2 and xmax >= xmin2) and
 		  (ymin <= ymax2 and ymax >= ymin2) and
 		  (zmin <= zmax2 and zmax >= zmin2)
