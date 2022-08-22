@@ -26,7 +26,7 @@ local function Echeckfornearbyplayers(uuid,Distance)
 			player = v
 			--print( (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude )
 			if (v.character.PrimaryPart.position-Vector3.new(unpack(maindata.LoadedEntitys[uuid].Position))).magnitude > EntitysDeloadDistance*16*4 then
-				deload = true
+				--deload = true
 				break
 			end
 		end
@@ -79,13 +79,15 @@ function Main.runentity(uuid)
 			movefunctions.update(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
-			if not Connections[uuid] or not maindata.Entitys[uuid] or player or not maindata.LoadedEntitys[uuid] then
+			if not Connections[uuid] or not maindata.Entitys[uuid] or  player or not maindata.LoadedEntitys[uuid] then
+				print(maindata.LoadedEntitys[uuid])
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
 				maindata.LoadedEntitys[uuid] = nil
 				--print(maindata.Entitys[uuid] )
-				--value_changer:DcAll(uuid)
+				print(player)
+				value_changer:DcAll(uuid)
 				self:Disconnect()
 			end
 			if os.clock() - startclock >0.1 then

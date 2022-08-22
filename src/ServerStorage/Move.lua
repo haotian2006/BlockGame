@@ -12,7 +12,7 @@ local function Round(to_round,near)
     return rounded
 end
 function move.canMove(uuid,velocity)
-    print(velocity[2])
+   -- print(velocity[2])
 	local entity =  maindata.LoadedEntitys[uuid]
     local goalposition = {entity.Position[1]+velocity[1],entity.Position[2]+velocity[2],entity.Position[3]+velocity[3]}
 	local hitboxsize =entity.HitBoxSize
@@ -27,16 +27,21 @@ function move.canMove(uuid,velocity)
                             --(velocity[2] <= 4 and velocity[2] >= -4) and velocity[2] or 4*(vy/math.abs(vy)),
                             --(velocity[3] <= 4 and velocity[3] >= -4) and velocity[3] or 4*(vz/math.abs(vz))
                             4*(vx/math.abs(vx)),4*(vy/math.abs(vy)),4*(vz/math.abs(vz))
+    
    if oldvelocity[uuid]  then
         if oldvelocity[1] then
-            --print(oldvelocity[uuid][1][1], vx/math.abs(vx),entity.Position[1], oldvelocity[uuid][1][2] )
+            print(oldvelocity[uuid][1][1], vx/math.abs(vx),entity.Position[1], oldvelocity[uuid][1][2] )
         end
+        local xe = false
+        local ye = false
+        local ze = false
         if oldvelocity[uuid][1] and oldvelocity[uuid][1][1] == vx/math.abs(vx) and  velocity[1] ~= 0 then
             if oldvelocity[uuid][1][2] == entity.Position[1] then
                 if  refunction.CheckForCollision(entity.Position,{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,oldvelocity[uuid][1][3] ,{4,4,4},nil,false) then
                     --print(refunction.convertPositionto(entity.Position,"string"))
-                  --  print(refunction.convertPositionto(oldvelocity[uuid][1][3],"string"))
+             --       print(refunction.convertPositionto(oldvelocity[uuid][1][3],"string"))
                     velocity[1] = 0 
+                    xe = true
                 end
         
                -- print("x")
@@ -46,41 +51,55 @@ function move.canMove(uuid,velocity)
             if oldvelocity[uuid][2][2] == entity.Position[2] then
                 if  refunction.CheckForCollision(entity.Position,{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,oldvelocity[uuid][2][3] ,{4,4,4},nil) then
                     velocity[2] = 0 
+                    ye = true
+               --     print("ec")
                 end
             end
         end
         if oldvelocity[uuid][3] and oldvelocity[uuid][3][1] == vz/math.abs(vz) and  velocity[3] ~= 0 then
+            local e = false
             if oldvelocity[uuid][3][2] == entity.Position[3] then
                 if  refunction.CheckForCollision(entity.Position,{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,oldvelocity[uuid][3][3] ,{4,4,4},nil) then
                     velocity[3] = 0 
+                    ze = true
                 end
             end
         end
+        if not xe and   oldvelocity[uuid][1] then
+            oldvelocity[uuid][1] = nil
+        end
+        if not ye and  oldvelocity[uuid][2] then
+            oldvelocity[uuid][2] = nil
+        end
+        if not ze and  oldvelocity[uuid][3] then
+            oldvelocity[uuid][3] = nil
+        end
     end
     if refunction.convertPositionto(velocity,"string") == "0,0,0" then
-        return velocity
+       -- return velocity
     end
     entity.NotSaved["yvelocity"] =  velocity[2]
     local xr = (hitboxsize.x/2*(vx/math.abs(vx)))+((velocity[1]==0) and 0 or addx)
     local zr = (hitboxsize.z/2*(vz/math.abs(vz)))+((velocity[3]==0) and 0 or addz)
-    local yr = (hitboxsize.y/2*(vy/math.abs(vy)))+((velocity[3]==0) and 0 or addz)
+    local yr = (hitboxsize.y/2*(vy/math.abs(vy)))+((velocity[2]==0) and 0 or addy)
     local fixed = refunction.convertPositionto({xr,yr,zr},"table")
-    xr = fixed[1]+refunction.ConvertPositionToReal(entity.Position)[1]
-    zr =fixed[3]+refunction.ConvertPositionToReal(entity.Position)[3]
-    yr =fixed[2]+refunction.ConvertPositionToReal(entity.Position)[2]
-    local sxr =hitboxsize.x/2*-(vx/math.abs(vx))
-    local syr = hitboxsize.y/2*-(vy/math.abs(vy))
-    local szr = hitboxsize.z/2*-(vz/math.abs(vz))
+    xr = fixed[1]+ entity.Position[1]
+    zr =fixed[3]+ entity.Position[3]
+    yr =fixed[2]+ entity.Position[2]
+    local sxr =(hitboxsize.x/2)*-(vx/math.abs(vx))
+    local syr = (hitboxsize.y/2*-(vy/math.abs(vy))) 
+    local szr =( hitboxsize.z/2)*-(vz/math.abs(vz))
     fixed = refunction.convertPositionto({sxr,syr,szr},"table")
-    sxr = fixed [1]+refunction.ConvertPositionToReal(entity.Position)[1]
-    syr = fixed[2]+refunction.ConvertPositionToReal(entity.Position)[2]
-    szr = fixed[3]+refunction.ConvertPositionToReal(entity.Position)[3]
+    sxr = fixed [1]+ entity.Position[1]
+    syr = (fixed[2]+ entity.Position[2])- ((velocity[2]==0) and 4 or 0)
+    szr = fixed[3]+ entity.Position[3] 
     --print(vx,vy,vz)
- --   print(yr,syr,4*(vy/math.abs(vy)))
+   -- print(yr,syr)
     local closestx 
     local closesty
     local closestz
     local hitingyblock 
+
     for x = sxr, xr,4*(vx/math.abs(vx)) do
         for z = szr, zr,4*(vz/math.abs(vz)) do
              for y = syr, yr,4*(vy/math.abs(vy)) do
@@ -90,7 +109,12 @@ function move.canMove(uuid,velocity)
                   
                 end
                -- print(entity.Position[2],velocity[2]
-                if block and refunction.CheckForCollision({entity.Position[1],entity.Position[2],entity.Position[3]},{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,pos,{4,4,4},nil) then
+                if block and refunction.CheckForCollision({entity.Position[1],entity.Position[2],entity.Position[3]},{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,pos,{4,4,4},nil,true) then
+                    if y == syr and velocity[2] ==0 then
+                        hitingyblock = block
+                        continue
+                    end
+
                     local endhitboxX = (entity.Position[1] + (hitboxsize.x/2)*(vx/math.abs(vx)))+velocity[1]
                     local endhitboxZ = (entity.Position[3] + (hitboxsize.z/2)*(vz/math.abs(vz)))+velocity[3]
                     local endhitboxY = (entity.Position[2] + (hitboxsize.y/2)*(vy/math.abs(vy)))+velocity[2]
@@ -169,40 +193,57 @@ function move.canMove(uuid,velocity)
 	end
    -- print(entity.Position[1])
 --print(closesty,velocity[2])
+--and (math.abs(distance) <= math.abs(velocity[2])or velocity[2]<0.25)
 	if closestx then
         local endhitboxX = (entity.Position[1] + (hitboxsize.x/2)*(vx/math.abs(vx)))+velocity[1]
         local enhitboxclose = closestx[1] + (4/2)*(-(vx/math.abs(vx)))
         local distance = endhitboxX-enhitboxclose
-        if distance ~= 0 then
+        local unit = refunction.GetUnit(closestx,entity.Position).X
+        oldvelocity[uuid][1] = {(vx/math.abs(vx)),entity.Position[1]}
+        oldvelocity[uuid][1][3] =  closestx
+		if distance ~= 0 and unit/math.abs(unit) == vx/math.abs(vx) and distance/math.abs(distance) ==vx/math.abs(vx)  then
+            		print(unit/math.abs(unit),velocity[1]-(distance),distance)
          --  distance= distance+0.1*(vx/math.abs(vx))
           --  print(distance, velocity[1],"X")
-            velocity[1] = (velocity[1]-(velocity[1]*distance)/velocity[1]) ~= (velocity[1]-(velocity[1]*distance)/velocity[1]) and  velocity[1] or (velocity[1]-(velocity[1]*distance)/velocity[1])
-            oldvelocity[uuid][1] = {(vx/math.abs(vx)),entity.Position[1]}
-            oldvelocity[uuid][1][3] =  closestx
+            velocity[1] = (velocity[1]-(velocity[1]*distance)/velocity[1]) ~= (velocity[1]-(velocity[1]*distance)/velocity[1]) and  velocity[1] or (velocity[1]-(distance))
+
         end
     end
     if closestz then
+
+       -- refunction.CheckForCollision({entity.Position[1],entity.Position[2],entity.Position[3]},{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,closestz,{4,4,4},nil,true)
         local endhitboxX = (entity.Position[3] + (hitboxsize.z/2)*(vz/math.abs(vz)))+velocity[3]
 		local enhitboxclose = closestz[3] + (4/2)*(-(vz/math.abs(vz)))
         local distance = endhitboxX-enhitboxclose
-        if distance ~= 0 then
+        local unit = refunction.GetUnit(closestz,entity.Position).Z
+       -- print(distance,velocity[3])
+        oldvelocity[uuid][3] = {(vz/math.abs(vz)),vz/math.abs(vz),entity.Position[3],distance}
+        oldvelocity[uuid][3][3] =  closestz
+		if distance ~= 0 and unit/math.abs(unit) == vz/math.abs(vz)and distance/math.abs(distance) ==vz/math.abs(vz) then
           -- distance= distance+0.1*(vz/math.abs(vz))
         --    print(distance, velocity[3],"Z")
-          oldvelocity[uuid][3] = {(vz/math.abs(vz)),entity.Position[3]}
             velocity[3] = (velocity[3]-(velocity[3]*distance)/velocity[3]) ~= (velocity[3]-(velocity[3]*distance)/velocity[3]) and  velocity[3] or (velocity[3]-(velocity[3]*distance)/velocity[3])
-            oldvelocity[uuid][3][3] =  closestz
         end
     end
     if closesty  then
+        print("y")
         local endhitboxX = (entity.Position[2] + (hitboxsize.y/2)*(vy/math.abs(vy)))+velocity[2]
 		local enhitboxclose = closesty[2] + (4/2)*(-(vy/math.abs(vy)))
         local distance = endhitboxX-enhitboxclose
-        if distance ~= 0 then
+        local unit = refunction.GetUnit(closesty,entity.Position).Y
+        oldvelocity[uuid][2] = {(vy/math.abs(vy)),entity.Position[2]}        
+        oldvelocity[uuid][2][3] =  closesty   
+		if distance ~= 0 and unit/math.abs(unit) == vy/math.abs(vy) and distance/math.abs(distance) ==vy/math.abs(vy) then
            -- distance= distance+0.01*(vz/math.abs(vz))
-            oldvelocity[uuid][2] = {(vy/math.abs(vy)),entity.Position[2]}
             velocity[2] = (velocity[2]-(velocity[2]*distance)/velocity[2]) ~= (velocity[2]-(velocity[2]*distance)/velocity[2]) and  velocity[2] or (velocity[2]-(velocity[2]*distance)/velocity[2])
-            oldvelocity[uuid][2][3] =  closesty
+
         end
+    end
+    if closesty or hitingyblock then
+        entity.IsOnGround =true
+    elseif velocity[2] == 0 and not hitingyblock then
+        entity.IsOnGround =false
+
     end
     return velocity
 end
@@ -259,6 +300,7 @@ function move.update(uuid)
 	entity.Position = refunction.convertPositionto(refunction.convertPositionto(Velocity,"vector3")+refunction.convertPositionto(entity.Position,"vector3"),"table")
 
 end
+local oldpos = {}
 function  move.HandleFall(uuid)
     local entity =  maindata.LoadedEntitys[uuid]
     local pos = maindata.LoadedEntitys[uuid].Position
@@ -268,37 +310,35 @@ function  move.HandleFall(uuid)
     maindata.LoadedEntitys[uuid].NotSaved.Velocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity  or {}
     local velocity =   maindata.LoadedEntitys[uuid].NotSaved.Velocity 
    -- local downvelocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity.DownVelocity
-   local hitboxsize = entity.HitBoxSize
     local ysize = entity.HitBoxSize.y or 0
     local feetposition = pos[2] - (ysize/2)
+    local featblock = refunction.GetBlock({pos[1],feetposition,pos[3]},false)
     local fallendistance = entity.FallDistance
     entity.FallTicks += 1
     local fallrate = (((0.98^entity.FallTicks)-1)*entity.maxfallvelocity)/3
+    local lowestblock = refunction.GetFloor(pos)
    -- if velocity[2]
    local ypos = pos[2]
-    local featblock 
-    for x = pos[1]-hitboxsize.x/2,  pos[1]+hitboxsize.x/2,4 do
-        for z = pos[3]-hitboxsize.z/2,  pos[3]+hitboxsize.z/2,4 do
-            local y = feetposition-2
-                local block,pos = refunction.GetBlock({x,y,z},false)
-                if pos then
-                    pos = refunction.convertPositionto(pos,"table")                
-                end
-               -- print(entity.Position[2],velocity[2]
-                if block and refunction.CheckForCollision({entity.Position[1],entity.Position[2],entity.Position[3]},{hitboxsize.x,hitboxsize.y,hitboxsize.z},nil,pos,{4,4,4},nil) then
-                    featblock = pos
-                end
-        end
-    end
-    if featblock then
+    if entity.IsOnGround then
+     --   entity.NotSaved["LastYBlock"] = nil
+       -- print("e")
         entity.FallTicks = 0
         velocity.Fall = {0,0,0}
     else
         velocity.Fall = {0,fallrate,0}
     end
+    if ypos ~=   oldpos[uuid] then
+    oldpos[uuid] = ypos
+    
+    end
+    --[[else
+        if feetposition-fallrate <= lowestblock.Y +2 then
+           -- fallrate = math.abs(feetposition-(lowestblock.Y +2))
+        end
+        velocity.Fall = {0,fallrate,0}
+    end]]
 end
 return move
-
 --[[function move.canMove(uuid,velocity)
 	local entity =  maindata.LoadedEntitys[uuid]
     local goalposition = {entity.Position[1]+velocity[1],entity.Position[2]+velocity[2],entity.Position[3]+velocity[3]}

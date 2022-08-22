@@ -188,12 +188,13 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 	local zmax2 = P2[3] + S2[3]*0.5
 	local zmin2 = P2[3] - S2[3]*0.5
 	--print(ymin, ymax2 , ymax >= ymin2)
-	--print(xmax,xmin,ymax,ymin,zmax,zmin)
 	--print(xmax2,xmin2,ymax2,ymin2,zmax2,zmin2)
-	if printa then
-		print( zmin , zmax2 , zmax , zmin2)
-		print(zmin <= zmax2 , zmax >= zmin2)
+	if printa and false then
+		print(P1)
+		print(zmin , zmax2 , zmax , zmin2)
+		print(xmin , xmax2 , xmax , xmin2)
 	end
+		--print(zmin , zmax2 , zmax , zmin2)
 	return(xmin <= xmax2 and xmax >= xmin2) and
 		  (ymin <= ymax2 and ymax >= ymin2) and
 		  (zmin <= zmax2 and zmax >= zmin2)

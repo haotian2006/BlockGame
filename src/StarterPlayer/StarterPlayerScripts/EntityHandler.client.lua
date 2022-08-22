@@ -18,6 +18,11 @@ runservice.Stepped:Connect(function(time, deltaTime)
                 math.rad((data[v.Name].Rotation[3]))
             )}):Play()
           --  v.CFrame = CFrame.new(unpack(data[v.Name]["CFrame"]))
+          if v.Name == game.Players.LocalPlayer.Name then
+            game.Workspace.CurrentCamera.CameraSubject = v
+            game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
+            game.Players.LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(v.Position.X,  v.Position.Y-20,  v.Position.Z)
+        end
             data[v.Name] = nil
         else
             v:Destroy()
@@ -26,6 +31,9 @@ runservice.Stepped:Connect(function(time, deltaTime)
     
     for uuid,nbt in pairs(data)do
         local entity = game.Workspace:FindFirstChild(nbt["Name"]):Clone()
+        if nbt.HitBoxSize then
+            entity.Size = Vector3.new( nbt.HitBoxSize.x, nbt.HitBoxSize.y, nbt.HitBoxSize.z)
+        end
         entity.Parent = game.Workspace.Entity
         entity.Name = uuid
         entity.Position = Vector3.new(unpack(nbt["Position"]))
@@ -33,6 +41,8 @@ runservice.Stepped:Connect(function(time, deltaTime)
 		entity.Anchored = true
         if uuid == game.Players.LocalPlayer.Name then
             game.Workspace.CurrentCamera.CameraSubject = entity
+            game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
+            game.Players.LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(entity.Position.X,  entity.Position.Y-20,  entity.Position.Z)
         end
 	end
 end)

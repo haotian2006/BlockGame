@@ -1,4 +1,4 @@
-local a = 7
+local a = 5
 local movmenetstuff = {
 	["W"] = {1/a,0,0},
     ["D"] = {0,0,1/a},

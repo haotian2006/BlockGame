@@ -30,7 +30,7 @@ return {
 			["Name"] = "aar",
 			["Age"] = "0",
 			["Position"] = {-68,90,-120},
-			HitBoxSize = {x =1.5,y=4,z=1.5},
+			HitBoxSize = {x =8,y=8,z=8},
 			behaviors = {
 			},
             Rotation = {0,0,0},
