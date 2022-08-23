@@ -4,7 +4,7 @@ local movmenetstuff = {
     ["A"] = {0,0,1},
     ["S"] = {0,1,-1},
     ["D"] = {-1,0,0},
-    [" "] = {}
+    [" "] = {0,4,0}
 }
 local currentlypressing = {}
 uis.InputBegan:Connect(function(input, gameProcessedEvent)

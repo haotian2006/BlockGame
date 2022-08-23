@@ -14,7 +14,12 @@ end
 function Function.GetVector3Componnets(pos:Vector3)
 	return pos.X,pos.Y,pos.Z
 end
-
+function Function.ConvertValuetoablock(value)
+	return Round((0 + value)/4)
+end
+function Function.convertvaluetoreal(value)
+	return Round((0 + value)/4)*4
+end
 function Function.returnDatastringcomponets(data:string)
     local splited = string.split(data,",")
     return splited[1],splited[2],splited[3]
@@ -189,11 +194,21 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 	local zmin2 = P2[3] - S2[3]*0.5
 	--print(ymin, ymax2 , ymax >= ymin2)
 	--print(xmax2,xmin2,ymax2,ymin2,zmax2,zmin2)
-	if printa and false then
-		print(P1)
-		print(zmin , zmax2 , zmax , zmin2)
-		print(xmin , xmax2 , xmax , xmin2)
+	local p1Max = Vector3.new(P1[1]+S1[1],P1[2]+S1[2],P1[3]+S1[3])
+	local p1Min = Vector3.new(P1[1],P1[2],P1[3])
+	local p2Max = Vector3.new(P2[1]+S2[1],P2[2]+S2[2],P2[3]+S2[3])
+	local p2Min = Vector3.new(P2[1],P2[2],P2[3])
+	if printa then
+		print(zmin <= zmax2 , zmax >= zmin2)
+		--print(P2)
+		-- print(p1Max)
+		-- print(p1Min)
+		-- print(p2Min)
+		
 	end
+	-- return p2Max.X > p1Min.X and p2Min.X < p1Max.X and
+	-- 	   p2Max.Y > p1Min.Y and p2Min.Y < p1Max.Y and
+	-- 	   p2Max.Z > p1Min.Z and p2Min.Z < p1Max.Z
 		--print(zmin , zmax2 , zmax , zmin2)
 	return(xmin <= xmax2 and xmax >= xmin2) and
 		  (ymin <= ymax2 and ymax >= ymin2) and
