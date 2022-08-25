@@ -17,7 +17,14 @@ function values.Connect(uuid,valuename,valuepath)
     return values.events[uuid][valuepath]
 end
 function  values.Change(uuid,valuepath:string,value)
-    local entity = getentityfromuuid
+    local entity
+    if typeof(uuid) == "table" then
+        entity = uuid
+    else
+     entity = getentityfromuuid(uuid) 
+    end
+   
+    
     local paths = string.split(valuepath,".")
     local parentvalue,valuename = entity,valuepath
     for i,v in ipairs(paths)do

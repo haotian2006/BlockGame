@@ -2,6 +2,7 @@ local MainData = require(game.ServerStorage.MainData)
 local handlers = game.ServerStorage.EntityHandlers
 local moveto = require(game.ServerStorage.Move)
 local httpsservice = game:GetService("HttpService")
+local ValueListener = require(game.ServerStorage.ValueListener)
 local Data = {
    ["BasicNbt"] ={
 	--nbtstuff
@@ -11,6 +12,7 @@ local Data = {
 	CurrentSpeed = 0, -- this is the speed used 
 	Speed = 0,
 	CustomName = nil,
+	CanFall = true,
 	CustomNameRenderHoverDistance = 0, --*4
 	CustomNameRenderDistance = 0, --*4
 	Position  = {0,0,0},
@@ -197,11 +199,11 @@ function Data.componet.health(entity,data,isadd)
 	local value = data["value"] 
 	local max = data["max"] 
 	if isadd then
-		entity["health"] = value
-		entity["maxhealth"] = max
+		ValueListener.Change(entity,"health",value)	
+		ValueListener.Change(entity,"maxhealth",max)	
 	else
-		entity["health"] = nil
-		entity["maxhealth"] = nil
+		ValueListener.Change(entity,"health",nil)	
+		ValueListener.Change(entity,"maxhealth",nil)	
 	end
 end
 function Data.componet.HitBoxSize(entity,data,isadd)
@@ -210,13 +212,11 @@ function Data.componet.HitBoxSize(entity,data,isadd)
 	local z = data["z"] or data["x"] 
 	entity.HitBoxSize = entity.HitBoxSize or {}
 	if isadd then
-		entity.HitBoxSize["x"] = x
-		entity.HitBoxSize["y"] = y
-		entity.HitBoxSize["z"] = z
+		ValueListener.Change(entity,"HitBoxSize.x",x)	
+		ValueListener.Change(entity,"HitBoxSize.y",y)	
+		ValueListener.Change(entity,"HitBoxSize.z",z)	
 	else
-		entity.HitBoxSize["x"] -= x
-		entity.HitBoxSize["y"] -= y
-		entity.HitBoxSize["z"] -= z
+		ValueListener.Change(entity,"HitBoxSize",nil)	
 	end
 end
 --<----mob_behavior---->

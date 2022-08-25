@@ -210,10 +210,6 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
     local index = 0
     local deb = debug.new(true)
     while #open >0  do--#closed < 400
-        if timesreachedgoal >2 then
-            break
-        end
-
         local current,index = open[1],1 --eap:RemoveFirst() 
         --print("a")
         
@@ -225,7 +221,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
                 end
             end
         end
-       if DateTime.now().UnixTimestampMillis-starttimes >= 150 -#currentq*3 then break end 
+       if DateTime.now().UnixTimestampMillis-starttimes >= 100 -#currentq*3 then break end 
         current2 = current
         table.remove(open,index)
         open2[current2.position] = nil
@@ -278,8 +274,7 @@ function  pathfinding.GetPath(startposition:table,goal:table,uuid:string,model)
         print(DateTime.now().UnixTimestampMillis-starttimes.." ms |", convertPositionto(goal,"string").." goal")
     end
 
-    print("not dsone")
-    return {{position = convertPositionto(goal,"string")}}
+    return {{position = convertPositionto(goal,"string")}},true
 end
 function pathfinding.retracepath(start,goal,uuid,debugfolder)
     local path = {}

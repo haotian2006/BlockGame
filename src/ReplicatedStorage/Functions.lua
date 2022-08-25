@@ -9,7 +9,14 @@ end
 local Function = {}
 
 local function Round(x:number)
+	local m = x/math.abs(x)
+	--x = math.abs(x)
 	return math.floor(x+0.5)
+end
+local function Round2(x:number)
+	local m = x/math.abs(x)
+	x = math.abs(x)
+	return math.floor(x+0.5)*m
 end
 function Function.GetVector3Componnets(pos:Vector3)
 	return pos.X,pos.Y,pos.Z
@@ -17,7 +24,10 @@ end
 function Function.ConvertValuetoablock(value)
 	return Round((0 + value)/4)
 end
-function Function.convertvaluetoreal(value)
+function Function.convertvaluetoreal(value,typ)
+	if typ == -1 then
+		return Round2((0 + value)/4)*4
+	end
 	return Round((0 + value)/4)*4
 end
 function Function.returnDatastringcomponets(data:string)
@@ -180,6 +190,12 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 		S2 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S2) or S2
 	end
 	 --print(P1[2])
+	--  P1[1] = math.abs(P1[1])
+	--  P1[2] = math.abs(P1[2])
+	--  P1[3] = math.abs(P1[3])
+	--  P2[1] = math.abs(P2[1])
+	--  P2[2] = math.abs(P2[2])
+	--  P2[3] = math.abs(P2[3])
 	local xmax = P1[1] + S1[1]*0.5
 	local xmin = P1[1] - S1[1]*0.5
 	local ymax = P1[2] + S1[2]*0.5
@@ -199,11 +215,8 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 	local p2Max = Vector3.new(P2[1]+S2[1],P2[2]+S2[2],P2[3]+S2[3])
 	local p2Min = Vector3.new(P2[1],P2[2],P2[3])
 	if printa then
-		print(zmin <= zmax2 , zmax >= zmin2)
-		--print(P2)
-		-- print(p1Max)
-		-- print(p1Min)
-		-- print(p2Min)
+		print(xmin , xmax2 , xmax , xmin2)
+		
 		
 	end
 	-- return p2Max.X > p1Min.X and p2Min.X < p1Max.X and
