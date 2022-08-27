@@ -1,13 +1,7 @@
 return {
     ["Chunck"] ={
-		--[["0x0"] ={t
-			["Stone"]={
-				["Position"] = {{0,0,0},{4,0,4},{4,-4,8},{8,-4,8},{4,-4,16},{4,-4,12},{4,-4,24},{-32,-4,-32},{28,-4,28},{-32, -4, 28}},
-				["Id"] ={0,0,0,0}
-			} --Old Saving Method
-		};]]
 	--[["0x0"] ={
-		["0,0,0"] = {"Stone",1,1,{0,90,0}}--(name,Direaction,State,rotation)
+		["0,0,0"] = {"Stone",1,{0,90,0}}--(name,State,rotation)
 	};]]-- New quicker method
 	},
 	["LoadedBlocks"] ={
@@ -30,9 +24,10 @@ return {
 			["Name"] = "aar",
 			["Age"] = "0",
 			["Position"] = {-68,90,-120},
-			HitBoxSize = {x =10,y=10,z=14},
+			HitBoxSize = {x =3,y=8,z=3},
 			behaviors = {
 			},
+			CanFall = true,
             Rotation = {0,0,0},
             Events = {},
 			["NotSaved"] = {Velocity={}},

@@ -247,7 +247,6 @@ Data.behavior.random_stroll = {
 		local offsety = math.random(-y_dist,y_dist)
 		local targetpos = {EPosition[1]+offsetx,EPosition[2]+offsety,EPosition[3]+offsetz}
 		bh.random_stroll = true
-		print("ran")
 		moveto.MoveTo(uuid,targetpos)
 		bh.random_stroll = false
 	end,

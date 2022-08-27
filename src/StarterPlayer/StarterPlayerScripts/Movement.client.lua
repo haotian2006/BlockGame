@@ -22,7 +22,9 @@ while true do
 	for i,v in pairs(currentlypressing)do
 		text ..= i..","
 	end
+    local LookVector = workspace.CurrentCamera.CFrame.LookVector
+    local roundedvec = {LookVector.X/math.abs(LookVector.X),LookVector.Y/math.abs(LookVector.Y),LookVector.Z/math.abs(LookVector.Z)}
 	game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui"):WaitForChild("keys").Text = "KeysPress: "..text
-    game.ReplicatedStorage.Events.Entitys.PlayerMove:FireServer(currentlypressing)
+    game.ReplicatedStorage.Events.Entitys.PlayerMove:FireServer(currentlypressing,LookVector,workspace.CurrentCamera.CFrame.RightVector)
     task.wait()
 end

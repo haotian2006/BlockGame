@@ -19,7 +19,7 @@ end
 local function GetPosition(Table)
 	local Position ={}
 	for chunck,DATA in pairs(Table) do
-		if game.Workspace.Chunk:FindFirstChild(chunck) then
+		if game.Workspace.Chunck:FindFirstChild(chunck) then
 		continue
 		end
 		for block,blockdata in pairs(DATA) do
@@ -89,7 +89,7 @@ local function QuickRender(char)
 end
 local function frender(char)
 	local renderedchuncks ={}
-	for i,v in ipairs(workspace.Chunk:GetChildren())do
+	for i,v in ipairs(workspace.Chunck:GetChildren())do
 		local splited = v.Name:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
 		local currentvecotr = Vector2.new(functions.GetChunck(char.PrimaryPart.Position))
@@ -106,19 +106,32 @@ local function frender(char)
 	local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
 	local index = 0
 	for Position,blockdata in pairs(Blocks) do
-		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
-					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
+		--if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
+					functions.PlaceBlock(blockdata[1],Position,blockdata[2],blockdata[3])
 			index+=1
 			if index == 200 and firsttime then
 				index = 0
 				task.wait()
-			end
+		--	end
 		end
 		end
 	end
 	firsttime = true
 	return
 end
+game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(blocks)
+	for i,data in ipairs(blocks)do
+		functions.PlaceBlock(data[1],data[4],data[2],data[3])
+	end
+end)
+game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(blocks)
+	for i,Pos in ipairs(blocks)do
+		local cx,cz = functions.GetChunck(Pos)
+		if game.Workspace.Chunck:FindFirstChild(cx.."x"..cz) and game.Workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos) then
+			game.Workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos):Destroy()
+		end
+	end
+end)
 local oldchunck =""
 game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 	task.wait(0.2)

@@ -24,11 +24,12 @@ end
 function Function.ConvertValuetoablock(value)
 	return Round((0 + value)/4)
 end
-function Function.convertvaluetoreal(value,typ)
+function Function.convertvaluetoreal(value,typ,size)
+	local size = size or 4
 	if typ == -1 then
-		return Round2((0 + value)/4)*4
+		return Round2((0 + value)/size)*size
 	end
-	return Round((0 + value)/4)*4
+	return Round((0 + value)/size)*size
 end
 function Function.returnDatastringcomponets(data:string)
     local splited = string.split(data,",")
@@ -140,21 +141,25 @@ end
 function Function.SubPosition(Position,Position2)
 	return Function.convertPositionto(Position,"vector3") - Function.convertPositionto(Position2,"vector3")
 end
-function Function.PlaceBlock(Name:string,Position,Id:number)
-	if typeof(Position) ~= Vector3 then
-		local splited = string.split(Position,",")
-		Position  = Vector3.new(splited[1],splited[2],splited[3])
+function Function.PlaceBlock(Name:string,Position,Id:number,Orientation)
+	if Position then
+		Position = Function.convertPositionto(Position,"vector3")
+	end
+	if Orientation then
+		Orientation = Function.convertPositionto(Orientation,"vector3")
 	end
 	local cx,cz = Function.GetChunck(Position)
 	local chunckname = cx.."x"..cz
-	local chunckfolder =workspace.Chunk:FindFirstChild(chunckname) or Instance.new("Folder",workspace.Chunk)
+	local chunckfolder =workspace.Chunck:FindFirstChild(chunckname) or Instance.new("Folder",workspace.Chunck)
 	chunckfolder.Name = chunckname
-	if Block_Path[Name] then
+	if Block_Path[Name] and not chunckfolder:FindFirstChild(Function.convertPositionto(Position,"string")) then
 		local clonedblock = Block_Path[Name].Model:Clone()
 		--for i,v in ipairs(Block_Texture:FindFirstChild(Name):GetChildren())do
 			--v:Clone().Parent = clonedblock
 		--end
+		clonedblock.Name = Function.convertPositionto(Position,"string")
 		clonedblock.Position = Position
+		clonedblock.Orientation = Orientation or Vector3.new(0,0,0)
 		clonedblock.Parent =chunckfolder
 	end
 end
@@ -166,7 +171,140 @@ local rotationstuffaaaa = {
 	["1,0,0"] = function(datao) return {datao[1],datao[3],datao[2]} end,
 	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
 }
-function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
+function Function.GetSweaptBroadPhase(P1,S1,O1,velocity)
+	 P1 = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
+	 local Pos = {
+		velocity[1] >0 and P1[1] or P1[1] + velocity[1],
+		velocity[2] >0 and P1[2] or P1[2] + velocity[2],
+		velocity[3] >0 and P1[3] or P1[3] + velocity[3]
+	 }
+	 local size ={
+		velocity[1] >0 and velocity[1] + S1[1] or S1[1] - velocity[1],
+		velocity[2] >0 and velocity[2] + S1[2] or S1[2] - velocity[2],
+		velocity[3] >0 and velocity[3] + S1[3] or S1[3] - velocity[3],
+	 }
+	 return Pos,size
+end
+function  Function.AABBCheck(P1,S1,O1,P2,S2,O2,velocity)
+	local P2 = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
+	return not(
+		P1[1] + S1[1] < P2[1] or
+		P1[1] > P2[1]+S2[1] or
+		P1[2] + S1[2] < P2[2] or
+		P1[2] > P2[2]+S2[2] or
+		P1[3] + S1[3] < P2[3] or
+		P1[3] > P2[3]+S2[3]
+	)
+end
+function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
+	local normalvelocity = {0,0,0}
+	local xmax = P1[1] + S1[1]*0.5
+	local xmin = P1[1] - S1[1]*0.5
+	local ymax = P1[2] + S1[2]*0.5
+	local ymin = P1[2] - S1[2]*0.5
+	local zmax = P1[3] + S1[3]*0.5
+	local zmin = P1[3] - S1[3]*0.5
+	local xmax2 = P2[1] + S2[1]*0.5
+	local xmin2 = P2[1] - S2[1]*0.5
+	local ymax2 = P2[2] + S2[2]*0.5
+	local ymin2 = P2[2] - S2[2]*0.5
+	local zmax2 = P2[3] + S2[3]*0.5
+	local zmin2 = P2[3] - S2[3]*0.5
+	local P1Leftcorners = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
+	local P2Leftcorners = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
+	--P1Leftcorners = P1
+	--P2Leftcorners = P2
+	local xInvEntry,yInvEntry,zInvEntry
+    local xInvExit,yInvExit,zInvExit
+	if velocity[1] > 0.0 then
+		xInvEntry = P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
+		xInvExit = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1] 
+	else
+		xInvEntry = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1]
+		xInvExit =  P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
+	end
+	if velocity[2] > 0.0 then
+		yInvEntry = P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
+		yInvExit = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2] 
+	else
+		yInvEntry = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2]
+		yInvExit =  P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
+	end
+	if velocity[3] > 0.0 then
+		zInvEntry = P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
+		zInvExit = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3] 
+	else
+		zInvEntry = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3]
+		zInvExit =  P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
+	end
+	local xEntry , yEntry, zEntry
+	local xExit , yExit, zExit
+	if velocity[1] == 0 then
+		xEntry = -math.huge
+		xExit = math.huge
+	else
+		xEntry = xInvEntry / velocity[1]
+		xExit = xInvExit / velocity[1]
+	end
+	if velocity[2] == 0 then
+		yEntry = -math.huge
+		yExit = math.huge
+	else
+		yEntry = yInvEntry / velocity[2]
+		yExit = yInvExit / velocity[2]
+	end
+	if velocity[3] == 0 then
+		zEntry = -math.huge
+		zExit = math.huge
+	else
+		zEntry = zInvEntry / velocity[3]
+		zExit = zInvExit / velocity[3]
+	end
+	if value ==3 then
+		--return 1,{zEntry,zInvEntry,velocity[3]}
+	end
+	if xEntry > 1 then xEntry = -math.huge end
+	if yEntry > 1 then yEntry = -math.huge end
+	if zEntry > 1 then zEntry = -math.huge end
+	local entrytime = math.max(math.max(xEntry,zEntry),yEntry)
+	local exittime = math.min(math.min(xExit,zExit),yExit)
+	 --print(entrytime > exittime or (xEntry < 0.0 and yEntry<0.0 and zEntry<0.0) or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0)
+	 --or xEntry < 0.0 and yEntry<0.0 and zEntry<0.0 or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0
+	if entrytime > exittime then return 1 end
+	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 1 end
+	if xEntry <0 then
+		if xmax2 < xmin or xmin2 > xmax then return 1 end
+	end
+	if yEntry <0 then
+		if ymax2 < ymin or ymin2 > ymax then return 1 end
+	end
+	if zEntry <0 then
+		if zmax2 < zmin or zmin2 > zmax then  return 1 end
+	end
+		if xEntry > yEntry then
+			if xEntry > zEntry then
+				normalvelocity[1] = -math.sign(velocity[1])
+				normalvelocity[2] = 0
+				normalvelocity[3] = 0
+			else
+				normalvelocity[1] = 0
+				normalvelocity[2] = 0
+				normalvelocity[3] = -math.sign(velocity[3])
+			end
+		else
+			if yEntry > zEntry then
+				normalvelocity[1] = 0
+				normalvelocity[2] = -math.sign(velocity[2])
+				normalvelocity[3] = 0
+			else
+				normalvelocity[1] = 0
+				normalvelocity[2] = 0
+				normalvelocity[3] = -math.sign(velocity[3])
+			end
+		end
+		return entrytime,normalvelocity
+end
+function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,velocity,a)
 	P1 = Function.convertPositionto(P1,"table")
 	P2 = Function.convertPositionto(P2,"table")
 	S1 = Function.convertPositionto(S1,"table")
@@ -208,21 +346,34 @@ function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,printa)
 	local ymin2 = P2[2] - S2[2]*0.5
 	local zmax2 = P2[3] + S2[3]*0.5
 	local zmin2 = P2[3] - S2[3]*0.5
-	--print(ymin, ymax2 , ymax >= ymin2)
-	--print(xmax2,xmin2,ymax2,ymin2,zmax2,zmin2)
+
+--[[	if velocity[1]>0 then
+		xmax+=velocity[1]
+	else
+		xmin+=velocity[1]
+	end
+	if velocity[2]>0 then
+		ymax+=velocity[2]
+	else
+		ymin+=velocity[2]
+	end
+	if velocity[3]>0 then
+		zmax+=velocity[3]
+	else
+		zmin+=velocity[3]
+	end]]
 	local p1Max = Vector3.new(P1[1]+S1[1],P1[2]+S1[2],P1[3]+S1[3])
 	local p1Min = Vector3.new(P1[1],P1[2],P1[3])
 	local p2Max = Vector3.new(P2[1]+S2[1],P2[2]+S2[2],P2[3]+S2[3])
 	local p2Min = Vector3.new(P2[1],P2[2],P2[3])
-	if printa then
-		print(xmin , xmax2 , xmax , xmin2)
-		
-		
-	end
+
 	-- return p2Max.X > p1Min.X and p2Min.X < p1Max.X and
 	-- 	   p2Max.Y > p1Min.Y and p2Min.Y < p1Max.Y and
 	-- 	   p2Max.Z > p1Min.Z and p2Min.Z < p1Max.Z
 		--print(zmin , zmax2 , zmax , zmin2)
+		if a then
+			print (ymin , ymax2 , ymax , ymin2)
+		end
 	return(xmin <= xmax2 and xmax >= xmin2) and
 		  (ymin <= ymax2 and ymax >= ymin2) and
 		  (zmin <= zmax2 and zmax >= zmin2)
