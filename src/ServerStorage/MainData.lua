@@ -7,9 +7,6 @@ return {
 	["LoadedBlocks"] ={
 
 	}, 
-	["LoadedChuncks"] ={
-
-	}, 
 	["BlockNbt"] ={
 
 	},

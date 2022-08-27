@@ -214,7 +214,7 @@ function  move.HandleFall(uuid)
     local entity =  maindata.LoadedEntitys[uuid]
     local pos = maindata.LoadedEntitys[uuid].Position
     local ccx,ccz = refunction.GetChunck(pos)
-    if not maindata.LoadedChuncks[ccx.."x"..ccz] then return end
+    if not maindata.LoadedBlocks[ccx.."x"..ccz] then return end
 
     maindata.LoadedEntitys[uuid].NotSaved.Velocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity  or {}
     local velocity =   maindata.LoadedEntitys[uuid].NotSaved.Velocity 
@@ -224,7 +224,7 @@ function  move.HandleFall(uuid)
     local featblock = refunction.GetBlock({pos[1],feetposition,pos[3]},false)
     local fallendistance = entity.FallDistance
     entity.FallTicks += 1
-    local fallrate = (((0.98^entity.FallTicks)-1)*entity.maxfallvelocity)/3
+    local fallrate = (((0.98^entity.FallTicks)-1)*entity.maxfallvelocity)
     local lowestblock = refunction.GetFloor(pos)
    -- if velocity[2]
    local ypos = pos[2]

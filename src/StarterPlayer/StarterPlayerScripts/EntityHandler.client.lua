@@ -11,22 +11,17 @@ runservice.Stepped:Connect(function(time, deltaTime)
 	local data = event:InvokeServer(17)
     for i,v in ipairs(workspace.Entity:GetChildren())do
 
-        if data[v.Name] or v.Name == game.Players.LocalPlayer.Name  then
+        if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
+            print("e")
             tweenservice:Create(v,TweenInfo.new(0.4),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.Angles(
                 math.rad((data[v.Name].Rotation[1])),
                 math.rad((data[v.Name].Rotation[2])),
                 math.rad((data[v.Name].Rotation[3]))
             )}):Play()
-          --  v.CFrame = CFrame.new(unpack(data[v.Name]["CFrame"]))
-          if v.Name == game.Players.LocalPlayer.Name and true then
-            game.Workspace.CurrentCamera.CameraSubject = v
-            game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
-            game.Players.LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(v.Position.X,  v.Position.Y-20,  v.Position.Z)
-        end
-            data[v.Name] = nil
         elseif v.Name ~= game.Players.LocalPlayer.Name then
             v:Destroy()
         end
+        data[v.Name] = nil
     end
     
     for uuid,nbt in pairs(data)do
@@ -39,7 +34,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
         entity.Position = Vector3.new(unpack(nbt["Position"]))
         entity.Orientation = Vector3.new(unpack(nbt["Rotation"]))
 		entity.Anchored = true
-        if uuid == game.Players.LocalPlayer.Name and true then
+        if uuid == game.Players.LocalPlayer.Name  then
             
             game.Workspace.CurrentCamera.CameraSubject = entity
             game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true

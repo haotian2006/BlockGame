@@ -18,6 +18,15 @@ local function Round2(x:number)
 	x = math.abs(x)
 	return math.floor(x+0.5)*m
 end
+function Function.GetBlockClient(pos)
+	if maindata then return "a" end 
+	pos = Function.ConvertPositionToReal(pos,"string")
+	local cx,cz = Function.GetChunck(pos)
+	if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
+		return pos
+	end
+	return nil
+end
 function Function.GetVector3Componnets(pos:Vector3)
 	return pos.X,pos.Y,pos.Z
 end
@@ -57,13 +66,15 @@ function Function.GetBlockCoords(Position,retype)
 	end
 	return x,y,z
 end
-function Function.GetChunck(Position:Vector3)
+function Function.GetChunck(Position)
+	Position = Function.convertPositionto(Position,"vector3")
 	local x,y,z = Function.GetBlockCoords(Position)
 	local cx =	Round(x/16)
 	local cz= 	Round(z/16)
 	return cx,cz
 end
 function Function.convertPositionto(cout,etype)
+	etype = etype or "string"
     local ty = typeof(cout)
 	ty = string.lower(ty)
 	etype = string.lower(etype)
@@ -157,6 +168,7 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation)
 		--for i,v in ipairs(Block_Texture:FindFirstChild(Name):GetChildren())do
 			--v:Clone().Parent = clonedblock
 		--end
+		clonedblock.LocalTransparencyModifier = 0
 		clonedblock.Name = Function.convertPositionto(Position,"string")
 		clonedblock.Position = Position
 		clonedblock.Orientation = Orientation or Vector3.new(0,0,0)
@@ -260,9 +272,6 @@ function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
 		zEntry = zInvEntry / velocity[3]
 		zExit = zInvExit / velocity[3]
 	end
-	if value ==3 then
-		--return 1,{zEntry,zInvEntry,velocity[3]}
-	end
 	if xEntry > 1 then xEntry = -math.huge end
 	if yEntry > 1 then yEntry = -math.huge end
 	if zEntry > 1 then zEntry = -math.huge end
@@ -270,16 +279,22 @@ function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
 	local exittime = math.min(math.min(xExit,zExit),yExit)
 	 --print(entrytime > exittime or (xEntry < 0.0 and yEntry<0.0 and zEntry<0.0) or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0)
 	 --or xEntry < 0.0 and yEntry<0.0 and zEntry<0.0 or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0
-	if entrytime > exittime then return 1 end
-	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 1 end
+
+	if entrytime > exittime then return 1,2 end
+	if value == 2 then
+		print(  (P2Leftcorners[2] +S2[2] ) , P1Leftcorners[2])
+	end
+	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 3,3 end
 	if xEntry <0 then
-		if xmax2 < xmin or xmin2 > xmax then return 1 end
+		if xmax2 < xmin or xmin2 > xmax then return 1,4 end
 	end
+
 	if yEntry <0 then
-		if ymax2 < ymin or ymin2 > ymax then return 1 end
+		if ymax2 < ymin or ymin2 > ymax then return 1,5 end
 	end
+
 	if zEntry <0 then
-		if zmax2 < zmin or zmin2 > zmax then  return 1 end
+		if zmax2 < zmin or zmin2 > zmax then  return 1,6 end
 	end
 		if xEntry > yEntry then
 			if xEntry > zEntry then
@@ -400,8 +415,8 @@ function Function.GetBlock(pos,HasToBeLoaded)
 	local cx,cz = Function.GetChunck(Vector3.new(pos.X,y,pos.Z))
 	if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
 		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif maindata.LoadedBlocks[x..","..y..","..z]  and HasToBeLoaded then
-		return maindata.LoadedBlocks[x..","..y..","..z],x..","..y..","..z
+	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
+		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	end
 	return nil
 end

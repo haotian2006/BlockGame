@@ -1,7 +1,7 @@
 local LocalizationService = game:GetService("LocalizationService")
 local RS = game:GetService("ReplicatedStorage")
 local HTTPs = game:GetService("HttpService")
-local functions = require(RS.Functions)
+local refunction = require(RS.Functions)
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
@@ -11,7 +11,7 @@ local pathfinding = require(game.ServerStorage.PathFinding)
 local maindata = require(game.ServerStorage.MainData)
 local runservice = game:GetService("RunService")
 local EntitysDeloadDistance = 7 --chuncks
-local movefunctions = require(game.ServerStorage.Move)
+local moverefunction = require(game.ServerStorage.Move)
 local value_changer = require(game.ServerStorage.ValueListener)
 local Main = {
 	
@@ -51,7 +51,7 @@ local function move(uuid)
 	end
 	local Velocity = maindata.LoadedEntitys[uuid].NotSaved.Velocity
 	if not Velocity  then return end
-	entity.Position = functions.convertPositionto(functions.convertPositionto(Velocity,"vector3")+functions.convertPositionto(entity.Position,"vector3"),"table")
+	entity.Position = refunction.convertPositionto(refunction.convertPositionto(Velocity,"vector3")+refunction.convertPositionto(entity.Position,"vector3"),"table")
 	--print(Velocity)]]
 end
 function Main.runentity(uuid)
@@ -75,8 +75,8 @@ function Main.runentity(uuid)
 				--eachtick
 				elapsed = 0
 			end
-			movefunctions.HandleFall(uuid)
-			movefunctions.update(uuid,deltaTime)
+			moverefunction.HandleFall(uuid)
+			moverefunction.update(uuid,deltaTime)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
 			if not Connections[uuid] or not maindata.Entitys[uuid] or  player or not maindata.LoadedEntitys[uuid] then
@@ -123,7 +123,7 @@ function Main.runentity(uuid)
 				local playerpos = closestplayer.Character.PrimaryPart.position
 				playerpos = Main.GetFloor(playerpos,true)
 			--	print(playerpos)
-				local px,py,pz = functions.GetBlockCoords(playerpos)
+				local px,py,pz = refunction.GetBlockCoords(playerpos)
 				if (timepassed*0.1)%(2) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
 					--print("newpathfind")
 					--once = true
@@ -137,9 +137,9 @@ function Main.runentity(uuid)
 							if oldplayerpos ~= lplayerpos then
 								break
 							end
-							local goalpos = functions.convertPositionto(v.position,"table")
+							local goalpos = refunction.convertPositionto(v.position,"table")
 						--	print(goalpos)
-							local done = movefunctions.MoveTo(uuid,{goalpos[1],goalpos[2]+4,goalpos[3]})
+							local done = moverefunction.MoveTo(uuid,{goalpos[1],goalpos[2]+4,goalpos[3]})
 							--entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
 							--task.wait(0.5)
 						end
@@ -183,16 +183,17 @@ function Main.GetSortedTable(Data,Chunck,lc,Player)
 		if can(coord,Data,Player.Character.PrimaryPart.Position.Y)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 		end
-		maindata["LoadedBlocks"][coord] ={data[1],data[2],data[3],coord,Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		maindata["LoadedBlocks"][Chunck] = maindata["LoadedBlocks"][Chunck] or {}
+		maindata["LoadedBlocks"][Chunck][coord] ={data[1],data[2],data[3],coord,Chunck, not Block_Info[data[1]]["IsTransparent"]}
 	end
 	return lc
 end
 function Main.GetSurFace(X,Z)
-	local chunck = functions.GetChunck(Vector3.new(X,0,Z))
+	local chunck = refunction.GetChunck(Vector3.new(X,0,Z))
 	
 end
 function Main.CheckForBlock(x,y,z,CanBeTransParent)
-	local cx,cz = functions.GetChunck(functions.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
+	local cx,cz = refunction.GetChunck(refunction.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
 	if not maindata.Chunck[cx.."x"..cz] then
 		return false
 	end
@@ -206,9 +207,9 @@ function Main.RayCast(Origion:Vector3,Direaction:Vector3,Range:number,Velocity:n
 --	local pos1,pos2,pos3 = Origion
 end
 function Main.GetFloor(pos,CanBeTransParent)
-	pos = functions.convertPositionto(pos,"vector3")
-	local x,y,z = functions.returnDatastringcomponets(functions.ConvertGridToReal({functions.GetBlockCoords(pos)},"string"))
-	local cx,cz = functions.GetChunck(Vector3.new(pos.X,0,pos.Z))
+	pos = refunction.convertPositionto(pos,"vector3")
+	local x,y,z = refunction.returnDatastringcomponets(refunction.ConvertGridToReal({refunction.GetBlockCoords(pos)},"string"))
+	local cx,cz = refunction.GetChunck(Vector3.new(pos.X,0,pos.Z))
 	for i = y , 0,-1 do
 		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
 			return Vector3.new(x,i,z)
@@ -221,7 +222,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 	local lc = {}
 	if not maindata.Chunck[Chunck] then
 		maindata.Chunck[Chunck] = {}
-		for index,coord in ipairs(functions.XZCoordInChunck(Chunck)) do
+		for index,coord in ipairs(refunction.XZCoordInChunck(Chunck)) do
 				for y = 0,80,4 do
 					local coords = string.split(coord,"x")
 					local position = Vector3.new(coords[1],y,coords[2])
@@ -236,21 +237,20 @@ function Main.GetChunck(Player,Chunck,firsttime)
 			end
 
 		end
-		maindata.LoadedChuncks[Chunck] = true
 	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
 end
 
 function Main.render(Player,RD,RenderedChuncks)
 	--print(Player.Character.PrimaryPart.Position)
 	local lc = {}
-	local nearbychuncks = functions.GetSurroundingChunck(Player.Character.PrimaryPart.Position,RD)
+	local nearbychuncks = refunction.GetSurroundingChunck(Player.Character.PrimaryPart.Position,RD)
 	local incease = 0
 	updateentitytable(Player,EntitysDeloadDistance-2)	
 	for i,v in ipairs(nearbychuncks)do
 		if RenderedChuncks[v] then continue end
 		if not maindata.Chunck[v] then
 			maindata.Chunck[v] = {}
-			for index,coord in ipairs(functions.XZCoordInChunck(v)) do
+			for index,coord in ipairs(refunction.XZCoordInChunck(v)) do
 				incease += 1
 				if index%200 == 0  then
 					task.wait()
@@ -277,7 +277,7 @@ function Main.CreateEntity(Name)
 	local uuid = HTTPs:GenerateGUID()
 	maindata.Entitys[uuid] = entityhandler.BasicNbt
 	maindata.Entitys[uuid].Name = Name
-	maindata.Entitys[uuid].Position = {functions.GetVector3Componnets(Main.GetFloor(0,80,0))}
+	maindata.Entitys[uuid].Position = {refunction.GetVector3Componnets(Main.GetFloor(0,80,0))}
 end
 function updateentitytable(Player,Distance)
 	if Player and Player.Character and Player.Character.PrimaryPart then
@@ -308,11 +308,11 @@ function Main.GetNearByEntitys(Player,Distance)
 	return placeentity
 end
 function Main.GetPlayersWithChunck(Position)
-	local cx,cz = functions.GetChunck(Position)
+	local cx,cz = refunction.GetChunck(Position)
 	local playerss= {}
 	local chunck = cx.."x"..cz
 	for i,v in ipairs(game.Players:GetPlayers())do
-		local chuncks = functions.GetSurroundingChunck(v.Character.PrimaryPart.Position,4)
+		local chuncks = refunction.GetSurroundingChunck(v.Character.PrimaryPart.Position,4)
 		for ic,vc in ipairs(chuncks) do
 			if vc == chunck then
 					table.insert(playerss,v)
@@ -324,12 +324,12 @@ function Main.GetPlayersWithChunck(Position)
 end
 function Main.Place(player,block,Position,Orientation)
 	if not Position or not block then return end
-	local cx,cz = functions.GetChunck(Position)
-	if maindata.Chunck[cx.."x"..cz] and not maindata.Chunck[cx.."x"..cz][functions.convertPositionto(Position,"string")] then
-		maindata.Chunck[cx.."x"..cz][functions.convertPositionto(Position,"string")] = {block,1,Orientation,functions.convertPositionto(Position,"string")}
-		maindata.LoadedBlocks[functions.convertPositionto(Position,"string")] = {block,1,Orientation,functions.convertPositionto(Position,"string")}
+	local cx,cz = refunction.GetChunck(Position)
+	if maindata.Chunck[cx.."x"..cz] and not maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")] then
+		maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
+		maindata.LoadedBlocks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
 		for i,v in ipairs(Main.GetPlayersWithChunck(Position)) do
-			RS.Events.Block.PlaceClient:FireClient(v,{maindata.Chunck[cx.."x"..cz][functions.convertPositionto(Position,"string")]})
+			RS.Events.Block.PlaceClient:FireClient(v,{maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")]})
 		end
 	else
 		return false
@@ -339,18 +339,18 @@ end
 
 function Main.destroyblock(player,pos)
 	if not pos then return end
-	pos = functions.convertPositionto(pos,"table")
-	local cx,cz = functions.GetChunck(pos)
-	if maindata.Chunck[cx.."x"..cz] and  maindata.Chunck[cx.."x"..cz][functions.convertPositionto(pos,"string")] then
-		maindata.Chunck[cx.."x"..cz][functions.convertPositionto(pos,"string")]  = nil
-		 maindata.LoadedBlocks[functions.convertPositionto(pos,"string")] = nil
+	pos = refunction.convertPositionto(pos,"table")
+	local cx,cz = refunction.GetChunck(pos)
+	if maindata.Chunck[cx.."x"..cz] and  maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
+		maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(pos,"string")]  = nil
+		 maindata.LoadedBlocks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = nil
 		 local placee = {}
-		 local top = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1],pos[2]+4,pos[3]},"string")]
-		 local bottem = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1],pos[2]-4,pos[3]},"string")]
-		 local front = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1]+4,pos[2],pos[3]},"string")]
-		 local back = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1]-4,pos[2],pos[3]},"string")]
-		 local right = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1],pos[2],pos[3]+4},"string")]
-		 local left = maindata.Chunck[cx.."x"..cz][functions.convertPositionto({pos[1],pos[2],pos[3]-4},"string")]
+		 local top = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2]+4,pos[3]},"string")]
+		 local bottem = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2]-4,pos[3]},"string")]
+		 local front = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1]+4,pos[2],pos[3]},"string")]
+		 local back = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1]-4,pos[2],pos[3]},"string")]
+		 local right = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2],pos[3]+4},"string")]
+		 local left = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2],pos[3]-4},"string")]
 		 if top then
 			table.insert(placee,top)
 		 end
@@ -371,17 +371,33 @@ function Main.destroyblock(player,pos)
 		 end
 		 for i,v in ipairs(Main.GetPlayersWithChunck(pos)) do
 			RS.Events.Block.PlaceClient:FireClient(v,placee)
-			RS.Events.Block.DestroyBlock:FireClient(v,{functions.convertPositionto(pos,"string")})
+			RS.Events.Block.DestroyBlock:FireClient(v,{refunction.convertPositionto(pos,"string")})
 		end
 	end
 end
-function Main.GetPlayer(player)
-	return maindata.LoadedEntitys[player.Name] or maindata.Entitys[player.Name]
+function Main.GetPlayer(player,Pos)
+	local player = maindata.LoadedEntitys[player.Name] or maindata.Entitys[player.Name]
+	player.Position = Pos and refunction.convertPositionto(Pos,"table") or player.Position
+	return player
+end
+function Main.GetBlock(Player,Pos)
+	Pos = refunction.convertPositionto(Pos,"table")
+	local Player = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
+	local position = Player.Position
+	if refunction.GetMagnituide({position[1],position[2],position[3]},{Pos[1],position[2],Pos[3]}) <= 16*math.max(math.max(Player.HitBoxSize.x,Player.HitBoxSize.z),Player.HitBoxSize.y) then
+		local cx,cy = refunction.GetChunck(position)
+		if maindata.LoadedBlocks[cx.."x"..cy] and maindata.LoadedBlocks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]] then
+			return maindata.LoadedBlocks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]],Pos[1]..","..Pos[2]..","..Pos[3]
+		else
+			return nil
+		end 
+	end 
 end
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
 RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
 RS.Events.Block.Place.OnServerInvoke = Main.Place
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
-RS.Events.Entitys.GetPlayer.OnServerInvoke = Main.GetPlayer()
+RS.Events.Entitys.GetPlayer.OnServerInvoke = Main.GetPlayer
+RS.Events.Block.GetBlock.OnServerInvoke = Main.GetBlock
 return Main

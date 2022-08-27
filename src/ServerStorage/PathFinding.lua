@@ -63,8 +63,9 @@ local vector =  {functions.GetBlockCoords(convertPositionto(coord,"vector3"))}
     local can = false
     if getblockfromchunck(gridpos) then
         can = true
+        local cx,cz = functions.GetChunck(x,y,z)
         for i = 1 ,convertheighttomax(height),1 do -- checks if the height fits
-            if MainData.LoadedBlocks[convertPositionto({x,y+4*i,z},"string")]then
+            if MainData.LoadedBlocks[cx.."x"..cz][convertPositionto({x,y+4*i,z},"string")]then
                 if MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")] then
                     if  MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")].Open and MainData.BlockNbt[convertPositionto({x,y+4*i,z,"string"})].Open.Value then
                         continue
