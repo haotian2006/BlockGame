@@ -6,6 +6,7 @@ local camera = workspace.CurrentCamera
 local refunction = require(game.ReplicatedStorage.Functions)
 local remotes = game.ReplicatedStorage.Events
 local currentlylookingat 
+local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
 local a = 3
 local controlls = {
     KeyBoard = {
@@ -26,6 +27,7 @@ local controlls = {
 }
 local keypressed = {}
 controlls.PlayerNbt = nil
+controlls.PStuff = nil
 controlls.PlayerPosition = nil
 local ButtonsWork = true
 controlls.Update = controlls.Update or {}
@@ -210,18 +212,21 @@ function update.UpdatePosition(delta)
             total[2] += v[2]
             total[3] += v[3]
         end	
-        local goal = refunction.AddPosition(entity.Position,total)
+        entity.Position = controlls.PlayerPosition
+        local pos = collision_handler.entityvsterrain(entity,total)
         -- total =LerpVector3(entity.Position,goal,delta),"table"
         --local diffrence = refunction.convertPositionto(refunction.SubPosition(goal,total),"table")
-        Velocity = controlls.canMove(total)
-        entity.NotSaved.Velocity.Jump = {0,0,0}
-        controlls.PlayerPosition = refunction.convertPositionto(refunction.convertPositionto(Velocity,"vector3") +refunction.convertPositionto(entity.Position,"vector3"),"table")
-
+       -- controlls.PStuff =   refunction.convertPositionto( entity.Position ,"table" )
+        --entity.Position = refunction.convertPositionto(refunction.convertPositionto(refunction.convertPositionto(total,"vector3") +refunction.convertPositionto(entity.Position,"vector3")),"table")
+    --    local newposition = collision_handler.Handle(entity,total,controlls.PStuff)
+       -- entity.NotSaved.Velocity.Jump = {0,0,0}
+       controlls.PlayerPosition = pos
 end
 local speed = 1
 function update.Movement(deltatime)
     controlls.PlayerNbt = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)
     controlls.PlayerPosition = controlls.PlayerPosition or controlls.PlayerNbt.Position
+    controlls.PlayerNbt.Position =  controlls.PlayerPosition
     controlls.IsOnGround = controlls.IsOnGround
     controlls.FallRate = controlls.FallRate or   controlls.PlayerNbt.NotSaved.Velocity.Fall
     local LookVector = camera.CFrame.LookVector
@@ -269,50 +274,6 @@ game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         end)
     end
 end)
-local function get(velocity,value)
-    local entity = controlls.PlayerNbt 
-    if not entity then return velocity end
-    local hitbox = entity.HitBoxSize
-    local pos = controlls.PlayerPosition
-    local vx = pn(velocity[1])
-    local vy = pn(velocity[2])
-    local vz = pn(velocity[3])
-    local startx = pos[1]+(hitbox.x*0.5+math.abs(velocity[1]))*vx
-    local endx =   pos[1]-(hitbox.x*0.5)*vx
-    local starty = pos[2]+(hitbox.y*0.5+math.abs(velocity[2]))*vy
-    local endy =  pos[2]-(hitbox.y*0.5)*vy
-    local startz =pos[3]+(hitbox.z*0.5+math.abs(velocity[3]))*vz
-    local endz =  pos[3]-(hitbox.z*0.5)*vz
-    local currentblock
-    local minentry = 1
-    local normal 
-    local sendvelocity = {0,0,0}
-    sendvelocity[value] = velocity[value]
-    local broadphasePOS,SIZE = refunction.GetSweaptBroadPhase(pos,{hitbox.x,hitbox.y,hitbox.z},nil,sendvelocity)
-    for x = (startx),(endx),1*-vx do
-         for z = (startz),(endz),1*-vz do
-            for y = (starty),(endy),1*-vy do
-                local bpos = refunction.GetBlockClient({x,y,z})
-                if bpos  then
-                    bpos = refunction.convertPositionto(bpos,"table") 
-                    if  refunction.AABBCheck(broadphasePOS,SIZE,nil,bpos,{4,4,4},nil,sendvelocity) then
-
-                    local entry,normala = refunction.SweapAABB(pos,{hitbox.x,hitbox.y,hitbox.z},nil,bpos,{4,4,4},nil,sendvelocity,value)
-                    if value == 2 then
-                       --print(entry,normala)
-                    end 
-                    if entry < minentry then
-                        currentblock = bpos
-                        minentry = entry
-                        normal = normala
-                    end
-                    end
-                end
-            end
-        end
-    end
-    return currentblock,normal,minentry
-end
 function controlls.canMove(velocity)
     local entity = controlls.PlayerNbt
     if not entity then return velocity end

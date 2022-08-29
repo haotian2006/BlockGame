@@ -18,15 +18,6 @@ local function Round2(x:number)
 	x = math.abs(x)
 	return math.floor(x+0.5)*m
 end
-function Function.GetBlockClient(pos)
-	if maindata then return "a" end 
-	pos = Function.ConvertPositionToReal(pos,"string")
-	local cx,cz = Function.GetChunck(pos)
-	if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
-		return pos
-	end
-	return nil
-end
 function Function.GetVector3Componnets(pos:Vector3)
 	return pos.X,pos.Y,pos.Z
 end
@@ -91,6 +82,7 @@ function Function.convertPositionto(cout,etype)
 		warn(cout,"is a(n) "..ty.." which is not a valid input")
 		etype ="skip"
     end
+	x,y,z = tonumber(x),tonumber(y),tonumber(z)
     if etype == "string" then
         ret = x..","..y..","..z
     elseif etype == "table" then
@@ -105,6 +97,27 @@ function Function.convertPositionto(cout,etype)
 end 
 function Function.LoadCharacter(Player)
 	
+end
+function Function.GetBlock(pos,HasToBeLoaded)
+	pos = Function.ConvertPositionToReal(pos,"table")
+	if maindata then  
+	pos = Function.convertPositionto(pos,"vector3")
+	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
+	local cx,cz = Function.GetChunck(Vector3.new(pos.X,y,pos.Z))
+	if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
+		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
+	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
+		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
+	end
+	return nil
+	else
+		pos = Function.ConvertPositionToReal(pos,"string")
+		local cx,cz = Function.GetChunck(pos)
+		if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
+			return true,pos
+		end
+		return nil
+	end
 end
 function Function.ConvertGridToReal(positon,typeofp)
 	local converted = Function.convertPositionto(positon,"table")
@@ -184,7 +197,7 @@ local rotationstuffaaaa = {
 	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
 }
 function Function.GetSweaptBroadPhase(P1,S1,O1,velocity)
-	 P1 = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
+	-- P1 = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
 	 local Pos = {
 		velocity[1] >0 and P1[1] or P1[1] + velocity[1],
 		velocity[2] >0 and P1[2] or P1[2] + velocity[2],
@@ -224,6 +237,8 @@ function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
 	local zmin2 = P2[3] - S2[3]*0.5
 	local P1Leftcorners = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
 	local P2Leftcorners = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
+	-- P1Leftcorners = P1
+	-- P2Leftcorners= P2
 	--P1Leftcorners = P1
 	--P2Leftcorners = P2
 	local xInvEntry,yInvEntry,zInvEntry
@@ -282,7 +297,7 @@ function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
 
 	if entrytime > exittime then return 1,2 end
 	if value == 2 then
-		print(  (P2Leftcorners[2] +S2[2] ) , P1Leftcorners[2])
+		--print(  yEntry)
 	end
 	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 3,3 end
 	if xEntry <0 then
@@ -295,6 +310,9 @@ function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
 
 	if zEntry <0 then
 		if zmax2 < zmin or zmin2 > zmax then  return 1,6 end
+	end
+	if value == 2 then
+		print(  "E")
 	end
 		if xEntry > yEntry then
 			if xEntry > zEntry then
@@ -405,18 +423,6 @@ function Function.GetFloor(pos,CanBeTransParent)
 		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
 			return Vector3.new(x,i,z)
 		end
-	end
-	return nil
-end
-function Function.GetBlock(pos,HasToBeLoaded)
-
-	pos = Function.convertPositionto(pos,"vector3")
-	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
-	local cx,cz = Function.GetChunck(Vector3.new(pos.X,y,pos.Z))
-	if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
-		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
-		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	end
 	return nil
 end
