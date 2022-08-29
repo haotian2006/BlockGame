@@ -1,15 +1,47 @@
 local data ={
     entity = {
-        description = {
+        ["description"] = {
             is_spawnable = true,
-            is_summonable = true,
+            is_summonable = true
+        },
+        components ={
+          ["behavior.nearest_attackable_target"] ={
+            ["priority"]= 2,
+            ["must_see"]=true,
+            ["reselect_targets"]= true,
+            ["within_radius"]= 25.0,
+            ["entity_types"]={
+              {
+                
+                },
+                ["max_dist"]=32,
+              },
+            },
+           --[[ ["behavior.random_stroll"] ={
+                ["priority"]= 2,
+                ["interval"]= 20,
+                ["speed_multiplier"]= 1.0,
+                ["xz_dist"]= 25,
+                ["y_dist"]= 0,
+             },]]
+             ["componet.health"] = {
+                value = 10,
+                max = 10,
+             },
+             ["componet.HitBoxSize"] = {
+               x = 1.5,
+               y = 4,
+               z = 1.5,
+             },
         },
         component_groups = {
             baby = {
-               [ "nbt.is_baby"] = {},
-                ["nbt.scale"] = {0.5},
-                ageable = {
-                    ["nbt.duration"] = 200,
+               [ "componet.is_baby"] = {},
+                ["componet.scale"] = {
+                    value = 0.5,
+                },
+                ["componet.ageable"] = {
+                    ["duration"] = 200,
                     feeditems = {
                         stone = 10,
                     },
@@ -48,6 +80,10 @@ local data ={
             },
         },
     },
-    CustomEvents ={},
-}
+    event ={
+        ["Baby_Grow_Up"] ={
+
+        },
+    },
+s}
 return data
