@@ -222,7 +222,7 @@ function update.UpdatePosition(delta)
        -- entity.NotSaved.Velocity.Jump = {0,0,0}
        controlls.PlayerPosition = pos
 end
-local speed = 1
+local speed = 0.6
 function update.Movement(deltatime)
     controlls.PlayerNbt = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)
     controlls.PlayerPosition = controlls.PlayerPosition or controlls.PlayerNbt.Position
