@@ -109,7 +109,7 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,o1,o2,velocity,mintime)
         Entry[2] = -math.huge
         Exit[2] = math.huge
     end
-2
+
     if velocity[3]> 0 then
         InvEntry[3] = b2[3] - (b1[3]+s1[3])
         InvExit[3] = (b2[3]+s2[3]) - b1[3]
