@@ -15,17 +15,7 @@
     "ServerStorage": {
       "$className": "ServerStorage",
       "$ignoreUnknownInstances": true,
-      "$path": "src/ServerStorage",
-      "EntityHandlers": {
-        "$className": "EntityHandlers",
-        "$ignoreUnknownInstances": true,
-        "$path": "src/ServerStorage/EntityHandlers"
-      },
-      "LootTable": {
-        "$className": "LootTable",
-        "$ignoreUnknownInstances": true,
-        "$path": "src/ServerStorage/LootTable"
-      }
+      "$path": "src/ServerStorage"
     },
     "StarterGui": {
       "$className": "StarterGui",
