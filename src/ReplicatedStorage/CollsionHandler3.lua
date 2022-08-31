@@ -13,7 +13,7 @@ function  collisions.entityvsterrain(entity,velocity)
     velocity[2] *= (1-math.abs(normal[2]))*remainingtime
     velocity[3] *= (1-math.abs(normal[3]))*remainingtime
         local bb
-        normal = {0,0,0}a
+        normal = {0,0,0}
         MinTime,normal,bb = collisions.entityvsterrainloop(entity,velocity)
        -- game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = aaaa
         -- entity.Position[1] += velocity[1]*MinTime
