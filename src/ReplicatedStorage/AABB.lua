@@ -12,8 +12,8 @@ function AABB.createMinMax(min:Vector3,max:Vector3)
 end
 function AABB.createCenterSize(center,xs,ys,zs)
     local size = Vector3.new(xs,ys,zs)
-    local max = size
-    local min = -size
+    local max = center+size
+    local min = center-size
     return AABB.new(min,max,center,size)
 end
 return AABB

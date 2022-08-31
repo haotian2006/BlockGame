@@ -25,8 +25,8 @@ function collisions.new(uuid)
         local remainingtime = 1
         for i = 1,3 ,1 do
             velocity[1] *= (1-math.abs(normal[1]))*remainingtime
-            velocity[2] *= (1-math.abs(normal[1]))*remainingtime
-            velocity[3] *= (1-math.abs(normal[1]))*remainingtime
+            velocity[2] *= (1-math.abs(normal[2]))*remainingtime
+            velocity[3] *= (1-math.abs(normal[3]))*remainingtime
             self.normal = {0,0,0}
             MinTime = self:entityvsterrainloop(entity,velocity,AABB,Aura)
 

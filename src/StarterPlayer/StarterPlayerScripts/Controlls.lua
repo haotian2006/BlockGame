@@ -244,7 +244,7 @@ function update.Movement(deltatime)
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
    controlls.PlayerNbt.NotSaved.Velocity.Jump = Jump and {0,4,0} or {0,0,0}
    if workspace.Entity:FindFirstChild(Player.Name) then
-    game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0.46),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
+    game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
    end
 end
 function  update.HandleFall()
