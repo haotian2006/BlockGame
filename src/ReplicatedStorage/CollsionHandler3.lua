@@ -1,10 +1,51 @@
 local collisions ={}
 local refunction = require(script.Parent.Functions)
+local function getincreased(min,goal2,increased2)
+	local direaction = min - goal2
+	return goal2 +increased2*-math.sign(direaction)
+end
+function  collisions.IsGrounded(entity)
+    local position = entity.Position
+    local hitbox = entity.HitBoxSize
+    local min ={
+        position[1]-hitbox.x/2,
+        position[2]-(hitbox.y/2+2),
+        position[3]-hitbox.z/2,
+    }
+    local max ={
+        position[1]+hitbox.x/2,
+        position[2]-(hitbox.y/2),
+        position[3]+hitbox.z/2,  
+    }
+    local gridsize = 4
+
+    for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
+        for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
+            for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
+                local block,a = refunction.GetBlock({x,y,z})
+                if block then
+                    if a == "-68,80,-120" then
+                        --local a2 = refunction.convertPositionto(a,"table")
+                         -- print(collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil)  )
+                    end
+                   local a2 = refunction.convertPositionto(a,"table")
+                   if  collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil) then 
+
+                    return true,block
+                    end   
+                end
+            end 
+        end 
+    end 
+    return false
+end
 function  collisions.entityvsterrain(entity,velocity)
+   -- print(velocity[2])
     local remainingtime = 1
     local MinTime
     local normal = {0,0,0}
     local hitbox = entity.HitBoxSize
+    local originaly = velocity[2]
     for i =1,3,1 do
       
     velocity[1] *= (1-math.abs(normal[1]))*remainingtime
@@ -84,9 +125,15 @@ function collisions.GetBroadPhase(b1,s1,o1,velocity)
     size[3] = velocity[3] >0 and velocity[3]+s1[3] or s1[3] - velocity[3]
     return position,size
 end
-function collisions.AABBcheck(b1,b2,s1,s2,o1,o2)
-   -- b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
+function collisions.AABBcheck(b1,b2,s1,s2,o1,o2,isbp)
+    if  isbp == true then
+    else
+        b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
+    end
     b2 = {b2[1]-s2[1]/2,b2[2]-s2[2]/2,b2[3]-s2[3]/2}
+    if refunction.convertPositionto(b2,"string") == "-70,78,-122" and not isbp then
+       -- print(b1[2])
+    end
     return not (b1[1]+s1[1] < b2[1] or 
                 b1[1]>b2[1]+s2[1] or
                 b1[2]+s1[2] < b2[2] or 
@@ -94,6 +141,7 @@ function collisions.AABBcheck(b1,b2,s1,s2,o1,o2)
                 b1[3]+s1[3] < b2[3] or 
                 b1[3]>b2[3]+s2[3] )                                      
 end
+
 function collisions.entityvsterrainloop(entity,velocity)
     local position = entity.Position
     local hitbox = entity.HitBoxSize
@@ -111,14 +159,15 @@ function collisions.entityvsterrainloop(entity,velocity)
     local mintime = 1
     local cc
     local zack 
+    local gridsize = 4
     local bppos,bpsize = collisions.GetBroadPhase(position,{hitbox.x,hitbox.y,hitbox.z},nil,velocity)
-    for x = min[1],max[1],1 do
-        for y = min[2],max[2],1 do
-            for z = min[3],max[3],1 do
+    for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
+        for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
+            for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
                 local block,a = refunction.GetBlock({x,y,z})
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
-                   if not collisions.AABBcheck(bppos,a2,bpsize,{4,4,4},nil,nil) then continue end
+                   if not collisions.AABBcheck(bppos,a2,bpsize,{4,4,4},nil,nil,true) then continue end
                    position = entity.Position
                     local collisiontime,newnormal = collisions.SweaptAABB(position,a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,velocity,mintime)
                     game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = (typeof(newnormal) == "table" and newnormal[3] or 6)

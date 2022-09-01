@@ -26,8 +26,10 @@ local controlls = {
     },
 }
 local keypressed = {}
+controlls.FallTicks = 0
 controlls.PlayerNbt = nil
 controlls.PStuff = nil
+controlls.IsOnGround = false
 controlls.PlayerPosition = nil
 local ButtonsWork = true
 controlls.Update = controlls.Update or {}
@@ -213,7 +215,10 @@ function update.UpdatePosition(delta)
             total[3] += v[3]
         end	
         entity.Position = controlls.PlayerPosition
+        controlls.IsOnGround = collision_handler.IsGrounded(entity)
+       -- print(controlls.IsOnGround )
         local pos = collision_handler.entityvsterrain(entity,total)
+
         -- total =LerpVector3(entity.Position,goal,delta),"table"
         --local diffrence = refunction.convertPositionto(refunction.SubPosition(goal,total),"table")
        -- controlls.PStuff =   refunction.convertPositionto( entity.Position ,"table" )
@@ -227,7 +232,6 @@ function update.Movement(deltatime)
     controlls.PlayerNbt = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)
     controlls.PlayerPosition = controlls.PlayerPosition or controlls.PlayerNbt.Position
     controlls.PlayerNbt.Position =  controlls.PlayerPosition
-    controlls.IsOnGround = controlls.IsOnGround
     controlls.FallRate = controlls.FallRate or   controlls.PlayerNbt.NotSaved.Velocity.Fall
     local LookVector = camera.CFrame.LookVector
     local RightVector = camera.CFrame.RightVector
@@ -257,13 +261,13 @@ function  update.HandleFall()
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    entity.FallTicks += 1
-    local fallrate = (((0.98^entity.FallTicks)-1)*entity.maxfallvelocity)
+    local fallrate = (((0.98^controlls.FallTicks)-1)*entity.maxfallvelocity)
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall  then
-        entity.FallTicks = 0
+        controlls.FallTicks = 0
         controlls.FallRate = {0,0,0}
     elseif not controlls.IsOnGround and entity.CanFall then
+        controlls.FallTicks += 1
         controlls.FallRate = {0,fallrate,0}
     end
 end
