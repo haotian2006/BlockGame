@@ -6,9 +6,7 @@ function  collisions.entityvsterrain(entity,velocity)
     local normal = {0,0,0}
     local hitbox = entity.HitBoxSize
     for i =1,3,1 do
-        if velocity[i] == 0 then
-            continue
-        end
+      
     velocity[1] *= (1-math.abs(normal[1]))*remainingtime
     velocity[2] *= (1-math.abs(normal[2]))*remainingtime
     velocity[3] *= (1-math.abs(normal[3]))*remainingtime
@@ -23,24 +21,40 @@ function  collisions.entityvsterrain(entity,velocity)
         placevelocity[1] = velocity[1]*MinTime
         placevelocity[2] = velocity[2]*MinTime
         placevelocity[3] = velocity[3]*MinTime
-        if placevelocity[1] == 0 and velocity[1]~= 0 and normal[1] ~=0 and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{velocity[1],0,0},1) == 1 then
-            print(collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{velocity[1],0,0},1) == 1)
-         placevelocity[1] = velocity[1]
-        end
-        if placevelocity[2] == 0 and velocity[2]~= 0 and normal[2] ~=0 and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{0,velocity[2],0},1) == 1 then
-         placevelocity[2] = velocity[2]
-        end
-        if placevelocity[3] == 0 and velocity[3]~= 0 and normal[3] ~=0 and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{0,0,velocity[3]},1) == 1 then
-         placevelocity[3] = velocity[3]
-        end
+        --so basicly i need to check if the velocity is colliding with the curreny normal
+    --    if bb then 
+    --     print(collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{velocity[1],0,0},1) == 1)
+    --    end
+    --     if placevelocity[1] == 0 and velocity[1]~= 0 and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{velocity[1],0,0},1) == 1 then
+        
+    --      placevelocity[1] = velocity[1]
+    --     end
+    --     if placevelocity[2] == 0 and velocity[2]~= 0 and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{0,velocity[2],0},1) == 1 then
+    --      placevelocity[2] = velocity[2]
+    --     end
+    --     if placevelocity[3] == 0 and velocity[3]~= 0  and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{0,0,velocity[3]},1) == 1 then
+    --      placevelocity[3] = velocity[3]
+    --     end
          entity.Position[1] += placevelocity[1]
          entity.Position[2] += placevelocity[2]
          entity.Position[3] += placevelocity[3]
-        if MinTime <1 and false then
+        if MinTime <1 then
             --epsilon 
-            entity.Position[1] += normal[1]*0.001
-            entity.Position[2] += normal[2]*0.001
-            entity.Position[3] += normal[3]*0.001
+            if velocity[1] >0 then
+                entity.Position[1] -= 0.001
+            elseif velocity[1] <0 then
+                entity.Position[1] += 0.001
+            end
+            if velocity[2] >0 then
+                entity.Position[2] -= 0.001
+            elseif velocity[2] <0 then
+               entity.Position[2] += 0.001
+            end
+            if velocity[3] >0 then
+                entity.Position[3] -= 0.0001
+            elseif velocity[3] <0 then
+                entity.Position[3] += 0.0001
+            end
         end
         remainingtime = 1.0-MinTime
         if remainingtime <=0 then break end
@@ -58,6 +72,28 @@ end
     local distance_fromnew= refunction.GetMagnituide(b1,originalb1)
 
 end]]
+function collisions.GetBroadPhase(b1,s1,o1,velocity)
+    b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
+    local position = {}
+    local size = {}
+    position[1] = velocity[1] >0 and b1[1] or b1[1] + velocity[1]
+    position[2] = velocity[2] >0 and b1[2] or b1[2] + velocity[2]
+    position[3] = velocity[3] >0 and b1[3] or b1[3] + velocity[3]
+    size[1] = velocity[1] >0 and velocity[1]+s1[1] or s1[1] - velocity[1]
+    size[2] = velocity[2] >0 and velocity[2]+s1[2] or s1[2] - velocity[2]
+    size[3] = velocity[3] >0 and velocity[3]+s1[3] or s1[3] - velocity[3]
+    return position,size
+end
+function collisions.AABBcheck(b1,b2,s1,s2,o1,o2)
+   -- b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
+    b2 = {b2[1]-s2[1]/2,b2[2]-s2[2]/2,b2[3]-s2[3]/2}
+    return not (b1[1]+s1[1] < b2[1] or 
+                b1[1]>b2[1]+s2[1] or
+                b1[2]+s1[2] < b2[2] or 
+                b1[2]>b2[2]+s2[2] or                                       
+                b1[3]+s1[3] < b2[3] or 
+                b1[3]>b2[3]+s2[3] )                                      
+end
 function collisions.entityvsterrainloop(entity,velocity)
     local position = entity.Position
     local hitbox = entity.HitBoxSize
@@ -75,12 +111,14 @@ function collisions.entityvsterrainloop(entity,velocity)
     local mintime = 1
     local cc
     local zack 
+    local bppos,bpsize = collisions.GetBroadPhase(position,{hitbox.x,hitbox.y,hitbox.z},nil,velocity)
     for x = min[1],max[1],1 do
         for y = min[2],max[2],1 do
             for z = min[3],max[3],1 do
                 local block,a = refunction.GetBlock({x,y,z})
-                if block  then
+                if block then
                    local a2 = refunction.convertPositionto(a,"table")
+                   if not collisions.AABBcheck(bppos,a2,bpsize,{4,4,4},nil,nil) then continue end
                    position = entity.Position
                     local collisiontime,newnormal = collisions.SweaptAABB(position,a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,velocity,mintime)
                     game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = (typeof(newnormal) == "table" and newnormal[3] or 6)
@@ -210,8 +248,8 @@ function  collisions.SweaptAABB(b1,b2,s1,s2,o1,o2,velocity,mintime)
             normal[3] = 0
         end 
     end
-       if a ~= "b" then
-      -- print(a)
+       if a == "b" then
+   --   print(refunction.convertPositionto(aaa))
        end
     return entrytime,normal
 end
