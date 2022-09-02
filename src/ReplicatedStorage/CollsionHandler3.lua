@@ -4,12 +4,15 @@ local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
 end
+function collisions.DealWithRotation(blockdata)
+    
+end
 function  collisions.IsGrounded(entity)
     local position = entity.Position
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2,
-        position[2]-(hitbox.y/2+2),
+        position[2]-(hitbox.y/2+0.5),
         position[3]-hitbox.z/2,
     }
     local max ={
@@ -40,6 +43,7 @@ function  collisions.IsGrounded(entity)
     return false
 end
 function  collisions.entityvsterrain(entity,velocity)
+    local position = entity.Position
    -- print(velocity[2])
     local remainingtime = 1
     local MinTime
@@ -53,7 +57,7 @@ function  collisions.entityvsterrain(entity,velocity)
     velocity[3] *= (1-math.abs(normal[3]))*remainingtime
         local bb
         normal = {0,0,0}
-        MinTime,normal,bb = collisions.entityvsterrainloop(entity,velocity)
+        MinTime,normal,bb = collisions.entityvsterrainloop(entity,position,velocity)
        -- game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = aaaa
         -- entity.Position[1] += velocity[1]*MinTime
         -- entity.Position[2] += velocity[2]*MinTime
@@ -76,25 +80,25 @@ function  collisions.entityvsterrain(entity,velocity)
     --     if placevelocity[3] == 0 and velocity[3]~= 0  and bb and collisions.SweaptAABB(entity.Position,bb,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,{0,0,velocity[3]},1) == 1 then
     --      placevelocity[3] = velocity[3]
     --     end
-         entity.Position[1] += placevelocity[1]
-         entity.Position[2] += placevelocity[2]
-         entity.Position[3] += placevelocity[3]
+        position[1] += placevelocity[1]
+        position[2] += placevelocity[2]
+        position[3] += placevelocity[3]
         if MinTime <1 then
             --epsilon 
             if velocity[1] >0 then
-                entity.Position[1] -= 0.001
+                position[1] -= 0.001
             elseif velocity[1] <0 then
-                entity.Position[1] += 0.001
+                position[1] += 0.001
             end
             if velocity[2] >0 then
-                entity.Position[2] -= 0.001
+                position[2] -= 0.001
             elseif velocity[2] <0 then
-               entity.Position[2] += 0.001
+                position[2] += 0.001
             end
             if velocity[3] >0 then
-                entity.Position[3] -= 0.0001
+                position[3] -= 0.0001
             elseif velocity[3] <0 then
-                entity.Position[3] += 0.0001
+                position[3] += 0.0001
             end
         end
         remainingtime = 1.0-MinTime
@@ -102,7 +106,7 @@ function  collisions.entityvsterrain(entity,velocity)
         
     end
     velocity = {0,0,0}
-    return  entity.Position
+    return  position
 end
 --[[function collisions.QuickAABBCheck(b1,b2,s1,s2,o1,o2,velocity)
     b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
@@ -142,8 +146,7 @@ function collisions.AABBcheck(b1,b2,s1,s2,o1,o2,isbp)
                 b1[3]>b2[3]+s2[3] )                                      
 end
 
-function collisions.entityvsterrainloop(entity,velocity)
-    local position = entity.Position
+function collisions.entityvsterrainloop(entity,position,velocity)
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2+(velocity[1] <0 and velocity[1]-1 or 0)   ,
@@ -168,7 +171,6 @@ function collisions.entityvsterrainloop(entity,velocity)
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
                    if not collisions.AABBcheck(bppos,a2,bpsize,{4,4,4},nil,nil,true) then continue end
-                   position = entity.Position
                     local collisiontime,newnormal = collisions.SweaptAABB(position,a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,velocity,mintime)
                     game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = (typeof(newnormal) == "table" and newnormal[3] or 6)
                     if collisiontime < mintime then

@@ -234,7 +234,7 @@ function  move.HandleFall(uuid)
         entity.FallTicks = 0
         velocity.Fall = {0,0,0}
     elseif not entity.IsOnGround and entity.CanFall then
-        velocity.Fall = {0,fallrate,0}
+       -- velocity.Fall = {0,fallrate,0}
     end
     if ypos ~=   oldpos[uuid] then
     oldpos[uuid] = ypos

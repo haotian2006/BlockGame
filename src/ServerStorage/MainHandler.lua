@@ -375,10 +375,11 @@ function Main.destroyblock(player,pos)
 		end
 	end
 end
-function Main.GetPlayer(player,Pos)
+function Main.GetPlayer(player,Pos,a)
 	local player = maindata.LoadedEntitys[player.Name] or maindata.Entitys[player.Name]
 	player.Position = Pos and refunction.convertPositionto(Pos,"table") or player.Position
-	return player
+		return player	
+
 end
 function Main.GetBlock(Player,Pos)
 	Pos = refunction.convertPositionto(Pos,"table")

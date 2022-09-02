@@ -2,7 +2,7 @@ local event = game.ReplicatedStorage.Events.Entitys.NearByEntitys
 local Players = game:GetService("Players")
 local tweenservice = game:GetService("TweenService")
 local runservice = game:GetService("RunService")
-require(script.Parent:WaitForChild("Controlls"))
+local controlls = require(script.Parent:WaitForChild("Controlls"))
 runservice.Stepped:Connect(function(time, deltaTime)
     if Players.LocalPlayer.Character and Players.LocalPlayer.Character.PrimaryPart and Players.LocalPlayer.Character.PrimaryPart.Position then
     else
@@ -12,7 +12,6 @@ runservice.Stepped:Connect(function(time, deltaTime)
     for i,v in ipairs(workspace.Entity:GetChildren())do
 
         if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
-            print("e")
             tweenservice:Create(v,TweenInfo.new(0.4),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.Angles(
                 math.rad((data[v.Name].Rotation[1])),
                 math.rad((data[v.Name].Rotation[2])),
@@ -21,6 +20,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
         elseif v.Name ~= game.Players.LocalPlayer.Name then
             v:Destroy()
         end
+
         data[v.Name] = nil
     end
     

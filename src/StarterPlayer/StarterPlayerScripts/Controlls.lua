@@ -84,18 +84,17 @@ local function pn(value)
     end
     return values
 end
-function lerp(start, finish, alpha)
-    return start + (finish - start)*alpha
-end
-function LerpVector3(self,finish, alpha)
-    self = refunction.convertPositionto(self,"vector3")
-    finish = refunction.convertPositionto(finish,"vector3")
-    -- implicit definition of self being the Vector3 Lerp is applied on
-    return Vector3.new(
-        lerp(self.x, finish.x, alpha),
-        lerp(self.y, finish.y, alpha),
-        lerp(self.z, finish.z, alpha)
-    )
+function interpolate(startVector3, finishVector3, alpha)
+    local function currentState(start, finish, alpha)
+        return start + (finish - start)*alpha
+
+    end
+
+    return {
+        currentState(startVector3[1], finishVector3[1], alpha),
+        currentState(startVector3[2], finishVector3[2], alpha),
+        currentState(startVector3[3], finishVector3[3], alpha)
+    }
 end
 function controlls.Place(input,gameProcessedEvent)
     if gameProcessedEvent or not ButtonsWork then return end
@@ -214,23 +213,32 @@ function update.UpdatePosition(delta)
             total[2] += v[2]
             total[3] += v[3]
         end	
+        if total[2] > 0 then 
+            --print( total[2])
+        end
         entity.Position = controlls.PlayerPosition
         controlls.IsOnGround = collision_handler.IsGrounded(entity)
        -- print(controlls.IsOnGround )
         local pos = collision_handler.entityvsterrain(entity,total)
-
-        -- total =LerpVector3(entity.Position,goal,delta),"table"
-        --local diffrence = refunction.convertPositionto(refunction.SubPosition(goal,total),"table")
-       -- controlls.PStuff =   refunction.convertPositionto( entity.Position ,"table" )
-        --entity.Position = refunction.convertPositionto(refunction.convertPositionto(refunction.convertPositionto(total,"vector3") +refunction.convertPositionto(entity.Position,"vector3")),"table")
-    --    local newposition = collision_handler.Handle(entity,total,controlls.PStuff)
-       -- entity.NotSaved.Velocity.Jump = {0,0,0}
-       controlls.PlayerPosition = pos
+        if not controlls.CanJump  then
+            --controlls.CanJump = true
+           -- entity.NotSaved.Velocity.Jump = {0,0,0}
+        end
+       controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
-local speed = 0.6
+local speed = 0.43
+local jumpedamount =0 
+local jumpheight = 6
 function update.Movement(deltatime)
-    controlls.PlayerNbt = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)
-    controlls.PlayerPosition = controlls.PlayerPosition or controlls.PlayerNbt.Position
+    if not controlls.PlayerNbt then   
+       local b = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)     
+       if b then
+        controlls.PlayerPosition = b.Position
+       controlls.PlayerNbt = b
+       else 
+        return
+       end
+    end 
     controlls.PlayerNbt.Position =  controlls.PlayerPosition
     controlls.FallRate = controlls.FallRate or   controlls.PlayerNbt.NotSaved.Velocity.Fall
     local LookVector = camera.CFrame.LookVector
@@ -246,9 +254,26 @@ function update.Movement(deltatime)
     local Jump = keypressed[controlls.KeyBoard.Jump]
    local velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
-   controlls.PlayerNbt.NotSaved.Velocity.Jump = Jump and {0,4,0} or {0,0,0}
+   local jump = jumpheight*deltatime*7
+   if jumpedamount > 0 and jumpedamount <=jumpheight  then
+    jumpedamount += jumpheight*deltatime*7
+    jump = jumpheight*deltatime*7
+    controlls.Jumping = true
+    else
+        controlls.Jumping = false
+        jump = 0
+        jumpedamount = 0
+   end
+   if controlls.IsOnGround and Jump and controlls.Jumping == false then
+    if jumpedamount == 0 then
+        jumpedamount += jumpheight*deltatime*7
+       -- jump = 4.1*deltatime
+    end 
+   end
+   controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,jump,0}
    if workspace.Entity:FindFirstChild(Player.Name) then
-    game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
+    workspace.Entity:FindFirstChild(Player.Name).Position = refunction.convertPositionto(controlls.PlayerPosition,"vector3")
+    --game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
    end
 end
 function  update.HandleFall()
@@ -256,45 +281,44 @@ function  update.HandleFall()
     if not entity then return end 
     local pos =  controlls.PlayerPosition
     local ccx,ccz = refunction.GetChunck(pos)
-    if not workspace.Chunck:FindFirstChild(ccx.."x"..ccz) then return end
+    if not workspace.Chunck:FindFirstChild(ccx.."x"..ccz)  then return end
     entity.NotSaved.Velocity  = entity.NotSaved.Velocity  or {}
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = (((0.98^controlls.FallTicks)-1)*entity.maxfallvelocity)
+    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.maxfallvelocity)/2
+
    local ypos = pos[2]
-    if controlls.IsOnGround or not entity.CanFall  then
+    if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then
         controlls.FallTicks = 0
-        controlls.FallRate = {0,0,0}
+        entity.NotSaved.Velocity.Fall = {0,0,0}
     elseif not controlls.IsOnGround and entity.CanFall then
         controlls.FallTicks += 1
-        controlls.FallRate = {0,fallrate,0}
+        entity.NotSaved.Velocity.Fall = {0,fallrate,0}
     end
 end
+local elapsed = 0
+function update.Entity(deltaTime)
+    elapsed += deltaTime
+		if elapsed > 0.25 then
+       local a = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition,true)
+     if a then
+        a.Position = nil
+     end
+       controlls.PlayerNbt = a
+        elapsed = 0
+	end
+end
+local delayrun = {}
 game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
     for i,v in pairs(update)do
         task.spawn(function()
-            v(deltaTime)
+            if not delayrun[i] then   
+                delayrun[i] = true
+                v(deltaTime)
+                delayrun[i] = false
+            end
         end)
     end
 end)
-function controlls.canMove(velocity)
-    local entity = controlls.PlayerNbt
-    if not entity then return velocity end
-    local hitbox = entity.HitBoxSize
-    local pos = controlls.PlayerPosition
-        for i,v in ipairs(velocity)do
-                local currentblock1,normal1,minentry1 = get(velocity,i)
-                if i == 2 then
-                    --print(currentblock1 and true or false)
-                 --"))
-                end
-                if currentblock1 then
-                    pos[i] += velocity[i]*minentry1
-
-                    velocity[i]= normal1[i] ~= 0 and 0 or  velocity[i]
-        end
-    end
-    return velocity
-end
 return controlls
