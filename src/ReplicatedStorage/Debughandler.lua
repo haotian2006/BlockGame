@@ -10,6 +10,7 @@ function debug.new(global)
     return f
 end
 function debug:gettime()
+    print("-----------------")
     for i,v in pairs(self.Items)do
         print(i.."|"..v.."ms")
     end

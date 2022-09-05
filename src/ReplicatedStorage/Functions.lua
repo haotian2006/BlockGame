@@ -76,7 +76,7 @@ function Function.convertPositionto(cout,etype)
         x,y,z = unpack(splited)
     elseif ty == "table" then
         x,y,z = unpack(cout)
-    elseif ty =="vector3" then
+    elseif ty =="vector3" or ty =="cframe" then
         x,y,z = cout.X,cout.Y,cout.Z
 	else
 		warn(cout,"is a(n) "..ty.." which is not a valid input")
@@ -89,6 +89,8 @@ function Function.convertPositionto(cout,etype)
         ret = {x,y,z}
      elseif etype =="vector3" then
         ret = Vector3.new(x,y,z)
+	elseif etype =="cframe" then
+		ret = CFrame.new(x,y,z)
 	elseif etype =="skip" then
 	 else
 		warn(etype,"is not a valid input")
@@ -114,7 +116,8 @@ function Function.GetBlock(pos,HasToBeLoaded)
 		pos = Function.ConvertPositionToReal(pos,"string")
 		local cx,cz = Function.GetChunck(pos)
 		if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
-			return true,pos
+			local blocka = workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
+			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
 		end
 		return nil
 	end
@@ -129,7 +132,7 @@ function Function.ConvertPositionToReal(position,typ)
 	end
 	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
 end 
-function Function.GetSurroundingChunck(Position:Vector3,render:number)
+function Function.GetSurroundingChunck(Position:Vector3,render:number,isdic)
 	local cx,cz =  Function.GetChunck(Position)
 	local coords ={cx.."x"..cz}
 	for i = 1,render,1 do
@@ -165,27 +168,92 @@ end
 function Function.SubPosition(Position,Position2)
 	return Function.convertPositionto(Position,"vector3") - Function.convertPositionto(Position2,"vector3")
 end
-function Function.PlaceBlock(Name:string,Position,Id:number,Orientation)
+local rotationstuffaaaa = {
+	["0,0,0"] = function(datao) return datao end,
+	["0,1,0"] = function(datao) return {datao[3],datao[2],datao[1]} end,
+	["0,1,1"] = function(datao) return {datao[3],datao[1],datao[2]} end,
+	["1,1,0"] = function(datao) return {datao[2],datao[3],datao[1]} end,
+	["1,0,0"] = function(datao) return {datao[1],datao[3],datao[2]} end,
+	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
+}
+function Function.DealWithRotation(blockdata)
+    local hpos = blockdata[4]
+    local orientation = blockdata[3]
+    local setup = {
+        math.abs(orientation[1])== 90 and 1 or 0,
+        math.abs(orientation[2])== 90 and 1 or 0,
+        math.abs(orientation[3])== 90 and 1 or 0,
+    }
+    local offset = {0,0,0}
+    local size = {4,4,4}
+	if Block_Path[blockdata[1]] then
+        local model = Block_Path[blockdata[1]].Model
+        if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
+            size = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
+            offset = Function.convertPositionto(model:FindFirstChild("BasePart").Position - model:FindFirstChild("MainPart").Position,"table")
+        elseif not model:IsA("Model") then
+
+        else
+            warn("error with model",blockdata[1])
+        end
+    end
+    local NewPos = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
+  	  CFrame.Angles(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
+    	Function.convertPositionto(offset,"CFrame")
+    		).Position,"table")
+    local newsize = rotationstuffaaaa[Function.convertPositionto(setup)](size)
+   -- print(hpos,newsize)
+    return  NewPos,newsize
+end
+function Function.GetOffset(name)
+    local offset = {0,0,0}
+    local size = {4,4,4}
+    if Block_Path[name] then
+        local model = Block_Path[name].Model
+        if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
+            offset = Function.convertPositionto(model:FindFirstChild("BasePart").Position - model:FindFirstChild("MainPart").Position,"table")
+        elseif not model:IsA("Model") then
+
+        else
+            warn("error with model",name)
+        end
+    end
+	return offset
+end
+function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 	if Position then
 		Position = Function.convertPositionto(Position,"vector3")
+	else
+		warn("Position Is Nil")
+		return
 	end
 	if Orientation then
 		Orientation = Function.convertPositionto(Orientation,"vector3")
+	else
+		Orientation = Vector3.new(0,0,0)
 	end
 	local cx,cz = Function.GetChunck(Position)
 	local chunckname = cx.."x"..cz
 	local chunckfolder =workspace.Chunck:FindFirstChild(chunckname) or Instance.new("Folder",workspace.Chunck)
 	chunckfolder.Name = chunckname
 	if Block_Path[Name] and not chunckfolder:FindFirstChild(Function.convertPositionto(Position,"string")) then
-		local clonedblock = Block_Path[Name].Model:Clone()
+		local model =  Block_Path[Name].Model
+		local clonedblock
+		local offset = Function.convertPositionto(Function.GetOffset(Name),"CFrame")
+        if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
+			 clonedblock = model.MainPart:Clone()
+		elseif not model:IsA("Model") then
+			clonedblock = Block_Path[Name].Model:Clone()
+        end
 		--for i,v in ipairs(Block_Texture:FindFirstChild(Name):GetChildren())do
 			--v:Clone().Parent = clonedblock
 		--end
 		clonedblock.LocalTransparencyModifier = 0
 		clonedblock.Name = Function.convertPositionto(Position,"string")
-		clonedblock.Position = Position
-		clonedblock.Orientation = Orientation or Vector3.new(0,0,0)
-		clonedblock.Parent =chunckfolder
+		clonedblock.CFrame = CFrame.new(Position) * CFrame.Angles(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset
+		clonedblock.Parent =paren or chunckfolder
+		clonedblock:SetAttribute("Name",Name)
+		clonedblock:SetAttribute("State",Id)
 	end
 end
 local rotationstuffaaaa = {
@@ -196,221 +264,6 @@ local rotationstuffaaaa = {
 	["1,0,0"] = function(datao) return {datao[1],datao[3],datao[2]} end,
 	["0,0,1"] = function(datao) return {datao[2],datao[1],datao[3]} end,
 }
-function Function.GetSweaptBroadPhase(P1,S1,O1,velocity)
-	-- P1 = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
-	 local Pos = {
-		velocity[1] >0 and P1[1] or P1[1] + velocity[1],
-		velocity[2] >0 and P1[2] or P1[2] + velocity[2],
-		velocity[3] >0 and P1[3] or P1[3] + velocity[3]
-	 }
-	 local size ={
-		velocity[1] >0 and velocity[1] + S1[1] or S1[1] - velocity[1],
-		velocity[2] >0 and velocity[2] + S1[2] or S1[2] - velocity[2],
-		velocity[3] >0 and velocity[3] + S1[3] or S1[3] - velocity[3],
-	 }
-	 return Pos,size
-end
-function  Function.AABBCheck(P1,S1,O1,P2,S2,O2,velocity)
-	local P2 = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
-	return not(
-		P1[1] + S1[1] < P2[1] or
-		P1[1] > P2[1]+S2[1] or
-		P1[2] + S1[2] < P2[2] or
-		P1[2] > P2[2]+S2[2] or
-		P1[3] + S1[3] < P2[3] or
-		P1[3] > P2[3]+S2[3]
-	)
-end
-function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
-	local normalvelocity = {0,0,0}
-	local xmax = P1[1] + S1[1]*0.5
-	local xmin = P1[1] - S1[1]*0.5
-	local ymax = P1[2] + S1[2]*0.5
-	local ymin = P1[2] - S1[2]*0.5
-	local zmax = P1[3] + S1[3]*0.5
-	local zmin = P1[3] - S1[3]*0.5
-	local xmax2 = P2[1] + S2[1]*0.5
-	local xmin2 = P2[1] - S2[1]*0.5
-	local ymax2 = P2[2] + S2[2]*0.5
-	local ymin2 = P2[2] - S2[2]*0.5
-	local zmax2 = P2[3] + S2[3]*0.5
-	local zmin2 = P2[3] - S2[3]*0.5
-	local P1Leftcorners = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
-	local P2Leftcorners = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
-	-- P1Leftcorners = P1
-	-- P2Leftcorners= P2
-	--P1Leftcorners = P1
-	--P2Leftcorners = P2
-	local xInvEntry,yInvEntry,zInvEntry
-    local xInvExit,yInvExit,zInvExit
-	if velocity[1] > 0.0 then
-		xInvEntry = P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
-		xInvExit = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1] 
-	else
-		xInvEntry = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1]
-		xInvExit =  P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
-	end
-	if velocity[2] > 0.0 then
-		yInvEntry = P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
-		yInvExit = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2] 
-	else
-		yInvEntry = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2]
-		yInvExit =  P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
-	end
-	if velocity[3] > 0.0 then
-		zInvEntry = P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
-		zInvExit = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3] 
-	else
-		zInvEntry = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3]
-		zInvExit =  P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
-	end
-	local xEntry , yEntry, zEntry
-	local xExit , yExit, zExit
-	if velocity[1] == 0 then
-		xEntry = -math.huge
-		xExit = math.huge
-	else
-		xEntry = xInvEntry / velocity[1]
-		xExit = xInvExit / velocity[1]
-	end
-	if velocity[2] == 0 then
-		yEntry = -math.huge
-		yExit = math.huge
-	else
-		yEntry = yInvEntry / velocity[2]
-		yExit = yInvExit / velocity[2]
-	end
-	if velocity[3] == 0 then
-		zEntry = -math.huge
-		zExit = math.huge
-	else
-		zEntry = zInvEntry / velocity[3]
-		zExit = zInvExit / velocity[3]
-	end
-	if xEntry > 1 then xEntry = -math.huge end
-	if yEntry > 1 then yEntry = -math.huge end
-	if zEntry > 1 then zEntry = -math.huge end
-	local entrytime = math.max(math.max(xEntry,zEntry),yEntry)
-	local exittime = math.min(math.min(xExit,zExit),yExit)
-	 --print(entrytime > exittime or (xEntry < 0.0 and yEntry<0.0 and zEntry<0.0) or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0)
-	 --or xEntry < 0.0 and yEntry<0.0 and zEntry<0.0 or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0
-
-	if entrytime > exittime then return 1,2 end
-	if value == 2 then
-		--print(  yEntry)
-	end
-	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 3,3 end
-	if xEntry <0 then
-		if xmax2 < xmin or xmin2 > xmax then return 1,4 end
-	end
-
-	if yEntry <0 then
-		if ymax2 < ymin or ymin2 > ymax then return 1,5 end
-	end
-
-	if zEntry <0 then
-		if zmax2 < zmin or zmin2 > zmax then  return 1,6 end
-	end
-	if value == 2 then
-		print(  "E")
-	end
-		if xEntry > yEntry then
-			if xEntry > zEntry then
-				normalvelocity[1] = -math.sign(velocity[1])
-				normalvelocity[2] = 0
-				normalvelocity[3] = 0
-			else
-				normalvelocity[1] = 0
-				normalvelocity[2] = 0
-				normalvelocity[3] = -math.sign(velocity[3])
-			end
-		else
-			if yEntry > zEntry then
-				normalvelocity[1] = 0
-				normalvelocity[2] = -math.sign(velocity[2])
-				normalvelocity[3] = 0
-			else
-				normalvelocity[1] = 0
-				normalvelocity[2] = 0
-				normalvelocity[3] = -math.sign(velocity[3])
-			end
-		end
-		return entrytime,normalvelocity
-end
-function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,velocity,a)
-	P1 = Function.convertPositionto(P1,"table")
-	P2 = Function.convertPositionto(P2,"table")
-	S1 = Function.convertPositionto(S1,"table")
-	S2 = Function.convertPositionto(S2,"table")
-	if O1 then
-		O1 = Function.convertPositionto(O1,"table")
-		local setup = {
-			math.abs(O1[1])== 90 and 1 or 0,
-			math.abs(O1[2])== 90 and 1 or 0,
-			math.abs(O1[3])== 90 and 1 or 0,
-		}
-		S1 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S1) or S2
-	end
-	if O2 then
-		O2 = Function.convertPositionto(O2,"table")
-		local setup = {
-			math.abs(O2[1])== 90 and 1 or 0,
-			math.abs(O2[2])== 90 and 1 or 0,
-			math.abs(O2[3])== 90 and 1 or 0,
-		}
-		S2 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S2) or S2
-	end
-	 --print(P1[2])
-	--  P1[1] = math.abs(P1[1])
-	--  P1[2] = math.abs(P1[2])
-	--  P1[3] = math.abs(P1[3])
-	--  P2[1] = math.abs(P2[1])
-	--  P2[2] = math.abs(P2[2])
-	--  P2[3] = math.abs(P2[3])
-	local xmax = P1[1] + S1[1]*0.5
-	local xmin = P1[1] - S1[1]*0.5
-	local ymax = P1[2] + S1[2]*0.5
-	local ymin = P1[2] - S1[2]*0.5
-	local zmax = P1[3] + S1[3]*0.5
-	local zmin = P1[3] - S1[3]*0.5
-	local xmax2 = P2[1] + S2[1]*0.5
-	local xmin2 = P2[1] - S2[1]*0.5
-	local ymax2 = P2[2] + S2[2]*0.5
-	local ymin2 = P2[2] - S2[2]*0.5
-	local zmax2 = P2[3] + S2[3]*0.5
-	local zmin2 = P2[3] - S2[3]*0.5
-
---[[	if velocity[1]>0 then
-		xmax+=velocity[1]
-	else
-		xmin+=velocity[1]
-	end
-	if velocity[2]>0 then
-		ymax+=velocity[2]
-	else
-		ymin+=velocity[2]
-	end
-	if velocity[3]>0 then
-		zmax+=velocity[3]
-	else
-		zmin+=velocity[3]
-	end]]
-	local p1Max = Vector3.new(P1[1]+S1[1],P1[2]+S1[2],P1[3]+S1[3])
-	local p1Min = Vector3.new(P1[1],P1[2],P1[3])
-	local p2Max = Vector3.new(P2[1]+S2[1],P2[2]+S2[2],P2[3]+S2[3])
-	local p2Min = Vector3.new(P2[1],P2[2],P2[3])
-
-	-- return p2Max.X > p1Min.X and p2Min.X < p1Max.X and
-	-- 	   p2Max.Y > p1Min.Y and p2Min.Y < p1Max.Y and
-	-- 	   p2Max.Z > p1Min.Z and p2Min.Z < p1Max.Z
-		--print(zmin , zmax2 , zmax , zmin2)
-		if a then
-			print (ymin , ymax2 , ymax , ymin2)
-		end
-	return(xmin <= xmax2 and xmax >= xmin2) and
-		  (ymin <= ymax2 and ymax >= ymin2) and
-		  (zmin <= zmax2 and zmax >= zmin2)
-end
 --<Server_functions>
 if maindata then 
 function Function.GetFloor(pos,CanBeTransParent)
@@ -466,3 +319,221 @@ end
 
 end
 return Function
+
+
+
+-- function Function.GetSweaptBroadPhase(P1,S1,O1,velocity)
+-- 	-- P1 = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
+-- 	 local Pos = {
+-- 		velocity[1] >0 and P1[1] or P1[1] + velocity[1],
+-- 		velocity[2] >0 and P1[2] or P1[2] + velocity[2],
+-- 		velocity[3] >0 and P1[3] or P1[3] + velocity[3]
+-- 	 }
+-- 	 local size ={
+-- 		velocity[1] >0 and velocity[1] + S1[1] or S1[1] - velocity[1],
+-- 		velocity[2] >0 and velocity[2] + S1[2] or S1[2] - velocity[2],
+-- 		velocity[3] >0 and velocity[3] + S1[3] or S1[3] - velocity[3],
+-- 	 }
+-- 	 return Pos,size
+-- end
+-- function  Function.AABBCheck(P1,S1,O1,P2,S2,O2,velocity)
+-- 	local P2 = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
+-- 	return not(
+-- 		P1[1] + S1[1] < P2[1] or
+-- 		P1[1] > P2[1]+S2[1] or
+-- 		P1[2] + S1[2] < P2[2] or
+-- 		P1[2] > P2[2]+S2[2] or
+-- 		P1[3] + S1[3] < P2[3] or
+-- 		P1[3] > P2[3]+S2[3]
+-- 	)
+-- end
+-- function Function.SweapAABB(P1,S1,O1,P2,S2,O2,velocity,value)
+-- 	local normalvelocity = {0,0,0}
+-- 	local xmax = P1[1] + S1[1]*0.5
+-- 	local xmin = P1[1] - S1[1]*0.5
+-- 	local ymax = P1[2] + S1[2]*0.5
+-- 	local ymin = P1[2] - S1[2]*0.5
+-- 	local zmax = P1[3] + S1[3]*0.5
+-- 	local zmin = P1[3] - S1[3]*0.5
+-- 	local xmax2 = P2[1] + S2[1]*0.5
+-- 	local xmin2 = P2[1] - S2[1]*0.5
+-- 	local ymax2 = P2[2] + S2[2]*0.5
+-- 	local ymin2 = P2[2] - S2[2]*0.5
+-- 	local zmax2 = P2[3] + S2[3]*0.5
+-- 	local zmin2 = P2[3] - S2[3]*0.5
+-- 	local P1Leftcorners = {P1[1]-S1[1]/2,P1[2]-S1[2]/2,P1[3]-S1[3]/2}
+-- 	local P2Leftcorners = {P2[1]-S2[1]/2,P2[2]-S2[2]/2,P2[3]-S2[3]/2}
+-- 	-- P1Leftcorners = P1
+-- 	-- P2Leftcorners= P2
+-- 	--P1Leftcorners = P1
+-- 	--P2Leftcorners = P2
+-- 	local xInvEntry,yInvEntry,zInvEntry
+--     local xInvExit,yInvExit,zInvExit
+-- 	if velocity[1] > 0.0 then
+-- 		xInvEntry = P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
+-- 		xInvExit = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1] 
+-- 	else
+-- 		xInvEntry = (P2Leftcorners[1] +S2[1] ) - P1Leftcorners[1]
+-- 		xInvExit =  P2Leftcorners[1] - (P1Leftcorners[1] +S1[1] )
+-- 	end
+-- 	if velocity[2] > 0.0 then
+-- 		yInvEntry = P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
+-- 		yInvExit = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2] 
+-- 	else
+-- 		yInvEntry = (P2Leftcorners[2] +S2[2] ) - P1Leftcorners[2]
+-- 		yInvExit =  P2Leftcorners[2] - (P1Leftcorners[2] +S1[2] )
+-- 	end
+-- 	if velocity[3] > 0.0 then
+-- 		zInvEntry = P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
+-- 		zInvExit = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3] 
+-- 	else
+-- 		zInvEntry = (P2Leftcorners[3] +S2[3] ) - P1Leftcorners[3]
+-- 		zInvExit =  P2Leftcorners[3] - (P1Leftcorners[3] +S1[3] )
+-- 	end
+-- 	local xEntry , yEntry, zEntry
+-- 	local xExit , yExit, zExit
+-- 	if velocity[1] == 0 then
+-- 		xEntry = -math.huge
+-- 		xExit = math.huge
+-- 	else
+-- 		xEntry = xInvEntry / velocity[1]
+-- 		xExit = xInvExit / velocity[1]
+-- 	end
+-- 	if velocity[2] == 0 then
+-- 		yEntry = -math.huge
+-- 		yExit = math.huge
+-- 	else
+-- 		yEntry = yInvEntry / velocity[2]
+-- 		yExit = yInvExit / velocity[2]
+-- 	end
+-- 	if velocity[3] == 0 then
+-- 		zEntry = -math.huge
+-- 		zExit = math.huge
+-- 	else
+-- 		zEntry = zInvEntry / velocity[3]
+-- 		zExit = zInvExit / velocity[3]
+-- 	end
+-- 	if xEntry > 1 then xEntry = -math.huge end
+-- 	if yEntry > 1 then yEntry = -math.huge end
+-- 	if zEntry > 1 then zEntry = -math.huge end
+-- 	local entrytime = math.max(math.max(xEntry,zEntry),yEntry)
+-- 	local exittime = math.min(math.min(xExit,zExit),yExit)
+-- 	 --print(entrytime > exittime or (xEntry < 0.0 and yEntry<0.0 and zEntry<0.0) or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0)
+-- 	 --or xEntry < 0.0 and yEntry<0.0 and zEntry<0.0 or xEntry > 1.0 or yEntry >1.0 or zEntry >1.0
+
+-- 	if entrytime > exittime then return 1,2 end
+-- 	if value == 2 then
+-- 		--print(  yEntry)
+-- 	end
+-- 	if xEntry <0.0 and yEntry <0.0 and zEntry<0.0 then return 3,3 end
+-- 	if xEntry <0 then
+-- 		if xmax2 < xmin or xmin2 > xmax then return 1,4 end
+-- 	end
+
+-- 	if yEntry <0 then
+-- 		if ymax2 < ymin or ymin2 > ymax then return 1,5 end
+-- 	end
+
+-- 	if zEntry <0 then
+-- 		if zmax2 < zmin or zmin2 > zmax then  return 1,6 end
+-- 	end
+-- 	if value == 2 then
+-- 		print(  "E")
+-- 	end
+-- 		if xEntry > yEntry then
+-- 			if xEntry > zEntry then
+-- 				normalvelocity[1] = -math.sign(velocity[1])
+-- 				normalvelocity[2] = 0
+-- 				normalvelocity[3] = 0
+-- 			else
+-- 				normalvelocity[1] = 0
+-- 				normalvelocity[2] = 0
+-- 				normalvelocity[3] = -math.sign(velocity[3])
+-- 			end
+-- 		else
+-- 			if yEntry > zEntry then
+-- 				normalvelocity[1] = 0
+-- 				normalvelocity[2] = -math.sign(velocity[2])
+-- 				normalvelocity[3] = 0
+-- 			else
+-- 				normalvelocity[1] = 0
+-- 				normalvelocity[2] = 0
+-- 				normalvelocity[3] = -math.sign(velocity[3])
+-- 			end
+-- 		end
+-- 		return entrytime,normalvelocity
+-- end
+-- function Function.CheckForCollision(P1,S1,O1,P2,S2,O2,velocity,a)
+-- 	P1 = Function.convertPositionto(P1,"table")
+-- 	P2 = Function.convertPositionto(P2,"table")
+-- 	S1 = Function.convertPositionto(S1,"table")
+-- 	S2 = Function.convertPositionto(S2,"table")
+-- 	if O1 then
+-- 		O1 = Function.convertPositionto(O1,"table")
+-- 		local setup = {
+-- 			math.abs(O1[1])== 90 and 1 or 0,
+-- 			math.abs(O1[2])== 90 and 1 or 0,
+-- 			math.abs(O1[3])== 90 and 1 or 0,
+-- 		}
+-- 		S1 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S1) or S2
+-- 	end
+-- 	if O2 then
+-- 		O2 = Function.convertPositionto(O2,"table")
+-- 		local setup = {
+-- 			math.abs(O2[1])== 90 and 1 or 0,
+-- 			math.abs(O2[2])== 90 and 1 or 0,
+-- 			math.abs(O2[3])== 90 and 1 or 0,
+-- 		}
+-- 		S2 = rotationstuffaaaa[Function.convertPositionto(setup,"string")] and rotationstuffaaaa[Function.convertPositionto(setup,"string")](S2) or S2
+-- 	end
+-- 	 --print(P1[2])
+-- 	--  P1[1] = math.abs(P1[1])
+-- 	--  P1[2] = math.abs(P1[2])
+-- 	--  P1[3] = math.abs(P1[3])
+-- 	--  P2[1] = math.abs(P2[1])
+-- 	--  P2[2] = math.abs(P2[2])
+-- 	--  P2[3] = math.abs(P2[3])
+-- 	local xmax = P1[1] + S1[1]*0.5
+-- 	local xmin = P1[1] - S1[1]*0.5
+-- 	local ymax = P1[2] + S1[2]*0.5
+-- 	local ymin = P1[2] - S1[2]*0.5
+-- 	local zmax = P1[3] + S1[3]*0.5
+-- 	local zmin = P1[3] - S1[3]*0.5
+-- 	local xmax2 = P2[1] + S2[1]*0.5
+-- 	local xmin2 = P2[1] - S2[1]*0.5
+-- 	local ymax2 = P2[2] + S2[2]*0.5
+-- 	local ymin2 = P2[2] - S2[2]*0.5
+-- 	local zmax2 = P2[3] + S2[3]*0.5
+-- 	local zmin2 = P2[3] - S2[3]*0.5
+
+-- --[[	if velocity[1]>0 then
+-- 		xmax+=velocity[1]
+-- 	else
+-- 		xmin+=velocity[1]
+-- 	end
+-- 	if velocity[2]>0 then
+-- 		ymax+=velocity[2]
+-- 	else
+-- 		ymin+=velocity[2]
+-- 	end
+-- 	if velocity[3]>0 then
+-- 		zmax+=velocity[3]
+-- 	else
+-- 		zmin+=velocity[3]
+-- 	end]]
+-- 	local p1Max = Vector3.new(P1[1]+S1[1],P1[2]+S1[2],P1[3]+S1[3])
+-- 	local p1Min = Vector3.new(P1[1],P1[2],P1[3])
+-- 	local p2Max = Vector3.new(P2[1]+S2[1],P2[2]+S2[2],P2[3]+S2[3])
+-- 	local p2Min = Vector3.new(P2[1],P2[2],P2[3])
+
+-- 	-- return p2Max.X > p1Min.X and p2Min.X < p1Max.X and
+-- 	-- 	   p2Max.Y > p1Min.Y and p2Min.Y < p1Max.Y and
+-- 	-- 	   p2Max.Z > p1Min.Z and p2Min.Z < p1Max.Z
+-- 		--print(zmin , zmax2 , zmax , zmin2)
+-- 		if a then
+-- 			print (ymin , ymax2 , ymax , ymin2)
+-- 		end
+-- 	return(xmin <= xmax2 and xmax >= xmin2) and
+-- 		  (ymin <= ymax2 and ymax >= ymin2) and
+-- 		  (zmin <= zmax2 and zmax >= zmin2)
+-- end

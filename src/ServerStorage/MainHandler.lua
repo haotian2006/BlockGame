@@ -13,6 +13,10 @@ local runservice = game:GetService("RunService")
 local EntitysDeloadDistance = 7 --chuncks
 local moverefunction = require(game.ServerStorage.Move)
 local value_changer = require(game.ServerStorage.ValueListener)
+local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
+local loadthread = workthingyt.New(script.Parent:WaitForChild("LoadChunckIdk"),"Load",100)
+
+local new 
 local Main = {
 	
 }
@@ -21,12 +25,14 @@ local Connections = {}
 local function Echeckfornearbyplayers(uuid,Distance)
 	local deload = false
 	local player 
+	if game.Players:FindFirstChild(uuid) then
+		return false,game.Players:FindFirstChild(uuid)
+	end
 	for i,v in ipairs(game.Players:GetPlayers()) do
-		if v.Character and v.character.PrimaryPart and v.character.PrimaryPart.position then
+		local char = maindata.LoadedEntitys[v.Name] or maindata.Entitys[v.Name]
+		if char  then
 			player = v
-			--print( (v.character.PrimaryPart.position-Vector3.new(unpack(Main.LoadedEntitys[uuid].Position))).magnitude )
-			if (v.character.PrimaryPart.position-Vector3.new(unpack(maindata.LoadedEntitys[uuid].Position))).magnitude > EntitysDeloadDistance*16*4 then
-				--deload = true
+			if (refunction.convertPositionto(char.Position,"vector3")-Vector3.new(unpack(maindata.LoadedEntitys[uuid].Position))).Magnitude > EntitysDeloadDistance*16*4 then
 				break
 			end
 		end
@@ -80,7 +86,7 @@ function Main.runentity(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
 			if not Connections[uuid] or not maindata.Entitys[uuid] or  player or not maindata.LoadedEntitys[uuid] then
-				print(maindata.LoadedEntitys[uuid])
+				print("e")
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
@@ -120,7 +126,8 @@ function Main.runentity(uuid)
 					end
 				end
 				--print(entity)
-				local playerpos = closestplayer.Character.PrimaryPart.position
+				local playerpos = maindata.LoadedEntitys[uuid] or maindata.Entitys[uuid]
+				playerpos = refunction.convertPositionto(playerpos.Position,"vector3")
 				playerpos = Main.GetFloor(playerpos,true)
 			--	print(playerpos)
 				local px,py,pz = refunction.GetBlockCoords(playerpos)
@@ -179,14 +186,31 @@ local function can(position,tabl,player)
 	return c
 end
 function Main.GetSortedTable(Data,Chunck,lc,Player)
+	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
+	char = refunction.convertPositionto(char.Position,"vector3")
+	local size = 0
+	local loaded  = {}
+    local tables = {}
+    local currentindex = 1
+	tables[1]  = 0
+	local currenttable = tables[1] 
 	for coord,data in pairs(Data) do
-		if can(coord,Data,Player.Character.PrimaryPart.Position.Y)  then	
+		if size%1000  then
+			RS.Events.Block.SendChunck:FireClient(Player,tables[currentindex])
+            currentindex +=1
+            tables[currentindex]  = {}
+            currenttable = tables[currentindex] 
+        end
+		if can(coord,Data,char.Y)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		maindata["LoadedBlocks"][Chunck] = maindata["LoadedBlocks"][Chunck] or {}
 		maindata["LoadedBlocks"][Chunck][coord] ={data[1],data[2],data[3],coord,Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		size +=1
 	end
-	return lc
+	RS.Events.Block.SendChunck:FireClient(Player,tables[currentindex],true)
+	--print(size)
+
 end
 function Main.GetSurFace(X,Z)
 	local chunck = refunction.GetChunck(Vector3.new(X,0,Z))
@@ -218,34 +242,43 @@ function Main.GetFloor(pos,CanBeTransParent)
 	return nil
 end
 function Main.GetChunck(Player,Chunck,firsttime)
-		updateentitytable(Player,EntitysDeloadDistance-2)	
+		updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
 	if not maindata.Chunck[Chunck] then
-		maindata.Chunck[Chunck] = {}
-		for index,coord in ipairs(refunction.XZCoordInChunck(Chunck)) do
-				for y = 0,80,4 do
-					local coords = string.split(coord,"x")
-					local position = Vector3.new(coords[1],y,coords[2])
-					local block,id = GenHandler.GetBlock(position)
-					id = 0
-					if  block ~= nil and block ~="Air" then
-						local packpos = pack(position)
-						maindata.Chunck[Chunck][packpos] = {block,id,nil,packpos}
-
-					end
-				end
-			end
+		maindata.Chunck[Chunck] = loadthread:DoWork(Chunck)
+		-- maindata.Chunck[Chunck] = {}
+		-- for index,coord in ipairs(refunction.XZCoordInChunck(Chunck)) do
+		-- 		for y = 0,80,4 do
+		-- 			--task.spawn(function()
+		-- 				local coords = string.split(coord,"x")
+		-- 				local position = Vector3.new(coords[1],y,coords[2])
+		-- 				local block,id = GenHandler.GetBlock(position)
+		-- 				id = 0
+		-- 				if  block ~= nil and block ~="Air" then
+		-- 					local packpos = pack(position)
+		-- 					maindata.Chunck[Chunck][packpos] = {block,id,nil,packpos}
+	
+		-- 				end
+		-- 			--end)
+		-- 		end
+		-- 	end
 
 		end
-	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)--,array
+		task.spawn(function()
+			local sorted = Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)
+			
+		end)
+	return 
 end
 
 function Main.render(Player,RD,RenderedChuncks)
-	--print(Player.Character.PrimaryPart.Position)
 	local lc = {}
-	local nearbychuncks = refunction.GetSurroundingChunck(Player.Character.PrimaryPart.Position,RD)
+	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
+	if not char then return end
+	char = refunction.convertPositionto(char.Position,"vector3")
+	local nearbychuncks = refunction.GetSurroundingChunck(char,RD)
 	local incease = 0
-	updateentitytable(Player,EntitysDeloadDistance-2)	
+	updateentitytable(Player,EntitysDeloadDistance-2,Player.Character.Position)	
 	for i,v in ipairs(nearbychuncks)do
 		if RenderedChuncks[v] then continue end
 		if not maindata.Chunck[v] then
@@ -279,14 +312,17 @@ function Main.CreateEntity(Name)
 	maindata.Entitys[uuid].Name = Name
 	maindata.Entitys[uuid].Position = {refunction.GetVector3Componnets(Main.GetFloor(0,80,0))}
 end
-function updateentitytable(Player,Distance)
-	if Player and Player.Character and Player.Character.PrimaryPart then
-		local player_Distance = Player.Character.PrimaryPart.Position
+function updateentitytable(Player,Distance,pos)
+	local char = pos or maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
+	if not char then return end
+	char = pos or refunction.convertPositionto(char.Position,"vector3")
+	if char then
+		local player_Distance = char
 		for uuid,nbt in pairs(maindata.Entitys) do
 		--	print(nbt)
 				if maindata.LoadedEntitys[uuid] then continue end	
 				local EntityPos = Vector3.new(unpack(nbt.Position))
-				if (player_Distance - EntityPos).magnitude <= Distance*16*4 then
+				if (player_Distance - EntityPos).Magnitude <= Distance*16*4 then
 					maindata.LoadedEntitys[uuid] = nbt
 					Main.runentity(uuid)	
 			end
@@ -295,8 +331,11 @@ function updateentitytable(Player,Distance)
 end
 function Main.GetNearByEntitys(Player,Distance)
 	local placeentity = {}
-	if Player and Player.character and Player.character.PrimaryPart then
-		local playerpos = Player.character.PrimaryPart.position
+	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
+	if not char then return end
+	char = refunction.convertPositionto(char.Position,"vector3")
+	if char then
+		local playerpos = char
 		--print(maindata.LoadedEntitys)
 		for uuid,nbt in pairs(maindata.LoadedEntitys) do
 				local position =Vector3.new(unpack(nbt.Position))
@@ -312,7 +351,10 @@ function Main.GetPlayersWithChunck(Position)
 	local playerss= {}
 	local chunck = cx.."x"..cz
 	for i,v in ipairs(game.Players:GetPlayers())do
-		local chuncks = refunction.GetSurroundingChunck(v.Character.PrimaryPart.Position,4)
+		local char = maindata.LoadedEntitys[v.Name] or maindata.Entitys[v.Name]
+		if not char then continue end
+		char = refunction.convertPositionto(char.Position,"vector3")
+		local chuncks = refunction.GetSurroundingChunck(char,14)
 		for ic,vc in ipairs(chuncks) do
 			if vc == chunck then
 					table.insert(playerss,v)

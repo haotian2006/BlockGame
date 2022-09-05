@@ -24,6 +24,7 @@ return {
 			HitBoxSize = {x =3,y=8,z=3},
 			behaviors = {
 			},
+			EyeOffset = 7,
 			CanFall = true,
             Rotation = {0,0,0},
             Events = {},

@@ -228,7 +228,7 @@ function update.UpdatePosition(delta)
 end
 local speed = 0.43
 local jumpedamount =0 
-local jumpheight = 6
+local jumpheight = 6.5
 function update.Movement(deltatime)
     if not controlls.PlayerNbt then   
        local b = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)     
@@ -245,19 +245,20 @@ function update.Movement(deltatime)
     local RightVector = camera.CFrame.RightVector
     local velocity ={0,0,0}
     controlls.PlayerNbt.NotSaved.Velocity.Fall =  controlls.FallRate
-    LookVector = Vector3.new(LookVector.X,0,LookVector.Z)
-    RightVector = Vector3.new(RightVector.X,0,RightVector.Z)
+    LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit
+    RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit
+
     local foward = LookVector* speed*(keypressed[controlls.KeyBoard.Foward]and 1 or 0)
     local Back = LookVector* -speed*(keypressed[controlls.KeyBoard.Backward]and 1 or 0)
     local Left = RightVector* -speed*(keypressed[controlls.KeyBoard.Left]and 1 or 0)
     local Right = RightVector* speed*(keypressed[controlls.KeyBoard.Right]and 1 or 0)
     local Jump = keypressed[controlls.KeyBoard.Jump]
-   local velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
+    velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
-   local jump = jumpheight*deltatime*7
+   local jump = jumpheight*deltatime*4
    if jumpedamount > 0 and jumpedamount <=jumpheight  then
-    jumpedamount += jumpheight*deltatime*7
-    jump = jumpheight*deltatime*7
+    jumpedamount += jumpheight*deltatime*4
+    jump = jumpheight*deltatime*4
     controlls.Jumping = true
     else
         controlls.Jumping = false
@@ -266,13 +267,13 @@ function update.Movement(deltatime)
    end
    if controlls.IsOnGround and Jump and controlls.Jumping == false then
     if jumpedamount == 0 then
-        jumpedamount += jumpheight*deltatime*7
+        jumpedamount += jumpheight*deltatime*4
        -- jump = 4.1*deltatime
     end 
    end
    controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,jump,0}
    if workspace.Entity:FindFirstChild(Player.Name) then
-    workspace.Entity:FindFirstChild(Player.Name).Position = refunction.convertPositionto(controlls.PlayerPosition,"vector3")
+    workspace.Entity:FindFirstChild(Player.Name).PrimaryPart.CFrame = refunction.convertPositionto(controlls.PlayerPosition,"CFrame")
     --game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
    end
 end
@@ -286,7 +287,7 @@ function  update.HandleFall()
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.maxfallvelocity)/2
+    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.maxfallvelocity)/1.3
 
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then

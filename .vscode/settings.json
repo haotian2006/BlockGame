@@ -1,5 +1,6 @@
 {
     "robloxLsp.diagnostics.disable": [
-        "unused-local"
+        "unused-local",
+        "empty-block"
     ],
 }

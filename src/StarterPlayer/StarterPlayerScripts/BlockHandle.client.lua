@@ -1,18 +1,17 @@
+local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
 local functions = require(RS.Functions)
 local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-game.Players.PlayerAdded:Connect(function(player)
-	player.ChildAdded:Connect(function(character)
-		character:Destroy()
-	end)
-end)
-
 local render = 4
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
+local debug = require(game.ReplicatedStorage.Debughandler)
+local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
+local storedchunck = require(script.Parent:WaitForChild("ChuncksToBeLoaded"))
+local loadthread = workthingyt.New(script.Parent:WaitForChild("ChuncksToBeLoaded"),"LoadChunck",100)
 local function pack(x,y,z)
 	return x..","..y..","..z
 end
@@ -45,9 +44,9 @@ local function can(position,tabl,player)
 end
 local old
 local firsttime = false
-local function sortchunck(TAB)
+local function sortchunck(TAB,POS)
 	local chunckst ={}
-	local cx,cz = functions.GetChunck(lp.Character.PrimaryPart.Position)
+	local cx,cz = functions.GetChunck(POS or game.Workspace.Entity:FindFirstChild(lp.Name).PrimaryPart.Position)
 	local currentvec = Vector2.new(cx,cz)
 	for incex,chunck in ipairs(TAB) do
 		local chunckx = string.split(chunck,"x")
@@ -74,39 +73,166 @@ local function removechunck(chunck)
 	end)
 end
 local function QuickRender(char)
-	local nearbychuncks = sortchunck(functions.GetSurroundingChunck(char.PrimaryPart.Position,render))
-	for i,chunk in ipairs(nearbychuncks)do
-		chunk = chunk[1]
-	local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
-	firsttime = true
-	for Position,blockdata in pairs(Blocks) do
-		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
-					functions.PlaceBlock(blockdata[1],Position,blockdata[2])
+
+		local renderedchuncks ={}
+		for i,v in ipairs(workspace.Chunck:GetChildren())do
+			local splited = v.Name:split("x")
+			local vector = Vector2.new(splited[1],splited[2])
+			local currentvecotr = Vector2.new(functions.GetChunck(char.Position))
+			if (vector-currentvecotr).Magnitude > (render+3) then
+				v.Parent = nil
+				storedchunck[v.Name] = v
+			else
+				renderedchuncks[v.Name] = true
+				end
+		end
+		local nearbychuncks = (functions.GetSurroundingChunck(char.Position,render))
+		local newchuncks = {}
+		local thread = coroutine.running()
+		local threadsdone = 0
+		local done = false
+		for i,chunk in ipairs(nearbychuncks)do
+			chunk = chunk
+			if storedchunck[chunk] then
+				table.insert(newchuncks,storedchunck[chunk])
+				threadsdone+=1
+				--print(threadsdone , #nearbychuncks)
+				if threadsdone == #nearbychuncks then
+					coroutine.resume(thread)
+					done = true
+				end
+				continue
+			end
+			if renderedchuncks[chunk] then 
+				threadsdone+=1 
+				--print(threadsdone , #nearbychuncks)
+			if threadsdone == #nearbychuncks then
+				coroutine.resume(thread)
+				done = true
+			end
+			continue end
+			task.spawn(function()
+		local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
+		local index = 0
+			-- local blocktable = loadthread:DoWork(Blocks)
+			-- local moduel = Instance.new("Folder")
+			-- moduel.Name = chunk
+			-- for i,v in ipairs(blocktable)do
+			-- 	v[1].CFrame = v[2]
+			-- 	v[1].Parent = moduel
+			-- 	v[1]:SetAttribute("Name",v[3])
+			-- 	v[1]:SetAttribute("State",v[4])
+			-- 	v[1].Anchored = true
+			-- 	v[1].Size = v[5]
+			-- 	v[1].Name = functions.convertPositionto(v[2].Position,"string")
+				
+			-- end
+			-- table.insert(newchuncks,moduel)
+			threadsdone+=1
+			--print(threadsdone , #nearbychuncks)
+			--print(threadsdone , #nearbychuncks)
+			if threadsdone == #nearbychuncks then
+				coroutine.resume(thread)
+				done = true
+			end
+		end)
+		if threadsdone == #nearbychuncks then
+			coroutine.resume(thread)
+			done = true
 		end
 		end
-	end
-	return
+		if not done then 
+			coroutine.yield()
+		end
+		print("c")
+		-- for i,v in ipairs(newchuncks)do
+		-- 	v.Parent = workspace.Chunck
+		-- 	v = nil
+		-- end
+		firsttime = true
+		return
 end
 local function frender(char)
+
 	local renderedchuncks ={}
 	for i,v in ipairs(workspace.Chunck:GetChildren())do
 		local splited = v.Name:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
-		local currentvecotr = Vector2.new(functions.GetChunck(char.PrimaryPart.Position))
+		local currentvecotr = Vector2.new(functions.GetChunck(char.Position))
 		if (vector-currentvecotr).Magnitude > (render+3) then
-				removechunck(v)
+			v.Parent = nil
+			storedchunck[v.Name] = v
 		else
 			renderedchuncks[v.Name] = true
 			end
 	end
-	local nearbychuncks = sortchunck(functions.GetSurroundingChunck(char.PrimaryPart.Position,render))
+	task.spawn(function()
+		local nearbychuncks = functions.GetSurroundingChunck(char.Position,12)
+		for i,v in pairs(storedchunck)do
+			if typeof(v) == "Instance" then
+				if table.find(nearbychuncks,i)  then
+				else
+					storedchunck[i] = nil
+				end
+			end
+		end
+	end)
+	local nearbychuncks = (functions.GetSurroundingChunck(char.Position,render))
+	local newchuncks = {}
+	local thread = coroutine.running()
+	local threadsdone = 0
+	local done = false
 	for i,chunk in ipairs(nearbychuncks)do
-		chunk = chunk[1]
-		if renderedchuncks[chunk] then continue end
+		chunk = chunk
+		if storedchunck[chunk] then
+			table.insert(newchuncks,storedchunck[chunk])
+			threadsdone+=1
+			--print(threadsdone , #nearbychuncks)
+			if threadsdone == #nearbychuncks then
+				coroutine.resume(thread)
+				done = true
+			end
+			continue
+		end
+		if renderedchuncks[chunk] then 
+			threadsdone+=1 
+			--print(threadsdone , #nearbychuncks)
+		if threadsdone == #nearbychuncks then
+			coroutine.resume(thread)
+			done = true
+		end
+		continue end
+		task.spawn(function()
 	local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
 	local index = 0
-	for Position,blockdata in pairs(Blocks) do
-		--if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
+		local blocktable = loadthread:DoWork(Blocks)
+		local moduel = Instance.new("Folder")
+		moduel.Name = chunk
+		for i,v in ipairs(blocktable)do
+			v[1].CFrame = v[2]
+			v[1].Parent = moduel
+			v[1]:SetAttribute("Name",v[3])
+			v[1]:SetAttribute("State",v[4])
+			v[1].Anchored = true
+			v[1].Size = v[5]
+			v[1].Name = functions.convertPositionto(v[2].Position,"string")
+			
+		end
+		table.insert(newchuncks,moduel)
+		threadsdone+=1
+		--print(threadsdone , #nearbychuncks)
+		--print(threadsdone , #nearbychuncks)
+		if threadsdone == #nearbychuncks then
+			coroutine.resume(thread)
+			done = true
+		end
+	end)
+	if threadsdone == #nearbychuncks then
+		coroutine.resume(thread)
+		done = true
+	end
+	--[[for Position,blockdata in pairs(Blocks) do	
+
 					functions.PlaceBlock(blockdata[1],Position,blockdata[2],blockdata[3])
 			index+=1
 			if index == 200 and firsttime then
@@ -114,14 +240,24 @@ local function frender(char)
 				task.wait()
 		--	end
 		end
-		end
+		end]]
+	end
+	if not done then 
+		coroutine.yield()
+	end
+	task.wait(0.5)
+	for i,v in ipairs(newchuncks)do
+		v.Parent = workspace.Chunck
+		v = nil
+		task.wait(0.2)
 	end
 	firsttime = true
 	return
 end
 game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(blocks)
 	for i,data in ipairs(blocks)do
-		functions.PlaceBlock(data[1],data[4],data[2],data[3])
+		local cx,cz = functions.GetChunck(data[4])
+		functions.PlaceBlock(data[1],data[4],data[2],data[3],storedchunck[cx..'x'..cz])
 	end
 end)
 game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(blocks)
@@ -129,22 +265,26 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 		local cx,cz = functions.GetChunck(Pos)
 		if game.Workspace.Chunck:FindFirstChild(cx.."x"..cz) and game.Workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos) then
 			game.Workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos):Destroy()
+		elseif storedchunck[cx.."x"..cz] and  storedchunck[cx.."x"..cz]:FindFirstChild(Pos) then
+			storedchunck[cx.."x"..cz]:FindFirstChild(Pos):Destroy()
 		end
 	end
 end)
+game.ReplicatedStorage.Events.Block.SendChunck.OnClientEvent:Connect(function(blocks,islast)
+	
+end)
 local oldchunck =""
-game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
-	task.wait(0.2)
-	local newchar = game.Players.LocalPlayer.Character
-	QuickRender(newchar)
+local pchar = lp.Character or lp.CharacterAdded:Wait()
+pchar:WaitForChild("HumanoidRootPart")
+task.wait(5)
+	QuickRender(pchar.PrimaryPart)
+	local char = game.Workspace.Entity:WaitForChild(lp.Name)
 	while char do
-		newchar = game.Players.LocalPlayer.Character
-		local currentChunck,c = functions.GetChunck(newchar.PrimaryPart.Position)
+		local currentChunck,c = functions.GetChunck(char.PrimaryPart.Position)
 		currentChunck = currentChunck.."x"..c
 		if currentChunck ~= oldchunck and true then
 			oldchunck = currentChunck
-			frender(newchar)
+			frender(char.PrimaryPart)
 		end
-		task.wait(0.1)
-	end
-end)
+	task.wait(0.1)
+end

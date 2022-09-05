@@ -4,8 +4,9 @@ local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
 end
+
 function collisions.DealWithRotation(blockdata)
-    
+    return refunction.DealWithRotation(blockdata)
 end
 function  collisions.IsGrounded(entity)
     local position = entity.Position
@@ -32,7 +33,8 @@ function  collisions.IsGrounded(entity)
                          -- print(collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil)  )
                     end
                    local a2 = refunction.convertPositionto(a,"table")
-                   if  collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil) then 
+                   local newpos ,newsize = collisions.DealWithRotation(block)
+                   if  collisions.AABBcheck({position[1], position[2]-1,position[3]},newpos,{hitbox.x,hitbox.y,hitbox.z},newsize) then 
 
                     return true,block
                     end   
@@ -117,7 +119,7 @@ end
     local distance_fromnew= refunction.GetMagnituide(b1,originalb1)
 
 end]]
-function collisions.GetBroadPhase(b1,s1,o1,velocity)
+function collisions.GetBroadPhase(b1,s1,velocity)
     b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
     local position = {}
     local size = {}
@@ -129,7 +131,7 @@ function collisions.GetBroadPhase(b1,s1,o1,velocity)
     size[3] = velocity[3] >0 and velocity[3]+s1[3] or s1[3] - velocity[3]
     return position,size
 end
-function collisions.AABBcheck(b1,b2,s1,s2,o1,o2,isbp)
+function collisions.AABBcheck(b1,b2,s1,s2,isbp)
     if  isbp == true then
     else
         b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}
@@ -163,15 +165,16 @@ function collisions.entityvsterrainloop(entity,position,velocity)
     local cc
     local zack 
     local gridsize = 4
-    local bppos,bpsize = collisions.GetBroadPhase(position,{hitbox.x,hitbox.y,hitbox.z},nil,velocity)
+    local bppos,bpsize = collisions.GetBroadPhase(position,{hitbox.x,hitbox.y,hitbox.z},velocity)
     for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
         for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
             for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
                 local block,a = refunction.GetBlock({x,y,z})
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
-                   if not collisions.AABBcheck(bppos,a2,bpsize,{4,4,4},nil,nil,true) then continue end
-                    local collisiontime,newnormal = collisions.SweaptAABB(position,a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil,velocity,mintime)
+                   local newpos ,newsize = collisions.DealWithRotation(block)
+                   if not collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then continue end
+                    local collisiontime,newnormal = collisions.SweaptAABB(position,newpos,{hitbox.x,hitbox.y,hitbox.z},newsize,velocity,mintime)
                     game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = (typeof(newnormal) == "table" and newnormal[3] or 6)
                     if collisiontime < mintime then
                        zack = a2
@@ -185,7 +188,7 @@ function collisions.entityvsterrainloop(entity,position,velocity)
     return mintime,normal,zack
 end
 --b1:entitypos b2:blockpos s1:entitysize s2:blocksize o1:entity orientation o2:block orientation 
-function  collisions.SweaptAABB(b1,b2,s1,s2,o1,o2,velocity,mintime)
+function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)
     local aaa = b2
     b1 = {b1[1]-s1[1]/2,b1[2]-s1[2]/2,b1[3]-s1[3]/2}--get the bottem left corners
     b2 = {b2[1]-s2[1]/2,b2[2]-s2[2]/2,b2[3]-s2[3]/2}

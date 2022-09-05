@@ -33,6 +33,9 @@ function move.Lerp(self,finish, alpha)
     )
 end
 function move.canMove(uuid,velocity)
+    do
+        return {0,0,0}
+    end
     local entity = maindata.LoadedEntitys[uuid] 
     
     local oldvelocity = entity.NotSaved.OldVelocity
@@ -202,7 +205,7 @@ function move.update(uuid,delta)
         total[3] += v[3]
     end	
     local goal = refunction.AddPosition(entity.Position,total)
-     total =move.Lerp(entity.Position,goal,delta),"table"
+     total =move.Lerp(entity.Position,goal,delta)
     local diffrence = refunction.convertPositionto(refunction.SubPosition(goal,total),"table")
     Velocity = move.canMove(uuid,diffrence)
     maindata.LoadedEntitys[uuid].NotSaved.Velocity.Jump = {0,0,0}
