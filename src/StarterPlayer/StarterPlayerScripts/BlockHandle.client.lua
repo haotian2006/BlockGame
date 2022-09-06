@@ -5,7 +5,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 4
+local render = 6
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -114,20 +114,20 @@ local function QuickRender(char)
 			task.spawn(function()
 		local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
 		local index = 0
-			-- local blocktable = loadthread:DoWork(Blocks)
-			-- local moduel = Instance.new("Folder")
-			-- moduel.Name = chunk
-			-- for i,v in ipairs(blocktable)do
-			-- 	v[1].CFrame = v[2]
-			-- 	v[1].Parent = moduel
-			-- 	v[1]:SetAttribute("Name",v[3])
-			-- 	v[1]:SetAttribute("State",v[4])
-			-- 	v[1].Anchored = true
-			-- 	v[1].Size = v[5]
-			-- 	v[1].Name = functions.convertPositionto(v[2].Position,"string")
+			local blocktable = loadthread:DoWork(Blocks)
+			local moduel = Instance.new("Folder")
+			moduel.Name = chunk
+			for i,v in ipairs(blocktable)do
+				v[1].CFrame = v[2]
+				v[1].Parent = moduel
+				v[1]:SetAttribute("Name",v[3])
+				v[1]:SetAttribute("State",v[4])
+				v[1].Anchored = true
+				v[1].Size = v[5]
+				v[1].Name = functions.convertPositionto(v[2].Position,"string")
 				
-			-- end
-			-- table.insert(newchuncks,moduel)
+			end
+			table.insert(newchuncks,moduel)
 			threadsdone+=1
 			--print(threadsdone , #nearbychuncks)
 			--print(threadsdone , #nearbychuncks)
@@ -144,11 +144,10 @@ local function QuickRender(char)
 		if not done then 
 			coroutine.yield()
 		end
-		print("c")
-		-- for i,v in ipairs(newchuncks)do
-		-- 	v.Parent = workspace.Chunck
-		-- 	v = nil
-		-- end
+		for i,v in ipairs(newchuncks)do
+			v.Parent = workspace.Chunck
+			v = nil
+		end
 		firsttime = true
 		return
 end
@@ -202,9 +201,10 @@ local function frender(char)
 			done = true
 		end
 		continue end
-		task.spawn(function()
+
 	local Blocks = events.Block.GetChunck:InvokeServer(chunk,firsttime)
 	local index = 0
+	task.spawn(function()
 		local blocktable = loadthread:DoWork(Blocks)
 		local moduel = Instance.new("Folder")
 		moduel.Name = chunk
@@ -249,7 +249,7 @@ local function frender(char)
 	for i,v in ipairs(newchuncks)do
 		v.Parent = workspace.Chunck
 		v = nil
-		task.wait(0.2)
+		task.wait(0.1)
 	end
 	firsttime = true
 	return
@@ -270,13 +270,9 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 		end
 	end
 end)
-game.ReplicatedStorage.Events.Block.SendChunck.OnClientEvent:Connect(function(blocks,islast)
-	
-end)
 local oldchunck =""
 local pchar = lp.Character or lp.CharacterAdded:Wait()
 pchar:WaitForChild("HumanoidRootPart")
-task.wait(5)
 	QuickRender(pchar.PrimaryPart)
 	local char = game.Workspace.Entity:WaitForChild(lp.Name)
 	while char do

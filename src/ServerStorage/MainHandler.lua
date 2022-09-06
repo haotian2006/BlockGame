@@ -189,18 +189,7 @@ function Main.GetSortedTable(Data,Chunck,lc,Player)
 	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
 	char = refunction.convertPositionto(char.Position,"vector3")
 	local size = 0
-	local loaded  = {}
-    local tables = {}
-    local currentindex = 1
-	tables[1]  = 0
-	local currenttable = tables[1] 
 	for coord,data in pairs(Data) do
-		if size%1000  then
-			RS.Events.Block.SendChunck:FireClient(Player,tables[currentindex])
-            currentindex +=1
-            tables[currentindex]  = {}
-            currenttable = tables[currentindex] 
-        end
 		if can(coord,Data,char.Y)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunck, not Block_Info[data[1]]["IsTransparent"]}
 		end
@@ -208,9 +197,7 @@ function Main.GetSortedTable(Data,Chunck,lc,Player)
 		maindata["LoadedBlocks"][Chunck][coord] ={data[1],data[2],data[3],coord,Chunck, not Block_Info[data[1]]["IsTransparent"]}
 		size +=1
 	end
-	RS.Events.Block.SendChunck:FireClient(Player,tables[currentindex],true)
-	--print(size)
-
+	return lc
 end
 function Main.GetSurFace(X,Z)
 	local chunck = refunction.GetChunck(Vector3.new(X,0,Z))
@@ -264,11 +251,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 		-- 	end
 
 		end
-		task.spawn(function()
-			local sorted = Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)
-			
-		end)
-	return 
+	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)
 end
 
 function Main.render(Player,RD,RenderedChuncks)

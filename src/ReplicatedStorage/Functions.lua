@@ -110,6 +110,8 @@ function Function.GetBlock(pos,HasToBeLoaded)
 		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
 		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
+	elseif not maindata.Chunck[cx.."x"..cz] then
+		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
 	end
 	return nil
 	else
@@ -118,6 +120,8 @@ function Function.GetBlock(pos,HasToBeLoaded)
 		if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
 			local blocka = workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
+		elseif not workspace.Chunck:FindFirstChild(cx.."x"..cz)  then
+			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
 		end
 		return nil
 	end

@@ -21,7 +21,7 @@ return {
 			["Name"] = "aar",
 			["Age"] = "0",
 			["Position"] = {-68,90,-120},
-			HitBoxSize = {x =3,y=8,z=3},
+			HitBoxSize = {x =3,y=7.5,z=3},
 			behaviors = {
 			},
 			EyeOffset = 7,

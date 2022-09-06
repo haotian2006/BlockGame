@@ -7,6 +7,7 @@ local refunction = require(game.ReplicatedStorage.Functions)
 local remotes = game.ReplicatedStorage.Events
 local currentlylookingat 
 local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
+local Current_Entity 
 local a = 3
 local controlls = {
     KeyBoard = {
@@ -98,13 +99,14 @@ function interpolate(startVector3, finishVector3, alpha)
 end
 function controlls.Place(input,gameProcessedEvent)
     if gameProcessedEvent or not ButtonsWork then return end
+    if  not Current_Entity or not Current_Entity.HitBox or not Current_Entity.HitBox.EyeSight then return end
     local mousepos = UserInputService:GetMouseLocation()
     local pos = camera.CFrame.Position
     local direaction = camera.CFrame.LookVector
     local raycastParams = RaycastParams.new()
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {Player.Character}
-    local raycast = workspace:Raycast(Player.Character.Head.Position,direaction*16,raycastParams)
+    raycastParams.FilterDescendantsInstances = {Current_Entity}
+    local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction*16,raycastParams)
     if raycast then
         if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunck) then
             local orientation = {0,0,0}
@@ -177,14 +179,14 @@ UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
 end)
 
 function update.OutLines()
-    if not Player.Character or not Player.Character.PrimaryPart then return end
+    if  not Current_Entity or not Current_Entity.HitBox or not Current_Entity.HitBox.EyeSight then return end
     local mousepos = UserInputService:GetMouseLocation()
     local pos = camera.CFrame.Position
     local direaction = camera.CFrame.LookVector*16
     local raycastParams = RaycastParams.new()
     raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
-    raycastParams.FilterDescendantsInstances = {Player.Character}
-    local raycast = workspace:Raycast(Player.Character.Head.Position,direaction,raycastParams)
+    raycastParams.FilterDescendantsInstances = {Current_Entity}
+    local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction,raycastParams)
     if raycast then
         if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunck) then
             local angle = math.atan(raycast.Instance.position.Y - Player.Character.Head.Position.Y)
@@ -300,6 +302,9 @@ function  update.HandleFall()
 end
 local elapsed = 0
 function update.Entity(deltaTime)
+    if game.Workspace.Entity:FindFirstChild(Player.Name) then
+        Current_Entity =  game.Workspace.Entity:FindFirstChild(Player.Name)
+    end
     elapsed += deltaTime
 		if elapsed > 0.25 then
        local a = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition,true)
