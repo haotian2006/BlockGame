@@ -169,7 +169,7 @@ function collisions.entityvsterrainloop(entity,position,velocity)
     for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
         for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
             for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
-                local block,a = refunction.GetBlock({x,y,z})
+                local block,a = refunction.GetBlock({x,y,z},position)
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
                    local newpos ,newsize = collisions.DealWithRotation(block)
