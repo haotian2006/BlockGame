@@ -1,7 +1,7 @@
 return {
     ["Chunk"] ={
 	--[["0x0"] ={
-		["0,0,0"] = {"Stone",1,{0,90,0}}--(name,State,rotation)
+		["0,0,0"] = {"Stone",1,{0,90,0},{0,0,0},"0x0",false}--(name,State,rotation,Position,Chunk,IsNatural)
 	};]]-- New quicker method
 	},
 	["LoadedBlocks"] ={

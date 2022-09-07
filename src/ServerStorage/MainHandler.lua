@@ -178,7 +178,7 @@ end
 local function convetcunktostring(cx,cz)
 	return cx..","..cz
 end
-local function can(position,tabl,player)
+local function can(position,tabl,player,blockdata)
 	local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
@@ -186,7 +186,7 @@ local function can(position,tabl,player)
 	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
 	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
 			c = true
-	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) then 
+	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or blockdata[6]  == false then 
 			c = true
 	end
 	return c
@@ -196,11 +196,11 @@ function Main.GetSortedTable(Data,Chunk,lc,Player)
 	char = refunction.convertPositionto(char.Position,"vector3")
 	local size = 0
 	for coord,data in pairs(Data) do
-		if can(coord,Data,char.Y)  then	
+		if can(coord,Data,char.Y,data)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		maindata["LoadedBlocks"][Chunk] = maindata["LoadedBlocks"][Chunk] or {}
-		maindata["LoadedBlocks"][Chunk][coord] ={data[1],data[2],data[3],coord,Chunk, not Block_Info[data[1]]["IsTransparent"]}
+		maindata["LoadedBlocks"][Chunk][coord] ={data[1],data[2],data[3],coord,Chunk, data[6],not Block_Info[data[1]]["IsTransparent"]}
 		size +=1
 	end
 	return lc
@@ -238,23 +238,23 @@ function Main.GetChunk(Player,Chunk,firsttime)
 		updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
 	if not maindata.Chunk[Chunk] then
-		maindata.Chunk[Chunk] = loadthread:DoWork(Chunk)
-		-- maindata.Chunk[Chunk] = {}
-		-- for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
-		-- 		for y = 0,80,4 do
-		-- 			--task.spawn(function()
-		-- 				local coords = string.split(coord,"x")
-		-- 				local position = Vector3.new(coords[1],y,coords[2])
-		-- 				local block,id = GenHandler.GetBlock(position)
-		-- 				id = 0
-		-- 				if  block ~= nil and block ~="Air" then
-		-- 					local packpos = pack(position)
-		-- 					maindata.Chunk[Chunk][packpos] = {block,id,nil,packpos}
+		--maindata.Chunk[Chunk] = loadthread:DoWork(Chunk)
+		maindata.Chunk[Chunk] = {}
+		for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
+				for y = 0,80,4 do
+					--task.spawn(function()
+						local coords = string.split(coord,"x")
+						local position = Vector3.new(coords[1],y,coords[2])
+						local block,id = GenHandler.GetBlock(position)
+						id = 0
+						if  block ~= nil and block ~="Air" then
+							local packpos = pack(position)
+							maindata.Chunk[Chunk][packpos] = {block,id,{0,0,0},packpos,Chunk,true}
 	
-		-- 				end
-		-- 			--end)
-		-- 		end
-		-- 	end
+						end
+					--end)
+				end
+			end
 
 		end
 	return Main.GetSortedTable(maindata.Chunk[Chunk],Chunk,{},Player)
