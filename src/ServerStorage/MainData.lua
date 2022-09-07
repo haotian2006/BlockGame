@@ -1,5 +1,5 @@
 return {
-    ["Chunck"] ={
+    ["Chunk"] ={
 	--[["0x0"] ={
 		["0,0,0"] = {"Stone",1,{0,90,0}}--(name,State,rotation)
 	};]]-- New quicker method

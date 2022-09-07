@@ -10,11 +10,11 @@ local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local pathfinding = require(game.ServerStorage.PathFinding)
 local maindata = require(game.ServerStorage.MainData)
 local runservice = game:GetService("RunService")
-local EntitysDeloadDistance = 7 --chuncks
+local EntitysDeloadDistance = 7 --chunks
 local moverefunction = require(game.ServerStorage.Move)
 local value_changer = require(game.ServerStorage.ValueListener)
 local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
-local loadthread = workthingyt.New(script.Parent:WaitForChild("LoadChunckIdk"),"Load",100)
+local loadthread = workthingyt.New(script.Parent:WaitForChild("LoadChunkIdk"),"Load",100)
 
 local new 
 local Main = {
@@ -175,40 +175,46 @@ end
 local function pack2(x,y,z)
 	return x..","..y..","..z
 end
+local function convetcunktostring(cx,cz)
+	return cx..","..cz
+end
 local function can(position,tabl,player)
 	local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
+	local ch= convetcunktostring(refunction.GetChunk(position))
 	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
-	else
-		c = true
+	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
+			c = true
+	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) then 
+			c = true
 	end
 	return c
 end
-function Main.GetSortedTable(Data,Chunck,lc,Player)
+function Main.GetSortedTable(Data,Chunk,lc,Player)
 	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
 	char = refunction.convertPositionto(char.Position,"vector3")
 	local size = 0
 	for coord,data in pairs(Data) do
 		if can(coord,Data,char.Y)  then	
-		lc[coord] ={data[1],data[2],data[3],Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
-		maindata["LoadedBlocks"][Chunck] = maindata["LoadedBlocks"][Chunck] or {}
-		maindata["LoadedBlocks"][Chunck][coord] ={data[1],data[2],data[3],coord,Chunck, not Block_Info[data[1]]["IsTransparent"]}
+		maindata["LoadedBlocks"][Chunk] = maindata["LoadedBlocks"][Chunk] or {}
+		maindata["LoadedBlocks"][Chunk][coord] ={data[1],data[2],data[3],coord,Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		size +=1
 	end
 	return lc
 end
 function Main.GetSurFace(X,Z)
-	local chunck = refunction.GetChunck(Vector3.new(X,0,Z))
+	local chunk = refunction.GetChunk(Vector3.new(X,0,Z))
 	
 end
 function Main.CheckForBlock(x,y,z,CanBeTransParent)
-	local cx,cz = refunction.GetChunck(refunction.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
-	if not maindata.Chunck[cx.."x"..cz] then
+	local cx,cz = refunction.GetChunk(refunction.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
+	if not maindata.Chunk[cx.."x"..cz] then
 		return false
 	end
-	local bock = maindata.Chunck[cx.."x"..cz][x..','..y..","..z]
+	local bock = maindata.Chunk[cx.."x"..cz][x..','..y..","..z]
 	if bock then
 		return true,bock[1],bock[2]
 	end
@@ -220,21 +226,21 @@ end
 function Main.GetFloor(pos,CanBeTransParent)
 	pos = refunction.convertPositionto(pos,"vector3")
 	local x,y,z = refunction.returnDatastringcomponets(refunction.ConvertGridToReal({refunction.GetBlockCoords(pos)},"string"))
-	local cx,cz = refunction.GetChunck(Vector3.new(pos.X,0,pos.Z))
+	local cx,cz = refunction.GetChunk(Vector3.new(pos.X,0,pos.Z))
 	for i = y , 0,-1 do
-		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
+		if maindata.Chunk[cx.."x"..cz] and maindata.Chunk[cx.."x"..cz][x..","..i..","..z] then
 			return Vector3.new(x,i,z)
 		end
 	end
 	return nil
 end
-function Main.GetChunck(Player,Chunck,firsttime)
+function Main.GetChunk(Player,Chunk,firsttime)
 		updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
-	if not maindata.Chunck[Chunck] then
-		maindata.Chunck[Chunck] = loadthread:DoWork(Chunck)
-		-- maindata.Chunck[Chunck] = {}
-		-- for index,coord in ipairs(refunction.XZCoordInChunck(Chunck)) do
+	if not maindata.Chunk[Chunk] then
+		maindata.Chunk[Chunk] = loadthread:DoWork(Chunk)
+		-- maindata.Chunk[Chunk] = {}
+		-- for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
 		-- 		for y = 0,80,4 do
 		-- 			--task.spawn(function()
 		-- 				local coords = string.split(coord,"x")
@@ -243,7 +249,7 @@ function Main.GetChunck(Player,Chunck,firsttime)
 		-- 				id = 0
 		-- 				if  block ~= nil and block ~="Air" then
 		-- 					local packpos = pack(position)
-		-- 					maindata.Chunck[Chunck][packpos] = {block,id,nil,packpos}
+		-- 					maindata.Chunk[Chunk][packpos] = {block,id,nil,packpos}
 	
 		-- 				end
 		-- 			--end)
@@ -251,22 +257,22 @@ function Main.GetChunck(Player,Chunck,firsttime)
 		-- 	end
 
 		end
-	return Main.GetSortedTable(maindata.Chunck[Chunck],Chunck,{},Player)
+	return Main.GetSortedTable(maindata.Chunk[Chunk],Chunk,{},Player)
 end
 
-function Main.render(Player,RD,RenderedChuncks)
+function Main.render(Player,RD,RenderedChunks)
 	local lc = {}
 	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
 	if not char then return end
 	char = refunction.convertPositionto(char.Position,"vector3")
-	local nearbychuncks = refunction.GetSurroundingChunck(char,RD)
+	local nearbychunks = refunction.GetSurroundingChunk(char,RD)
 	local incease = 0
 	updateentitytable(Player,EntitysDeloadDistance-2,Player.Character.Position)	
-	for i,v in ipairs(nearbychuncks)do
-		if RenderedChuncks[v] then continue end
-		if not maindata.Chunck[v] then
-			maindata.Chunck[v] = {}
-			for index,coord in ipairs(refunction.XZCoordInChunck(v)) do
+	for i,v in ipairs(nearbychunks)do
+		if RenderedChunks[v] then continue end
+		if not maindata.Chunk[v] then
+			maindata.Chunk[v] = {}
+			for index,coord in ipairs(refunction.XZCoordInChunk(v)) do
 				incease += 1
 				if index%200 == 0  then
 					task.wait()
@@ -278,14 +284,14 @@ function Main.render(Player,RD,RenderedChuncks)
 					id = 0
 					if  block ~= nil and block ~="Air" then
 						local packpos = pack(position)
-						maindata.Chunck[v][packpos] = {block,id}
+						maindata.Chunk[v][packpos] = {block,id}
 
 					end
 				end
 			end
 	
 		end
-		lc = Main.GetSortedTable(maindata.Chunck[v],v,RenderedChuncks,lc)
+		lc = Main.GetSortedTable(maindata.Chunk[v],v,RenderedChunks,lc)
 	end
 	return lc--,array
 end
@@ -329,17 +335,17 @@ function Main.GetNearByEntitys(Player,Distance)
 	end
 	return placeentity
 end
-function Main.GetPlayersWithChunck(Position)
-	local cx,cz = refunction.GetChunck(Position)
+function Main.GetPlayersWithChunk(Position)
+	local cx,cz = refunction.GetChunk(Position)
 	local playerss= {}
-	local chunck = cx.."x"..cz
+	local chunk = cx.."x"..cz
 	for i,v in ipairs(game.Players:GetPlayers())do
 		local char = maindata.LoadedEntitys[v.Name] or maindata.Entitys[v.Name]
 		if not char then continue end
 		char = refunction.convertPositionto(char.Position,"vector3")
-		local chuncks = refunction.GetSurroundingChunck(char,14)
-		for ic,vc in ipairs(chuncks) do
-			if vc == chunck then
+		local chunks = refunction.GetSurroundingChunk(char,14)
+		for ic,vc in ipairs(chunks) do
+			if vc == chunk then
 					table.insert(playerss,v)
 				break
 			end
@@ -349,12 +355,12 @@ function Main.GetPlayersWithChunck(Position)
 end
 function Main.Place(player,block,Position,Orientation)
 	if not Position or not block then return end
-	local cx,cz = refunction.GetChunck(Position)
-	if maindata.Chunck[cx.."x"..cz] and not maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")] then
-		maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
+	local cx,cz = refunction.GetChunk(Position)
+	if maindata.Chunk[cx.."x"..cz] and not maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(Position,"string")] then
+		maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
 		maindata.LoadedBlocks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
-		for i,v in ipairs(Main.GetPlayersWithChunck(Position)) do
-			RS.Events.Block.PlaceClient:FireClient(v,{maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(Position,"string")]})
+		for i,v in ipairs(Main.GetPlayersWithChunk(Position)) do
+			RS.Events.Block.PlaceClient:FireClient(v,{maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(Position,"string")]})
 		end
 	else
 		return false
@@ -365,17 +371,17 @@ end
 function Main.destroyblock(player,pos)
 	if not pos then return end
 	pos = refunction.convertPositionto(pos,"table")
-	local cx,cz = refunction.GetChunck(pos)
-	if maindata.Chunck[cx.."x"..cz] and  maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
-		maindata.Chunck[cx.."x"..cz][refunction.convertPositionto(pos,"string")]  = nil
+	local cx,cz = refunction.GetChunk(pos)
+	if maindata.Chunk[cx.."x"..cz] and  maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
+		maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(pos,"string")]  = nil
 		 maindata.LoadedBlocks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = nil
 		 local placee = {}
-		 local top = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2]+4,pos[3]},"string")]
-		 local bottem = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2]-4,pos[3]},"string")]
-		 local front = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1]+4,pos[2],pos[3]},"string")]
-		 local back = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1]-4,pos[2],pos[3]},"string")]
-		 local right = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2],pos[3]+4},"string")]
-		 local left = maindata.Chunck[cx.."x"..cz][refunction.convertPositionto({pos[1],pos[2],pos[3]-4},"string")]
+		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
+		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))
+		 local front = (refunction.GetBlock({pos[1]+4,pos[2],pos[3]}))
+		 local back = (refunction.GetBlock({pos[1]-4,pos[2],pos[3]}))
+		 local right = (refunction.GetBlock({pos[1],pos[2],pos[3]+4}))
+		 local left = (refunction.GetBlock({pos[1],pos[2],pos[3]-4}))
 		 if top then
 			table.insert(placee,top)
 		 end
@@ -394,7 +400,7 @@ function Main.destroyblock(player,pos)
 		 if left then
 			table.insert(placee,left)
 		 end
-		 for i,v in ipairs(Main.GetPlayersWithChunck(pos)) do
+		 for i,v in ipairs(Main.GetPlayersWithChunk(pos)) do
 			RS.Events.Block.PlaceClient:FireClient(v,placee)
 			RS.Events.Block.DestroyBlock:FireClient(v,{refunction.convertPositionto(pos,"string")})
 		end
@@ -411,7 +417,7 @@ function Main.GetBlock(Player,Pos)
 	local Player = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
 	local position = Player.Position
 	if refunction.GetMagnituide({position[1],position[2],position[3]},{Pos[1],position[2],Pos[3]}) <= 16*math.max(math.max(Player.HitBoxSize.x,Player.HitBoxSize.z),Player.HitBoxSize.y) then
-		local cx,cy = refunction.GetChunck(position)
+		local cx,cy = refunction.GetChunk(position)
 		if maindata.LoadedBlocks[cx.."x"..cy] and maindata.LoadedBlocks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]] then
 			return maindata.LoadedBlocks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]],Pos[1]..","..Pos[2]..","..Pos[3]
 		else
@@ -420,10 +426,11 @@ function Main.GetBlock(Player,Pos)
 	end 
 end
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
-RS.Events.Block.GetChunck.OnServerInvoke = Main.GetChunck
+RS.Events.Block.GetChunk.OnServerInvoke = Main.GetChunk
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
 RS.Events.Block.Place.OnServerInvoke = Main.Place
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
 RS.Events.Entitys.GetPlayer.OnServerInvoke = Main.GetPlayer
 RS.Events.Block.GetBlock.OnServerInvoke = Main.GetBlock
 return Main
+

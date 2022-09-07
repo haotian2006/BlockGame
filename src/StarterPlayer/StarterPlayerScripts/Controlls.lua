@@ -108,7 +108,7 @@ function controlls.Place(input,gameProcessedEvent)
     raycastParams.FilterDescendantsInstances = {Current_Entity}
     local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction*16,raycastParams)
     if raycast then
-        if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunck) then
+        if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunk) then
             local orientation = {0,0,0}
             local angle =getangle(direaction)
              local dx = math.abs(direaction.X)
@@ -188,7 +188,7 @@ function update.OutLines()
     raycastParams.FilterDescendantsInstances = {Current_Entity}
     local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction,raycastParams)
     if raycast then
-        if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunck) then
+        if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunk) then
             local angle = math.atan(raycast.Instance.position.Y - Player.Character.Head.Position.Y)
            workspace.Assets.SelectionBox.Adornee = raycast.Instance
            currentlylookingat = raycast.Instance
@@ -283,8 +283,8 @@ function  update.HandleFall()
     local entity =   controlls.PlayerNbt
     if not entity then return end 
     local pos =  controlls.PlayerPosition
-    local ccx,ccz = refunction.GetChunck(pos)
-    if not workspace.Chunck:FindFirstChild(ccx.."x"..ccz)  then return end
+    local ccx,ccz = refunction.GetChunk(pos)
+    if not workspace.Chunk:FindFirstChild(ccx.."x"..ccz)  then return end
     entity.NotSaved.Velocity  = entity.NotSaved.Velocity  or {}
     local ysize = entity.HitBoxSize.y or 0
 

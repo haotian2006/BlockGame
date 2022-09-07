@@ -1,13 +1,13 @@
-local loadchunck = {}
+local loadchunk = {}
 local GenHandler = require(game.ServerStorage.GenerationHandler)
 local refunction = require(game.ReplicatedStorage.Functions)
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement
 end
-function loadchunck.Load(Chunck)
+function loadchunk.Load(Chunk)
     local blocks = {}
-    for index,coord in ipairs(refunction.XZCoordInChunck(Chunck)) do
+    for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
         for y = 0,80,4 do
             --task.spawn(function()
                 local coords = string.split(coord,"x")
@@ -25,4 +25,4 @@ function loadchunck.Load(Chunck)
     
     return blocks
 end
-return loadchunck
+return loadchunk

@@ -1,7 +1,7 @@
 local data = {}
 local refunctions = require(game.ReplicatedStorage.Functions)
 local Block_Path = require(game.ReplicatedStorage.BlockInfo)
-function data.LoadChunck(blocks)
+function data.LoadChunk(blocks)
 local folder = {}
   for pos,data in pairs(blocks)do
 

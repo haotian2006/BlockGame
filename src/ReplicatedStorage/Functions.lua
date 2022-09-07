@@ -57,7 +57,7 @@ function Function.GetBlockCoords(Position,retype)
 	end
 	return x,y,z
 end
-function Function.GetChunck(Position)
+function Function.GetChunk(Position)
 	Position = Function.convertPositionto(Position,"vector3")
 	local x,y,z = Function.GetBlockCoords(Position)
 	local cx =	Round(x/16)
@@ -104,32 +104,32 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 	pos = Function.ConvertPositionToReal(pos,"table")
 	local pcx,pcz 
 	if playerpos then
-		pcx,pcz = Function.GetChunck(playerpos)
+		pcx,pcz = Function.GetChunk(playerpos)
 
 	end
 	if maindata then  
 	pos = Function.convertPositionto(pos,"vector3")
 	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
-	local cx,cz = Function.GetChunck(Vector3.new(pos.X,y,pos.Z))
-	if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
-		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
+	local cx,cz = Function.GetChunk(Vector3.new(pos.X,y,pos.Z))
+	if maindata.Chunk[cx.."x"..cz] and maindata.Chunk[cx.."x"..cz][x..","..y..","..z] and not HasToBeLoaded then
+		return maindata.Chunk[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
 		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif not maindata.Chunck[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
+	elseif not maindata.Chunk[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
 		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
 	end
 	return nil
 	else
 		pos = Function.ConvertPositionToReal(pos,"string")
-		local cx,cz = Function.GetChunck(pos)
-		if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
-			local blocka = workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
+		local cx,cz = Function.GetChunk(pos)
+		if workspace.Chunk:FindFirstChild(cx.."x"..cz) and workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
+			local blocka = workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
-		elseif not workspace.Chunck:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
+		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
 			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
 		end
-		if  not workspace.Chunck:FindFirstChild(cx.."x"..cz) and playerpos then
+		if  not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos then
 			--print(pcx ~= cx or pcz ~= cz) 
 		end
 		return nil
@@ -145,8 +145,8 @@ function Function.ConvertPositionToReal(position,typ)
 	end
 	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
 end 
-function Function.GetSurroundingChunck(Position:Vector3,render:number,isdic)
-	local cx,cz =  Function.GetChunck(Position)
+function Function.GetSurroundingChunk(Position:Vector3,render:number,isdic)
+	local cx,cz =  Function.GetChunk(Position)
 	local coords ={cx.."x"..cz}
 	for i = 1,render,1 do
 		local placeholder = {unpack(coords)}
@@ -161,11 +161,11 @@ function Function.GetSurroundingChunck(Position:Vector3,render:number,isdic)
 	end
 	return coords
 end
-function Function.XZCoordInChunck(chunck:string)
-	local name =string.split(chunck,"x")
+function Function.XZCoordInChunk(chunk:string)
+	local name =string.split(chunk,"x")
 	local cx,cz = name[1],name[2]
-	local coord0chunckoffset =  Vector3.new(cx*4*16,0,cz*4*16)
-	local coord0chunck = Vector3.new(0,0,0) + coord0chunckoffset
+	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
+	local coord0chunk = Vector3.new(0,0,0) + coord0chunkoffset
 	local Cornerx,Cornerz =Vector2.new(-32+cx*64,-32+cz*64) ,Vector2.new(28+cx*64,28+cz*64)
 	local pos = {}
 	for x = Cornerx.X, Cornerz.X,4 do
@@ -245,11 +245,11 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 	else
 		Orientation = Vector3.new(0,0,0)
 	end
-	local cx,cz = Function.GetChunck(Position)
-	local chunckname = cx.."x"..cz
-	local chunckfolder =workspace.Chunck:FindFirstChild(chunckname) or Instance.new("Folder",workspace.Chunck)
-	chunckfolder.Name = chunckname
-	if Block_Path[Name] and not chunckfolder:FindFirstChild(Function.convertPositionto(Position,"string")) then
+	local cx,cz = Function.GetChunk(Position)
+	local chunkname = cx.."x"..cz
+	local chunkfolder =workspace.Chunk:FindFirstChild(chunkname) or Instance.new("Folder",workspace.Chunk)
+	chunkfolder.Name = chunkname
+	if Block_Path[Name] and not chunkfolder:FindFirstChild(Function.convertPositionto(Position,"string")) then
 		local model =  Block_Path[Name].Model
 		local clonedblock
 		local offset = Function.convertPositionto(Function.GetOffset(Name),"CFrame")
@@ -264,7 +264,7 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 		clonedblock.LocalTransparencyModifier = 0
 		clonedblock.Name = Function.convertPositionto(Position,"string")
 		clonedblock.CFrame = CFrame.new(Position) * CFrame.Angles(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset
-		clonedblock.Parent =paren or chunckfolder
+		clonedblock.Parent =paren or chunkfolder
 		clonedblock:SetAttribute("Name",Name)
 		clonedblock:SetAttribute("State",Id)
 	end
@@ -283,10 +283,10 @@ function Function.GetFloor(pos,CanBeTransParent)
 	pos = Function.convertPositionto(pos,"vector3")
 
 	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal({Function.GetBlockCoords(pos)},"string"))
-	local cx,cz = Function.GetChunck(Vector3.new(pos.X,0,pos.Z))
+	local cx,cz = Function.GetChunk(Vector3.new(pos.X,0,pos.Z))
 	--print(x,y,z,cx,cz)
 	for i = y , 0,-1 do
-		if maindata.Chunck[cx.."x"..cz] and maindata.Chunck[cx.."x"..cz][x..","..i..","..z] then
+		if maindata.Chunk[cx.."x"..cz] and maindata.Chunk[cx.."x"..cz][x..","..i..","..z] then
 			return Vector3.new(x,i,z)
 		end
 	end

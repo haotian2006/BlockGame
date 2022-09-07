@@ -216,7 +216,7 @@ local oldpos = {}
 function  move.HandleFall(uuid)
     local entity =  maindata.LoadedEntitys[uuid]
     local pos = maindata.LoadedEntitys[uuid].Position
-    local ccx,ccz = refunction.GetChunck(pos)
+    local ccx,ccz = refunction.GetChunk(pos)
     if not maindata.LoadedBlocks[ccx.."x"..ccz] then return end
 
     maindata.LoadedEntitys[uuid].NotSaved.Velocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity  or {}

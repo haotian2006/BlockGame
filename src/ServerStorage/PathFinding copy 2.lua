@@ -28,11 +28,11 @@ local function convertheighttomax(height)
     return rounded
 end
 local onceeeee = true
-local function getblockfromchunck(coordnites)
-    local chunck,z = functions.GetChunck(convertPositionto(coordnites,"vector3"))
-    chunck = MainData.Chunck[chunck.."x"..z]
-    if chunck then
-    return chunck[coordnites] or nil
+local function getblockfromchunk(coordnites)
+    local chunk,z = functions.GetChunk(convertPositionto(coordnites,"vector3"))
+    chunk = MainData.Chunk[chunk.."x"..z]
+    if chunk then
+    return chunk[coordnites] or nil
     else
         return nil
     end
@@ -56,9 +56,9 @@ local vector =  {functions.GetBlockCoords(convertPositionto(coord,"vector3"))}
     end
     x,y,z = returnstringcomponets(gridpos)
     local can = false
-    if getblockfromchunck(gridpos) then
+    if getblockfromchunk(gridpos) then
         can = true
-        local cx,cz = functions.GetChunck(x,y,z)
+        local cx,cz = functions.GetChunk(x,y,z)
         for i = 1 ,convertheighttomax(height),1 do -- checks if the height fits
             if MainData.LoadedBlocks[cx.."x"..cz][convertPositionto({x,y+4*i,z},"string")]then
                 if MainData.BlockNbt[convertPositionto({x,y+4*i,z},"string")] then

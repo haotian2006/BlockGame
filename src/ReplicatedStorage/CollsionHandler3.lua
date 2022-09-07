@@ -98,9 +98,9 @@ function  collisions.entityvsterrain(entity,velocity)
                 position[2] += 0.001
             end
             if velocity[3] >0 then
-                position[3] -= 0.0001
+                position[3] -= 0.00001
             elseif velocity[3] <0 then
-                position[3] += 0.0001
+                position[3] += 0.00001
             end
         end
         remainingtime = 1.0-MinTime

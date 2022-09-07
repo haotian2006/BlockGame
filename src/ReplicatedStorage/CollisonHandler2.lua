@@ -7,8 +7,8 @@ end
 local function floormod(x,y)
     return (x-(floordiv(x,y)*y))
 end 
-local function CorrectChunckPos(chunck,pos)
-    return chunck + floordiv(pos,64)
+local function CorrectChunkPos(chunk,pos)
+    return chunk + floordiv(pos,64)
 end 
 function collisions.new(uuid)
     local data = {}
@@ -45,7 +45,7 @@ function collisions.new(uuid)
     end
     
      function data:entityvsterrainloop(entity,velocity,AABB,Aura)
-        local Chunck = self.Chunck
+        local Chunk = self.Chunk
         local maxInint = self.maxInint
         local minInint = self.minInint
         local maxI = self.maxI
@@ -88,16 +88,16 @@ function collisions.new(uuid)
         local maxY = math.floor(math.min(max[2],maxI[2]))
         local maxZ = math.floor(math.min(max[3],maxI[3]))
         local minTime = 1.0
-        local chunck = {refunction.GetChunck(entity.Position)}
+        local chunk = {refunction.GetChunk(entity.Position)}
         for x = minX, maxX,1 do
             local rx = floormod(x,64)
-            Chunck[1] = CorrectChunckPos(chunck[1],x)
+            Chunk[1] = CorrectChunkPos(chunk[1],x)
 
             local xOklength = x >= minInint[1] and x <= maxInint[1]
             local xOK = x == minInint[1] -1 or x == maxInint[1] + 1
             for z = minZ, maxZ,1 do
                 local rz = floormod(z,64)
-                Chunck[2] = CorrectChunckPos(chunck[2],z)
+                Chunk[2] = CorrectChunkPos(chunk[2],z)
     
                 local zOK = (xOklength and (z == minInint[3]-1 or z == maxInint[3]+1)) or 
                             (xOK and z >= minInint[3] and z <= maxInint[3])
@@ -126,7 +126,7 @@ function collisions.new(uuid)
     data.maxI = {0,0,0}
     data.minInint = {0,0,0}
     data.maxInint = {0,0,0}
-    data.Chunck = {0,0}
+    data.Chunk = {0,0}
 
     data.InvEntry = {0,0,0}
     data.invExit = {0,0,0}

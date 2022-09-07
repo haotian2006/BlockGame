@@ -16,8 +16,8 @@ local function pack(x,y,z)
 end
 local function GetPosition(Table)
 	local Position ={}
-	for chunck,DATA in pairs(Table) do
-		if game.Workspace.Chunk:FindFirstChild(chunck) then
+	for chunk,DATA in pairs(Table) do
+		if game.Workspace.Chunk:FindFirstChild(chunk) then
 		continue
 		end
 		for block,blockdata in pairs(DATA) do
@@ -43,45 +43,45 @@ local function can(position,tabl,player)
 end
 local old
 local firsttime = false
-local function sortchunck(TAB)
-	local chunckst ={}
-	local cx,cz = functions.GetChunck(lp.Character.PrimaryPart.Position)
+local function sortchunk(TAB)
+	local chunkst ={}
+	local cx,cz = functions.GetChunk(lp.Character.PrimaryPart.Position)
 	local currentvec = Vector2.new(cx,cz)
-	for chunck,DATA in pairs(TAB) do
-		local chunckx = string.split(chunck,"x")
-		chunckx = chunckx[1]
-		local chunckz = chunckx[2]
-		local cvector = Vector2.new(chunckx,chunckz)
+	for chunk,DATA in pairs(TAB) do
+		local chunkx = string.split(chunk,"x")
+		chunkx = chunkx[1]
+		local chunkz = chunkx[2]
+		local cvector = Vector2.new(chunkx,chunkz)
 		local mag = (cvector - currentvec).Magnitude
-		table.insert(chunckst,{chunck,mag})
+		table.insert(chunkst,{chunk,mag})
 	end
-	 table.sort(chunckst,function(a,b)
+	 table.sort(chunkst,function(a,b)
 		return a[2] < b[2]
 	end)
-	return chunckst
+	return chunkst
 end
-local function removechunck(chunck)
-	for i,v in pairs(chunck:GetChildren()) do
+local function removechunk(chunk)
+	for i,v in pairs(chunk:GetChildren()) do
 		if i%100 == 0 and firsttime then
 			task.wait(0.01)
 		end
 		v:Destroy()
 	end
-	chunck:Destroy()
+	chunk:Destroy()
 end
 local function frender(char)
-	local renderedchuncks ={}
+	local renderedchunks ={}
 	for i,v in ipairs(workspace.Chunk:GetChildren())do
 		local splited = v.Name:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
-		local currentvecotr = Vector2.new(functions.GetChunck(char.PrimaryPart.Position))
+		local currentvecotr = Vector2.new(functions.GetChunk(char.PrimaryPart.Position))
 		if (vector-currentvecotr).Magnitude > (render+3) then
-			removechunck(v)
+			removechunk(v)
 		else
-			renderedchuncks[v.Name] = true
+			renderedchunks[v.Name] = true
 			end
 		end
-	local Blocks = events.Block.GetChunck:InvokeServer(render,renderedchuncks,firsttime)
+	local Blocks = events.Block.GetChunk:InvokeServer(render,renderedchunks,firsttime)
 	local index = 0
 	for Position,blockdata in pairs(Blocks) do
 		if can(Position,Blocks,char.PrimaryPart.Position.Y)  then		
@@ -96,14 +96,14 @@ local function frender(char)
 	firsttime = true
 	return
 end
-local oldchunck =""
+local oldchunk =""
 game.Players.LocalPlayer.CharacterAdded:Connect(function(char)
 	task.wait()
 	while char do
-		local currentChunck,c = functions.GetChunck(char.PrimaryPart.Position)
-		currentChunck = currentChunck.."x"..c
-		if currentChunck ~= oldchunck  then
-			oldchunck = currentChunck
+		local currentChunk,c = functions.GetChunk(char.PrimaryPart.Position)
+		currentChunk = currentChunk.."x"..c
+		if currentChunk ~= oldchunk  then
+			oldchunk = currentChunk
 			frender(char)
 			print("c")
 		end
