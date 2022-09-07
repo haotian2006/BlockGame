@@ -271,10 +271,8 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 	end
 end)
 local oldchunck =""
-local pchar = lp.Character or lp.CharacterAdded:Wait()
-pchar:WaitForChild("HumanoidRootPart")
-	QuickRender(pchar.PrimaryPart)
-	local char = game.Workspace.Entity:WaitForChild(lp.Name)
+local char = game.Workspace.Entity:WaitForChild(lp.Name)
+	QuickRender(char.PrimaryPart)
 	while char do
 		local currentChunck,c = functions.GetChunck(char.PrimaryPart.Position)
 		currentChunck = currentChunck.."x"..c

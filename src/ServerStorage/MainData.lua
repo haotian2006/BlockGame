@@ -17,22 +17,7 @@ return {
 			["Position"] = {},
 			["IsChild"] = false,
 		}]]
-		["haotian2006"]= { -- a uuid
-			["Name"] = "aar",
-			["Age"] = "0",
-			["Position"] = {-68,90,-120},
-			HitBoxSize = {x =3,y=7.5,z=3},
-			behaviors = {
-			},
-			EyeOffset = 7,
-			CanFall = true,
-            Rotation = {0,0,0},
-            Events = {},
-			["NotSaved"] = {Velocity={}},
-			FallTicks = 0,
-			maxfallvelocity = 3.92,
-			FallDistance = 0,
-		},
+		
 	},
 	["LoadedEntitys"] ={}
 }

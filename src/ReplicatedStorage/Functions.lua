@@ -105,6 +105,7 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 	local pcx,pcz 
 	if playerpos then
 		pcx,pcz = Function.GetChunck(playerpos)
+
 	end
 	if maindata then  
 	pos = Function.convertPositionto(pos,"vector3")
@@ -114,7 +115,7 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 		return maindata.Chunck[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	elseif maindata.LoadedBlocks[cx.."x"..cz] and maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z]  and HasToBeLoaded then
 		return maindata.LoadedBlocks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif not maindata.Chunck[cx.."x"..cz] and (pcx ~= cx and pcz ~= pcz) then
+	elseif not maindata.Chunck[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
 		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
 	end
 	return nil
@@ -124,8 +125,12 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 		if workspace.Chunck:FindFirstChild(cx.."x"..cz) and workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
 			local blocka = workspace.Chunck:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
-		elseif not workspace.Chunck:FindFirstChild(cx.."x"..cz) and (pcx ~= cx and pcz ~= pcz) then
+		elseif not workspace.Chunck:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
+			--("e")
 			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
+		end
+		if  not workspace.Chunck:FindFirstChild(cx.."x"..cz) and playerpos then
+			--print(pcx ~= cx or pcz ~= cz) 
 		end
 		return nil
 	end
