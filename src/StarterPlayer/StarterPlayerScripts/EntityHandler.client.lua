@@ -20,7 +20,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
     for i,v in ipairs(workspace.Entity:GetChildren())do
 
         if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
-            tweenservice:Create(v.PrimaryPart,TweenInfo.new(0.4),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.Angles(
+            tweenservice:Create(v.PrimaryPart,TweenInfo.new(0.4),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.fromOrientation(
                 math.rad((data[v.Name].Rotation[1])),
                 math.rad((data[v.Name].Rotation[2])),
                 math.rad((data[v.Name].Rotation[3]))
@@ -44,7 +44,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
         model.Name = uuid
         model.PrimaryPart = entity
         local ori = {unpack(nbt["Rotation"])}
-        entity.CFrame = CFrame.new(unpack(nbt["Position"]))*CFrame.Angles(math.rad(ori[1]),math.rad(ori[2]),math.rad(ori[3]))
+        entity.CFrame = CFrame.new(unpack(nbt["Position"]))*CFrame.fromOrientation(math.rad(ori[1]),math.rad(ori[2]),math.rad(ori[3]))
 		entity.Anchored = true
         local eyebox = Instance.new("Part")
         eyebox.Color = Color3.new(0.921568, 0, 0)

@@ -1,11 +1,11 @@
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
-local functions = require(RS.Functions)
+local refunction = require(RS.Functions)
 local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 10
+local render = 4
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -46,7 +46,7 @@ local old
 local firsttime = false
 local function sortchunk(TAB,POS)
 	local chunkst ={}
-	local cx,cz = functions.GetChunk(POS or game.Workspace.Entity:FindFirstChild(lp.Name).PrimaryPart.Position)
+	local cx,cz = refunction.GetChunk(POS or game.Workspace.Entity:FindFirstChild(lp.Name).PrimaryPart.Position)
 	local currentvec = Vector2.new(cx,cz)
 	for incex,chunk in ipairs(TAB) do
 		local chunkx = string.split(chunk,"x")
@@ -78,7 +78,7 @@ local function QuickRender(char)
 		for i,v in ipairs(workspace.Chunk:GetChildren())do
 			local splited = v.Name:split("x")
 			local vector = Vector2.new(splited[1],splited[2])
-			local currentvecotr = Vector2.new(functions.GetChunk(char.Position))
+			local currentvecotr = Vector2.new(refunction.GetChunk(char.Position))
 			if (vector-currentvecotr).Magnitude > (render+3) then
 				v.Parent = nil
 				storedchunk[v.Name] = v
@@ -86,7 +86,7 @@ local function QuickRender(char)
 				renderedchunks[v.Name] = true
 				end
 		end
-		local nearbychunks = (functions.GetSurroundingChunk(char.Position,render))
+		local nearbychunks = (refunction.GetSurroundingChunk(char.Position,render))
 		local newchunks = {}
 		local thread = coroutine.running()
 		local threadsdone = 0
@@ -115,21 +115,20 @@ local function QuickRender(char)
 		local Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
 		local index = 0
 			local blocktable = loadthread:DoWork(Blocks)
-			local moduel = Instance.new("Folder")
-			moduel.Name = chunk
+			local Folder = Instance.new("Folder")
+			Folder.Name = chunk
 			for i,v in ipairs(blocktable)do
 				v[1].CFrame = v[2]
-				v[1].Parent = moduel
+				v[1].Parent = Folder
 				v[1]:SetAttribute("Name",v[3])
 				v[1]:SetAttribute("State",v[4])
 				v[1].Anchored = true
 				v[1].Size = v[5]
-				v[1].Name = functions.convertPositionto(v[2].Position,"string")
+				v[1].Name = refunction.convertPositionto(v[6],"string")
 				
 			end
-			table.insert(newchunks,moduel)
+			table.insert(newchunks,Folder)
 			threadsdone+=1
-			--print(threadsdone , #nearbychunks)
 			--print(threadsdone , #nearbychunks)
 			if threadsdone == #nearbychunks then
 				coroutine.resume(thread)
@@ -152,12 +151,13 @@ local function QuickRender(char)
 		return
 end
 local function frender(char)
-
+	local currentChunk,c = refunction.GetChunk(char.Position)
+	currentChunk = currentChunk.."x"..c
 	local renderedchunks ={}
 	for i,v in ipairs(workspace.Chunk:GetChildren())do
 		local splited = v.Name:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
-		local currentvecotr = Vector2.new(functions.GetChunk(char.Position))
+		local currentvecotr = Vector2.new(refunction.GetChunk(char.Position))
 		if (vector-currentvecotr).Magnitude > (render+3) then
 			v.Parent = nil
 			storedchunk[v.Name] = v
@@ -166,7 +166,7 @@ local function frender(char)
 			end
 	end
 	task.spawn(function()
-		local nearbychunks = functions.GetSurroundingChunk(char.Position,12)
+		local nearbychunks = refunction.GetSurroundingChunk(char.Position,12)
 		for i,v in pairs(storedchunk)do
 			if typeof(v) == "Instance" then
 				if table.find(nearbychunks,i)  then
@@ -176,19 +176,25 @@ local function frender(char)
 			end
 		end
 	end)
-	local nearbychunks = (functions.GetSurroundingChunk(char.Position,render))
+	local nearbychunks = {}
+	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,2)) do
+		table.insert(nearbychunks,v)
+	end
+	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,render)) do
+		if not table.find(nearbychunks,v) then
+		table.insert(nearbychunks,v)	
+		end
+	end
 	local newchunks = {}
 	local thread = coroutine.running()
 	local threadsdone = 0
 	local done = false
+	local curentlyload = {}
 	for i,chunk in ipairs(nearbychunks)do
-		chunk = chunk
 		if storedchunk[chunk] then
-			--table.insert(newchunks,storedchunk[chunk])
 			storedchunk[chunk].Parent = workspace.Chunk
 			storedchunk[chunk] = nil
 			threadsdone+=1
-			--print(threadsdone , #nearbychunks)
 			if threadsdone == #nearbychunks then
 				coroutine.resume(thread)
 				done = true
@@ -197,16 +203,32 @@ local function frender(char)
 		end
 		if renderedchunks[chunk] then 
 			threadsdone+=1 
-			--print(threadsdone , #nearbychunks)
 		if threadsdone == #nearbychunks then
 			coroutine.resume(thread)
 			done = true
 		end
 		continue end
-
+		local new,cnew = refunction.GetChunk(char.Position)
+		new = new.."x"..cnew
+		if threadsdone == #nearbychunks then
+			coroutine.resume(thread)
+			done = true
+		end
+	if new ~= currentChunk and threadsdone >=13  then
+		repeat
+			task.wait()
+		until #curentlyload ==0
+		frender(char)
+		coroutine.resume(thread)
+		threadsdone = #nearbychunks
+		done = true
+		continue
+	end
 	local Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
 	local index = 0
 	task.spawn(function()
+		local currena = chunk
+		table.insert(curentlyload,currena)
 		local blocktable = loadthread:DoWork(Blocks)
 		local moduel = Instance.new("Folder")
 		moduel.Name = chunk
@@ -217,33 +239,21 @@ local function frender(char)
 			v[1]:SetAttribute("State",v[4])
 			v[1].Anchored = true
 			v[1].Size = v[5]
-			v[1].Name = functions.convertPositionto(v[2].Position,"string")
+			v[1].Name = refunction.convertPositionto(v[6],"string")
 			
 		end
-		--table.insert(newchunks,moduel)
 		moduel.Parent = game.Workspace.Chunk
 		threadsdone+=1
-		--print(threadsdone , #nearbychunks)
-		--print(threadsdone , #nearbychunks)
 		if threadsdone == #nearbychunks then
 			coroutine.resume(thread)
 			done = true
 		end
+		table.remove(curentlyload,table.find(curentlyload,currena))
 	end)
 	if threadsdone == #nearbychunks then
 		coroutine.resume(thread)
 		done = true
 	end
-	--[[for Position,blockdata in pairs(Blocks) do	
-
-					functions.PlaceBlock(blockdata[1],Position,blockdata[2],blockdata[3])
-			index+=1
-			if index == 200 and firsttime then
-				index = 0
-				task.wait()
-		--	end
-		end
-		end]]
 	end
 	if not done then 
 		coroutine.yield()
@@ -259,13 +269,13 @@ local function frender(char)
 end
 game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(blocks)
 	for i,data in ipairs(blocks)do
-		local cx,cz = functions.GetChunk(data[4])
-		functions.PlaceBlock(data[1],data[4],data[2],data[3],storedchunk[cx..'x'..cz])
+		local cx,cz = refunction.GetChunk(data[4])
+		refunction.PlaceBlock(data[1],data[4],data[2],data[3],storedchunk[cx..'x'..cz])
 	end
 end)
 game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(blocks)
 	for i,Pos in ipairs(blocks)do
-		local cx,cz = functions.GetChunk(Pos)
+		local cx,cz = refunction.GetChunk(Pos)
 		if game.Workspace.Chunk:FindFirstChild(cx.."x"..cz) and game.Workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos) then
 			game.Workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(Pos):Destroy()
 		elseif storedchunk[cx.."x"..cz] and  storedchunk[cx.."x"..cz]:FindFirstChild(Pos) then
@@ -277,7 +287,7 @@ local oldchunk =""
 local char = game.Workspace.Entity:WaitForChild(lp.Name)
 	QuickRender(char.PrimaryPart)
 	while char do
-		local currentChunk,c = functions.GetChunk(char.PrimaryPart.Position)
+		local currentChunk,c = refunction.GetChunk(char.PrimaryPart.Position)
 		currentChunk = currentChunk.."x"..c
 		if currentChunk ~= oldchunk and true then
 			oldchunk = currentChunk

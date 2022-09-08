@@ -13,7 +13,7 @@ function  collisions.IsGrounded(entity)
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2,
-        position[2]-(hitbox.y/2+0.5),
+        position[2]-(hitbox.y/2+0.01),
         position[3]-hitbox.z/2,
     }
     local max ={

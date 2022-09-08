@@ -145,7 +145,7 @@ function Function.ConvertPositionToReal(position,typ)
 	end
 	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
 end 
-function Function.GetSurroundingChunk(Position:Vector3,render:number,isdic)
+function Function.GetSurroundingChunk(Position:Vector3,render:number)
 	local cx,cz =  Function.GetChunk(Position)
 	local coords ={cx.."x"..cz}
 	for i = 1,render,1 do
@@ -211,8 +211,8 @@ function Function.DealWithRotation(blockdata)
         end
     end
     local NewPos = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
-  	  CFrame.Angles(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
-    	Function.convertPositionto(offset,"CFrame")
+  	  CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
+    	(Function.convertPositionto(offset,"CFrame"):Inverse())
     		).Position,"table")
     local newsize = rotationstuffaaaa[Function.convertPositionto(setup)](size)
    -- print(hpos,newsize)
@@ -261,12 +261,12 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 		--for i,v in ipairs(Block_Texture:FindFirstChild(Name):GetChildren())do
 			--v:Clone().Parent = clonedblock
 		--end
-		clonedblock.LocalTransparencyModifier = 0
-		clonedblock.Name = Function.convertPositionto(Position,"string")
-		clonedblock.CFrame = CFrame.new(Position) * CFrame.Angles(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset
+		clonedblock.Name = Function.ConvertPositionToReal(Position,"string")
+		clonedblock.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse(s)
 		clonedblock.Parent =paren or chunkfolder
 		clonedblock:SetAttribute("Name",Name)
 		clonedblock:SetAttribute("State",Id)
+
 	end
 end
 local rotationstuffaaaa = {

@@ -124,10 +124,11 @@ function controlls.Place(input,gameProcessedEvent)
                 orientation[2] = -90
              elseif dx == 1 then
                 orientation[2] = 90
-             elseif dz == -1 then
-                orientation[2] = 180
+             end
+             if dz == -1 then
+               -- orientation[3] = 180
              elseif  dz == 1 then
-                orientation[2] = 0
+                orientation[3] = 0
              end
             local face = NormalToFace(raycast.Normal,raycast.Instance)
             if not face then return end
@@ -137,8 +138,9 @@ function controlls.Place(input,gameProcessedEvent)
             elseif angle >= 39 and angle <=  40 then
                 orientation[1] = -90
             end
+            print(orientation)
             local newpos = refunction.convertPositionto(refunction.AddPosition(raycast.Instance.position,faces[face]),"table")
-            remotes.Block.Place:InvokeServer("Stone",newpos,orientation)
+            remotes.Block.Place:InvokeServer("Slab",newpos,orientation)
 
 
            -- raycast.Instance.Color = Color3.new(0.525490, 0.164705, 0.164705)
@@ -228,7 +230,7 @@ function update.UpdatePosition(delta)
         end
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
-local speed = 0.43
+local speed = 1
 local jumpedamount =0 
 local jumpheight = 6.5
 function update.Movement(deltatime)

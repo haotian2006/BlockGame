@@ -179,6 +179,7 @@ local function convetcunktostring(cx,cz)
 	return cx..","..cz
 end
 local function can(position,tabl,player,blockdata)
+	
 	local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
@@ -186,7 +187,7 @@ local function can(position,tabl,player,blockdata)
 	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
 	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
 			c = true
-	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or blockdata[6]  == false then 
+	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
 			c = true
 	end
 	return c
@@ -355,6 +356,8 @@ function Main.GetPlayersWithChunk(Position)
 end
 function Main.Place(player,block,Position,Orientation)
 	if not Position or not block then return end
+	local oldpos =Position
+	Position = refunction.ConvertPositionToReal(Position,"vector3")
 	local cx,cz = refunction.GetChunk(Position)
 	if maindata.Chunk[cx.."x"..cz] and not maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(Position,"string")] then
 		maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
@@ -370,6 +373,8 @@ end
 
 function Main.destroyblock(player,pos)
 	if not pos then return end
+	local oldpos =pos
+	pos = refunction.ConvertPositionToReal(pos,"vector3")
 	pos = refunction.convertPositionto(pos,"table")
 	local cx,cz = refunction.GetChunk(pos)
 	if maindata.Chunk[cx.."x"..cz] and  maindata.Chunk[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
@@ -384,21 +389,27 @@ function Main.destroyblock(player,pos)
 		 local left = (refunction.GetBlock({pos[1],pos[2],pos[3]-4}))
 		 if top then
 			table.insert(placee,top)
+			top[6] = false
 		 end
 		 if bottem then
 			table.insert(placee,bottem)
+			bottem[6] = false
 		 end
 		 if front then
 			table.insert(placee,front)
+			front[6] = false
 		 end
 		 if back then
 			table.insert(placee,back)
+			back[6] = false
 		 end
 		 if right then
 			table.insert(placee,right)
+			right[6] = false
 		 end
 		 if left then
 			table.insert(placee,left)
+			left[6] = false
 		 end
 		 for i,v in ipairs(Main.GetPlayersWithChunk(pos)) do
 			RS.Events.Block.PlaceClient:FireClient(v,placee)
