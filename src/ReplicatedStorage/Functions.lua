@@ -124,6 +124,9 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 		local cx,cz = Function.GetChunk(pos)
 		if workspace.Chunk:FindFirstChild(cx.."x"..cz) and workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
 			local blocka = workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
+			if blocka:IsA("Model") then
+				blocka = blocka.PrimaryPart or blocka.MainPart or blocka
+			end
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
 		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")

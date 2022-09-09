@@ -12,6 +12,39 @@ local debug = require(game.ReplicatedStorage.Debughandler)
 local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
 local storedchunk = require(script.Parent:WaitForChild("ChunksToBeLoaded"))
 local loadthread = workthingyt.New(script.Parent:WaitForChild("ChunksToBeLoaded"),"LoadChunk",100)
+local function WaitForDescendant(descendantOf, str)
+	assert(typeof(descendantOf) == "Instance", "Invalid type for argument 1 (descendatOf)")
+	assert(typeof(str) == "string", "Invalid type for argument 2 (str)")
+	
+	if descendantOf:FindFirstChild(str, true) then
+		return descendantOf:FindFirstChild(str, true)
+	else
+		local t = {tick(), false}
+
+		repeat
+			if not t[2] and tick() - t[1] > 10 then 
+				warn("Infinite yield possible on "..tostring(descendantOf)..":WaitForDescendant("..str..")")
+				t[2] = true
+			end
+			
+			descendantOf.DescendantAdded:Wait()
+		until descendantOf:FindFirstChild(str, true)
+		
+		return descendantOf:FindFirstChild(str, true)
+	end
+end
+local function getpart(name)
+	local part
+	local ismodel = false
+	local model = Block_Info[name].Model
+	if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
+	  part = model.MainPart:Clone()
+	  ismodel = true
+	elseif not model:IsA("Model") then
+	  part = Block_Info[name].Model:Clone()
+	end
+	return part,ismodel
+	end
 local function pack(x,y,z)
 	return x..","..y..","..z
 end
@@ -230,19 +263,40 @@ local function frender(char)
 		local currena = chunk
 		table.insert(curentlyload,currena)
 		local blocktable = loadthread:DoWork(Blocks)
-		local moduel = Instance.new("Folder")
-		moduel.Name = chunk
+		local Folder = Instance.new("Folder")
+		Folder.Name = chunk
+		local model
 		for i,v in ipairs(blocktable)do
+			if v[8] == 2 then
+				if v[7] then
+					model = v[7]:Clone()
+					if model:FindFirstChild("BasePart") then
+						model:FindFirstChild("BasePart"):Destroy()
+					end
+					v[1] = model:FindFirstChild("MainPart")
+
+				end
+			elseif v[8] == 3 then
+				if v[7] then
+					v[1] = v[7]:Clone()
+					model = v[1]
+				end
+			else
+				model = v[1]
+			end
+
 			v[1].CFrame = v[2]
-			v[1].Parent = moduel
-			v[1]:SetAttribute("Name",v[3])
-			v[1]:SetAttribute("State",v[4])
+			model.Parent = Folder
+			model:SetAttribute("Name",v[3])
+			model:SetAttribute("State",v[4])
 			v[1].Anchored = true
-			v[1].Size = v[5]
-			v[1].Name = refunction.convertPositionto(v[6],"string")
+			if v[8] == 1 then
+				v[1].Size = v[5]
+			end
+			model.Name = refunction.convertPositionto(v[6],"string")
 			
 		end
-		moduel.Parent = game.Workspace.Chunk
+		Folder.Parent = game.Workspace.Chunk
 		threadsdone+=1
 		if threadsdone == #nearbychunks then
 			coroutine.resume(thread)
