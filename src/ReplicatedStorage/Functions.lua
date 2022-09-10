@@ -272,6 +272,16 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 
 	end
 end
+function Function.worldCFrameToC0ObjectSpace(motor6DJoint:Motor6D,worldCFrame:CFrame):CFrame
+	local part1CF = motor6DJoint.Part1.CFrame
+	local c1Store = motor6DJoint.C1
+	local c0Store = motor6DJoint.C0
+	local relativeToPart1 =c0Store*c1Store:Inverse()*part1CF:Inverse()*worldCFrame*c1Store
+	relativeToPart1 -= relativeToPart1.Position
+	
+	local goalC0CFrame = relativeToPart1+c0Store.Position--New orientation but keep old C0 joint position
+	return goalC0CFrame
+end
 local rotationstuffaaaa = {
 	["0,0,0"] = function(datao) return datao end,
 	["0,1,0"] = function(datao) return {datao[3],datao[2],datao[1]} end,

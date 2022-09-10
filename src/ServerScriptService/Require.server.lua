@@ -1,13 +1,13 @@
 require(game.ServerStorage.MainHandler)
 local maindata = require(game.ServerStorage.MainData)
 local copy = { -- a uuid
-["Name"] = "aar",
+["Name"] = "Mar",
 ["Age"] = "0",
 ["Position"] = {-68,90,-120},
-HitBoxSize = {x =3,y=7.5,z=3},
+HitBoxSize = {x =2.2,y=7.5,z=2.2},
 behaviors = {
 },
-EyeOffset = 7,
+EyeOffset = 6.7,
 CanFall = true,
       Rotation = {0,0,0},
       Events = {},
@@ -42,5 +42,3 @@ end
 for i = 0,amount,1 do
     mainenetity.CreateEntity("Mar",{-math.random(30,120),84,-math.random(80,200)})
 end
-
-print(data.Entitys)

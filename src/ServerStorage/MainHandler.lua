@@ -417,8 +417,10 @@ function Main.destroyblock(player,pos)
 		end
 	end
 end
-function Main.GetPlayer(player,Pos,a)
+function Main.GetPlayer(player,Pos,a,neck,Body)
 	local player = maindata.LoadedEntitys[player.Name] or maindata.Entitys[player.Name]
+	player.NotSaved.NeckRotation = neck
+	player.NotSaved.BodyRotation = Body
 	player.Position = Pos and refunction.convertPositionto(Pos,"table") or player.Position
 		return player	
 

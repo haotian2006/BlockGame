@@ -1,3 +1,0 @@
-local clone = {}
-
-return clone

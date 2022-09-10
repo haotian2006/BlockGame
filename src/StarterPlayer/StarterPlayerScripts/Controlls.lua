@@ -45,6 +45,11 @@ local function getkeyfromiput(input)
         return input.UserInputType.Name
     end
 end
+local function HandleRotation(bodyjoint,neckjoint,maxrotation,velocity)
+	local bx,by,bz = bodyjoint.C0:ToOrientation()
+    local nx,ny,nz = neckjoint.C0:ToOrientation()
+
+end
 local function NormalToFace(normalVector, part)
     local TOLERANCE_VALUE = 1 - 0.001
     local allFaceNormalIds = {
@@ -224,15 +229,11 @@ function update.UpdatePosition(delta)
         controlls.IsOnGround = collision_handler.IsGrounded(entity)
        -- print(controlls.IsOnGround )
         local pos = collision_handler.entityvsterrain(entity,total)
-        if not controlls.CanJump  then
-            --controlls.CanJump = true
-           -- entity.NotSaved.Velocity.Jump = {0,0,0}
-        end
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
 local speed = 1
 local jumpedamount =0 
-local jumpheight = 6.5
+local jumpheight = 8.7
 function update.Movement(deltatime)
     if not controlls.PlayerNbt then   
        local b = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)     
@@ -259,10 +260,10 @@ function update.Movement(deltatime)
     local Jump = keypressed[controlls.KeyBoard.Jump]
     velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
-   local jump = jumpheight*deltatime*4
+   local jump = jumpheight*deltatime*4.5
    if jumpedamount > 0 and jumpedamount <=jumpheight  then
-    jumpedamount += jumpheight*deltatime*4
-    jump = jumpheight*deltatime*4
+    jumpedamount += jumpheight*deltatime*4.5
+    jump = jumpheight*deltatime*4.5
     controlls.Jumping = true
     else
         controlls.Jumping = false
@@ -271,7 +272,7 @@ function update.Movement(deltatime)
    end
    if controlls.IsOnGround and Jump and controlls.Jumping == false then
     if jumpedamount == 0 then
-        jumpedamount += jumpheight*deltatime*4
+        jumpedamount += jumpheight*deltatime*4.5
        -- jump = 4.1*deltatime
     end 
    end
@@ -308,14 +309,75 @@ function update.Entity(deltaTime)
         Current_Entity =  game.Workspace.Entity:FindFirstChild(Player.Name)
     end
     elapsed += deltaTime
-		if elapsed > 0.25 then
-       local a = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition,true)
+		if elapsed > 0.25 and Current_Entity then
+        local neck =  Current_Entity:FindFirstChild("Neck",true)
+        local MainWeld = Current_Entity:FindFirstChild("MainWeld",true)
+        if neck then
+            neck = {neck.C0:ToOrientation()}
+        end
+        if MainWeld then
+            MainWeld = {MainWeld.C0:ToOrientation()}
+        end
+       local a = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition,true,neck,MainWeld)
      if a then
         a.Position = nil
      end
        controlls.PlayerNbt = a
         elapsed = 0
 	end
+end
+local follow = false
+local oldyy = 180
+function update.Camera()
+    if game.Workspace.Entity:FindFirstChild(Player.Name) then
+        local muti
+        local entityw = game.Workspace.Entity:FindFirstChild(Player.Name)
+        local Torso = entityw:FindFirstChild("Torso",true)
+       local neck =  entityw:FindFirstChild("Neck",true)
+       local MainWeld = entityw:FindFirstChild("MainWeld",true)
+       if neck and Torso and MainWeld then
+        local upordown = math.sign(camera.CFrame.LookVector.Unit:Dot(Vector3.new(0,1,0)))
+        local goalCF = CFrame.lookAt(neck.Part1.Position, neck.Part1.Position+camera.CFrame.LookVector, Torso.CFrame.UpVector)
+        local xx, yy, zz = refunction.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+        if math.abs(math.deg(yy)) <= 125 and upordown ==-1 then
+           follow = true
+        end
+        if math.abs(math.deg(yy)) >= 55 and upordown == 1 then
+            follow = true
+         end
+        if (oldyy < math.abs(yy) and upordown == -1 )or  (oldyy > math.abs(yy) and upordown == 1 ) then
+            follow = false
+        end
+
+        if (keypressed["W"] and not keypressed["S"] or not keypressed["W"] and keypressed["S"] ) and not keypressed["A"] and not keypressed["D"] then
+            muti = 0
+        end
+        if (keypressed["W"] and keypressed["A"] ) or  keypressed["A"] and not keypressed["S"] and not keypressed["D"] then
+            muti = 120
+        end
+        if (keypressed["W"] and keypressed["D"]) or keypressed["D"] and not keypressed["A"] and  not keypressed["S"]  then
+            muti = -120
+        end
+        if not keypressed["W"] and not keypressed["A"] and  keypressed["S"] and  keypressed["D"] then
+            muti = 120
+        end
+        if not keypressed["W"] and  keypressed["A"] and   keypressed["S"]  and keypressed["A"] then
+            muti = -120
+        end
+        if follow ==true or muti then
+            local pos =  MainWeld.C0.Position
+            local mad = muti
+             muti = muti or (upordown == 1 and 50 or 120)
+             xx, yy, zz = refunction.worldCFrameToC0ObjectSpace(MainWeld,goalCF*CFrame.fromOrientation(0,muti*(mad and 1 or math.sign(yy)),0)):ToOrientation()
+             game:GetService("TweenService"):Create(MainWeld,TweenInfo.new(0.1),{C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)}):Play()
+             -- MainWeld.C0 = CFrame.new(pos.X, pos.Y, pos.Z)*CFrame.fromOrientation(0,yy,0)
+         end
+         xx, yy, zz = refunction.worldCFrameToC0ObjectSpace(neck,goalCF):ToOrientation()
+        -- game:GetService("TweenService"):Create(neck,TweenInfo.new(1),{C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)}):Play()
+     neck.C0 = CFrame.new( neck.C0.X,  neck.C0.Y,  neck.C0.Z)*CFrame.fromOrientation(xx,yy,zz)--refunction.worldCFrameToC0ObjectSpace(neck,goalCF)
+         oldyy = math.abs(yy)
+    end
+    end
 end
 local delayrun = {}
 game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
