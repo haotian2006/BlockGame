@@ -12,6 +12,33 @@ local function createselectionbox(name,color,addorne,size)
     sel.Adornee = addorne
     return sel
 end
+local function changetext(nameLabel,STUDS_OFFSET_Y)
+nameLabel.TextScaled = true
+nameLabel.Size = UDim2.new(1, 0, 1, 0)
+
+local nameDisplayBillboard = nameLabel.Parent
+
+local textScaleSize = Vector2.new(1, 2)
+    local amountOfCharacter = string.len(nameLabel.Text)
+	local _, numberOfLines = string.gsub(nameLabel.Text, "\n", "\n")
+
+	if amountOfCharacter == 0 then
+		numberOfLines = 0
+	else
+		-- Adding the minimum of one line		
+		numberOfLines += 1
+	end
+
+	nameDisplayBillboard.Size = UDim2.new(
+		amountOfCharacter * textScaleSize.X,
+		0,
+		numberOfLines * textScaleSize.Y,
+		0
+	)
+
+	-- Putting on studs offset:
+	nameDisplayBillboard.StudsOffset = Vector3.new(0, STUDS_OFFSET_Y , 0)
+end
 runservice.Stepped:Connect(function(time, deltaTime)
     if Players.LocalPlayer.Character and Players.LocalPlayer.Character.PrimaryPart and Players.LocalPlayer.Character.PrimaryPart.Position then
     else
@@ -19,20 +46,27 @@ runservice.Stepped:Connect(function(time, deltaTime)
     end
 	local data = event:InvokeServer(17)
     for i,v in ipairs(workspace.Entity:GetChildren())do
-
         if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
-            tweenservice:Create(v.PrimaryPart,TweenInfo.new(0),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.fromOrientation(
+            local nametag = v.PrimaryPart.Nametag
+            nametag.Text.Text = data[v.Name].CustomName or "No Name"
+            changetext(nametag.Text,v.PrimaryPart.Size.Y/2 +2.5)
+            if not data[v.Name].CustomName then 
+                nametag.Enabled =false
+            else
+                nametag.Enabled =true
+            end
+            tweenservice:Create(v.PrimaryPart,TweenInfo.new(0.25),{CFrame= CFrame.new(unpack(data[v.Name]["Position"]))*CFrame.fromOrientation(
                 math.rad((data[v.Name].Rotation[1])),
                 math.rad((data[v.Name].Rotation[2])),
                 math.rad((data[v.Name].Rotation[3]))
             )}):Play()
             local neck = v:FindFirstChild("Neck",true)
             local MainWeld = v:FindFirstChild("MainWeld",true)
-            if data[v.Name].NotSaved.NeckRotation then
+            if data[v.Name].NotSaved.NeckRotation and neck then
                 tweenservice:Create(neck,TweenInfo.new(0.1),{C0= CFrame.new(neck.C0.Position)*
                     CFrame.fromOrientation(unpack(data[v.Name].NotSaved.NeckRotation))}):Play()
             end
-            if data[v.Name].NotSaved.BodyRotation then
+            if data[v.Name].NotSaved.BodyRotation and MainWeld then
                 tweenservice:Create(MainWeld,TweenInfo.new(0.1),{C0= CFrame.new(MainWeld.C0.Position)*
                 CFrame.fromOrientation(unpack(data[v.Name].NotSaved.BodyRotation))}):Play()
             end
@@ -49,7 +83,6 @@ runservice.Stepped:Connect(function(time, deltaTime)
         if nbt.HitBoxSize then
             entity.Size = Vector3.new( nbt.HitBoxSize.x, nbt.HitBoxSize.y, nbt.HitBoxSize.z)
         end
-  
         model.Parent = game.Workspace.Entity
         entity.Name = "HitBox"
         entity.CFrame = CFrame.new(0,0,0)
@@ -99,6 +132,16 @@ runservice.Stepped:Connect(function(time, deltaTime)
             game.Workspace.CurrentCamera.CameraSubject = eyebox
             game.Players.LocalPlayer.Character.PrimaryPart.Anchored = true
            -- game.Players.LocalPlayer.Character.PrimaryPart.CFrame = CFrame.new(entity.Position.X,  entity.Position.Y,  entity.Position.Z)
+        else
+            local nametag = game.ReplicatedStorage.Assests.Nametag:Clone()
+            nametag.Text.Text = nbt.CustomName or "No Name"
+            changetext(nametag.Text,entity.Size.Y/2 +2.5)
+            nametag.Parent = entity
+            if not nbt.CustomName then 
+                nametag.Enabled =false
+            else
+                nametag.Enabled =true
+            end
         end
 	end
 end)

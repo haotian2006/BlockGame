@@ -33,12 +33,18 @@ function  collisions.IsGrounded(entity)
                          -- print(collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil)  )
                     end
                    local a2 = refunction.convertPositionto(a,"table")
-                   local newpos ,newsize = collisions.DealWithRotation(block)
+                   local newpos ,newsize,n2,s2,n3,s3 = collisions.DealWithRotation(block)
                    if  collisions.AABBcheck({position[1], position[2]-1,position[3]},newpos,{hitbox.x,hitbox.y,hitbox.z},newsize) then 
-
                     return true,block
-                    end   
+                    end  
+                    if  n2 and collisions.AABBcheck({position[1], position[2]-1,position[3]},n2,{hitbox.x,hitbox.y,hitbox.z},s2) then 
+                        return true,block
+                        end 
+                        if  n3 and collisions.AABBcheck({position[1], position[2]-1,position[3]},n3,{hitbox.x,hitbox.y,hitbox.z},s3) then 
+                            return true,block
+                            end  
                 end
+
             end 
         end 
     end 
@@ -147,8 +153,23 @@ function collisions.AABBcheck(b1,b2,s1,s2,isbp)
                 b1[3]+s1[3] < b2[3] or 
                 b1[3]>b2[3]+s2[3] )                                      
 end
-
-function collisions.entityvsterrainloop(entity,position,velocity)
+function collisions.shouldjump(entity,pos,p,s,pri)
+    local hitbox = entity.HitBoxSize
+    local feetpos = pos[2] - hitbox.y/2 
+    local blockfeet = p[2] - s[2]/2
+    local jumpneeded = s[2] -(feetpos - blockfeet)
+    local blockheight =  p[2] + s[2]/2
+    if jumpneeded > s[2] or jumpneeded<= 0 then
+        return nil
+    end
+    if entity.JumpWhen.SmallJump >= jumpneeded  then
+        return "Small",jumpneeded,blockheight
+    elseif entity.JumpWhen.FullJump >= jumpneeded then
+        return "Full",jumpneeded,blockheight
+    end
+    return nil
+end
+function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop)
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2+(velocity[1] <0 and velocity[1]-1 or 0)   ,
@@ -169,17 +190,75 @@ function collisions.entityvsterrainloop(entity,position,velocity)
     for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
         for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
             for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
+                if whitelist and whitelist[refunction.convertPositionto({x,y,z},"string")] then continue end
                 local block,a = refunction.GetBlock({x,y,z},false,position)
+
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
-                   local newpos ,newsize = collisions.DealWithRotation(block)
-                   if not collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then continue end
+                   local typejump 
+                   local needed
+                   local maxheight
+                   local currentmin = 1
+                   local newpos ,newsize,n2,s2,n3,s3 = collisions.DealWithRotation(block)
+                   if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
                     local collisiontime,newnormal = collisions.SweaptAABB(position,newpos,{hitbox.x,hitbox.y,hitbox.z},newsize,velocity,mintime)
-                    game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = (typeof(newnormal) == "table" and newnormal[3] or 6)
-                    if collisiontime < mintime then
-                       zack = a2
-                        mintime = collisiontime
+                    if collisiontime < 1 then
+                       zack = {newpos,newsize}
+                        currentmin = collisiontime
                         normal = newnormal
+                        local a,b,c = collisions.shouldjump(entity,position,newpos,newsize)
+                        if not needed or c >=maxheight  then
+                          typejump,needed,maxheight =  a,b,c
+                        end
+                     end
+                    end
+                    if s2 and collisions.AABBcheck(bppos,n2,bpsize,s2,true) then
+                        
+                        local collisiontime,newnormal = collisions.SweaptAABB(position,n2,{hitbox.x,hitbox.y,hitbox.z},s2,velocity,mintime)
+                        if collisiontime < 1 then
+                        if collisiontime < currentmin  then
+                            currentmin = collisiontime
+                            zack = {n2,s2}
+                            normal = newnormal
+                        end
+                        local a,b,c = collisions.shouldjump(entity,position,n2,s2)
+                        if not needed or c >=maxheight  then
+                          typejump,needed,maxheight =  a,b,c
+                        end
+                        end
+                     end
+                    if s3 and collisions.AABBcheck(bppos,n3,bpsize,s3,true) then
+                       
+                        local collisiontime,newnormal = collisions.SweaptAABB(position,n3,{hitbox.x,hitbox.y,hitbox.z},s3,velocity,mintime)
+                        if collisiontime < 1 then
+                            if collisiontime < currentmin  then
+                                currentmin = collisiontime
+                                                        zack = {n3,s3}
+                                normal = newnormal
+                            end
+                        local a,b,c = collisions.shouldjump(entity,position,n2,s2)
+                        if not needed or c >=maxheight  then
+                          typejump,needed,maxheight =  a,b,c
+                        end
+                    end
+                    end
+                    mintime = currentmin < mintime and currentmin or mintime
+                     if mintime < 1 and not looop and typejump  then
+                        if typejump == "Small" then
+                            position[2] += needed+1
+                           -- entity.NotSaved.Velocity.Stairs = {0,-100,0}
+                           return collisions.entityvsterrainloop(entity,position,velocity,{},true)
+                        elseif typejump == "Full" and entity.AutoJump  then
+                             local mintime2 = collisions.entityvsterrainloop(entity,{position[1],position[2]+5,position[3]},{velocity[1],velocity[2],velocity[3]},{[refunction.convertPositionto(a2)] = true},true)
+                             if mintime2 < 1 then
+                             else
+                                if game.ServerStorage:FindFirstChild("Move") then
+                               require(game.ServerStorage.Move).Jump(entity.uuid)
+                                elseif game.Players.LocalPlayer.PlayerScripts.Controlls then
+                                    require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controlls")).Other.Jump()
+                               end
+                             end
+                        end
                     end
                 end
             end 

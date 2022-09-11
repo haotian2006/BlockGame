@@ -75,7 +75,7 @@ function Main.runentity(uuid)
 			end
 		end
 		local elapsed = 0
-		self = runservice.Stepped:Connect(function(time, deltaTime)
+		self = runservice.Heartbeat:Connect(function( deltaTime)
 			elapsed += deltaTime
 			if elapsed > .05 then
 				--eachtick
@@ -86,7 +86,6 @@ function Main.runentity(uuid)
 			local entity = 	maindata.LoadedEntitys[uuid]
 			local player, closestplayer =  Echeckfornearbyplayers(uuid)
 			if not Connections[uuid] or not maindata.Entitys[uuid] or  player or not maindata.LoadedEntitys[uuid] then
-				print("e")
 			--	print(not Connections[uuid] , not Main.LoadedEntitys[uuid] , Echeckfornearbyplayers(uuid))
 				Connections[uuid] = nil
 				maindata.Entitys[uuid] = maindata.Entitys[uuid] and maindata.LoadedEntitys[uuid] or nil
@@ -107,7 +106,6 @@ function Main.runentity(uuid)
 						end)
 					end
 				end
-				if true then return end
 				for eventname,info in pairs(maindata.LoadedEntitys[uuid].Events)do
 					if (timepassed*0.1)%(info[2] or 1) == 0 then
 							for index,stuff in ipairs(info[1])do
@@ -125,33 +123,32 @@ function Main.runentity(uuid)
 							end
 					end
 				end
-				--print(entity)
-				local playerpos = maindata.LoadedEntitys[uuid] or maindata.Entitys[uuid]
-				playerpos = refunction.convertPositionto(playerpos.Position,"vector3")
-				playerpos = Main.GetFloor(playerpos,true)
-			--	print(playerpos)
-				local px,py,pz = refunction.GetBlockCoords(playerpos)
-				if (timepassed*0.1)%(2) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
-					--print("newpathfind")
-					--once = true
-					oldplayerpos = px..","..pz
-					--{entity.Position[1],entity.Position[2]-4,entity.Position[3]}
-				local path =pathfinding.Queue(uuid,closestplayer.Name,uuid)
-				--print("eeae")
-					if path and true then
-						local lplayerpos = oldplayerpos
-						for i,v in ipairs(path)do
-							if oldplayerpos ~= lplayerpos then
-								break
-							end
-							local goalpos = refunction.convertPositionto(v.position,"table")
-						--	print(goalpos)
-							local done = moverefunction.MoveTo(uuid,{goalpos[1],goalpos[2]+4,goalpos[3]})
-							--entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
-							--task.wait(0.5)
-						end
-					end	
-				end
+			-- 	local playerpos = maindata.LoadedEntitys[uuid] or maindata.Entitys[uuid]
+			-- 	playerpos = refunction.convertPositionto(playerpos.Position,"vector3")
+			-- 	playerpos = Main.GetFloor(playerpos,true)
+			-- --	print(playerpos)
+			-- 	local px,py,pz = refunction.GetBlockCoords(playerpos)
+			-- 	if (timepassed*0.1)%(2) == 0 and once == false and oldplayerpos ~= px..","..pz and playerpos then
+			-- 		--print("newpathfind")
+			-- 		--once = true
+			-- 		oldplayerpos = px..","..pz
+			-- 		--{entity.Position[1],entity.Position[2]-4,entity.Position[3]}
+			-- 	local path =pathfinding.Queue(uuid,closestplayer.Name,uuid)
+			-- 	--print("eeae")
+			-- 		if path and true then
+			-- 			local lplayerpos = oldplayerpos
+			-- 			for i,v in ipairs(path)do
+			-- 				if oldplayerpos ~= lplayerpos then
+			-- 					break
+			-- 				end
+			-- 				local goalpos = refunction.convertPositionto(v.position,"table")
+			-- 			--	print(goalpos)
+			-- 				local done = moverefunction.MoveTo(uuid,{goalpos[1],goalpos[2]+4,goalpos[3]})
+			-- 				--entity.Position = {entity.Position[1],entity.Position[2]+4,entity.Position[3]}
+			-- 				--task.wait(0.5)
+			-- 			end
+			-- 		end	
+			-- 	end
 			end
 		end)
 		Connections[uuid] = self
@@ -296,10 +293,11 @@ function Main.render(Player,RD,RenderedChunks)
 	end
 	return lc--,array
 end
-function Main.CreateEntity(Name)
+function Main.CreateEntity(Name,customname)
 	local uuid = HTTPs:GenerateGUID()
 	maindata.Entitys[uuid] = entityhandler.BasicNbt
 	maindata.Entitys[uuid].Name = Name
+	maindata.Entitys[uuid].CustomName = customname
 	maindata.Entitys[uuid].Position = {refunction.GetVector3Componnets(Main.GetFloor(0,80,0))}
 end
 function updateentitytable(Player,Distance,pos)
@@ -307,7 +305,7 @@ function updateentitytable(Player,Distance,pos)
 	if not char then return end
 	char = pos or refunction.convertPositionto(char.Position,"vector3")
 	if char then
-		local player_Distance = char
+		local player_Distance = Vector3.new(unpack(char))
 		for uuid,nbt in pairs(maindata.Entitys) do
 		--	print(nbt)
 				if maindata.LoadedEntitys[uuid] then continue end	

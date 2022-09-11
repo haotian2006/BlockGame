@@ -1,4 +1,4 @@
-local data ={
+local data = {
     entity = {
         ["description"] = {
             is_spawnable = true,
@@ -17,21 +17,20 @@ local data ={
                 ["max_dist"]=32,
               },
             },
-           --[[ ["behavior.random_stroll"] ={
+            ["behavior.random_stroll"] ={
                 ["priority"]= 2,
                 ["interval"]= 20,
                 ["speed_multiplier"]= 1.0,
                 ["xz_dist"]= 25,
                 ["y_dist"]= 0,
-             },]]
+             },
              ["componet.health"] = {
                 value = 10,
                 max = 10,
              },
              ["componet.HitBoxSize"] = {
-               x = 1.5,
-               y = 4,
-               z = 1.5,
+               x = 2.2,
+               y = 7.5,
              },
         },
         component_groups = {

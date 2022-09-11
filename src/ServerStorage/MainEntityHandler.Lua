@@ -17,15 +17,21 @@ local Data = {
 	CustomNameRenderDistance = 0, --*4
 	Position  = {0,0,0},
 	Rotation = {0,0,0},
+	EyeOffset = 6.7,
 	FallDistance = 0,
+	MaxFallRate = 3.92,
 	FallTicks = 0,
-	maxfallvelocity = 3.92,
 	CanTakeDamage = true,
 	FireLast = 0,
 	RenderFire = true,
 	IgnoreBlocks ={},
 	IgnoreMobs ={},
 	RegenRate = 0,
+	AutoJump = true,
+	JumpWhen = {
+		FullJump = 4,
+		SmallJump = 2,
+	},
 	--otherstuff
 	["NotSaved"] = {},
 	["behaviors"] = {},
@@ -53,10 +59,13 @@ local Data = {
 
 }
 --<----localfunctions---->
-local function shallowCopy(original)
+local function deepCopy(original)
 	local copy = {}
-	for key, value in pairs(original) do
-		copy[key] = value
+	for k, v in pairs(original) do
+		if type(v) == "table" then
+			v = deepCopy(v)
+		end
+		copy[k] = v
 	end
 	return copy
 end
@@ -233,13 +242,15 @@ Data.behavior.nearest_attackable_target = {
 Data.behavior.random_stroll = {
 	func = function (uuid,data)
 		local interval = data.interval or 120
+		local entity = getentityfromuuid(uuid)
 		if math.random(1,interval) ~= 1 then return end
 		if not behcanrun(uuid,"random_stroll",true,false) then return end
+
 		local priority = data.priority 
 		local speed_multiplier = data.speed_multiplier or 1 
 		local xz_dist = (data.xz_dist or 10)*4
 		local y_dist = (data.y_dist or 7)*4
-		local entity = getentityfromuuid(uuid)
+
 		local bh = gettrashbehfromuuid(uuid)
 		local EPosition = entity.Position
 		local offsetx = math.random(-xz_dist,xz_dist)
@@ -249,6 +260,7 @@ Data.behavior.random_stroll = {
 		bh.random_stroll = true
 		moveto.MoveTo(uuid,targetpos)
 		bh.random_stroll = false
+		return
 	end,
 	runonupdate = true,
 	btype = "Movement"
@@ -273,10 +285,12 @@ end
 function  Data.componet.add(entity,cname,data,isadd:boolean)
 	Data.componet[cname](entity,data,isadd)
 end
-function  Data.CreateEntity(entityName,Position)
+function  Data.CreateEntity(entityName,Position,CustomName)
 	local generateduuid = httpsservice:GenerateGUID(false)
-	local current_nbt = shallowCopy(Data.BasicNbt)
+	local current_nbt = deepCopy(Data.BasicNbt)
 	current_nbt.Name = entityName
+	current_nbt.CustomName = CustomName
+	current_nbt.uuid = generateduuid
 	local entityhandler = getentityhandlerfromname(entityName)
 	current_nbt.Position = Position
 	for name,data in pairs(entityhandler.entity.components)do

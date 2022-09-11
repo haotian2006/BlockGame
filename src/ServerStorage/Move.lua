@@ -3,158 +3,66 @@ move.Moving = {}
 local maindata = require(game.ServerStorage.MainData)
 local refunction = require(game.ReplicatedStorage.Functions)
 local ValueListener = require(game.ServerStorage.ValueListener)
-function move.Jump()
-    
+local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
+function move.Jump(uuid)
+    local entity =  maindata.LoadedEntitys[uuid]
+    entity.Jumping = entity.Jumping or false
+    if not entity or entity.Jumping == true then return end
+    local jumpheight = entity.MaxJump or 8.7
+    local e 
+    local jumpedamount =0 
+    e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+        local jump = jumpheight*deltaTime*4.5
+        if entity.IsOnGround  and entity.Jumping == false then
+            if jumpedamount == 0 then
+                jumpedamount += jumpheight*deltaTime*4.5
+               -- jump = 4.1*deltatime
+            end 
+           end
+        if jumpedamount > 0 and jumpedamount <=jumpheight  then
+         jumpedamount += jumpheight*deltaTime*4.5
+         jump = jumpheight*deltaTime*4.5
+         entity.Jumping = true
+         else
+            entity.Jumping = false
+             jump = 0
+             jumpedamount = 0
+             e:Disconnect()
+        end
+        entity.NotSaved.Velocity.Jump ={0,jump,0}
+    end)
+      
 end
 local oldvelocity = {}
-local function Round(to_round,near)
-    local divided = to_round / near
-    local rounded = near * math.floor(divided)
-    return rounded
-end
-local function pn(value)
-    local values = value/math.abs(value)
-    if values ~= values then
-        values = 1
-    end
-    return values
-end
-function lerp(start, finish, alpha)
-    return start + (finish - start)*alpha
-end
-function move.Lerp(self,finish, alpha)
-    self = refunction.convertPositionto(self,"vector3")
-    finish = refunction.convertPositionto(finish,"vector3")
-    -- implicit definition of self being the Vector3 Lerp is applied on
-    return Vector3.new(
-        lerp(self.x, finish.x, alpha),
-        lerp(self.y, finish.y, alpha),
-        lerp(self.z, finish.z, alpha)
-    )
-end
-function move.canMove(uuid,velocity)
-    do
-        return {0,0,0}
-    end
-    local entity = maindata.LoadedEntitys[uuid] 
-    
-    local oldvelocity = entity.NotSaved.OldVelocity
-    oldvelocity = oldvelocity or {}
-    if not entity then return velocity end
-    local hitbox = entity.HitBoxSize
-    local pos = entity.Position
-   -- local goalpos = refunction.AddPosition(pos,velocity)
-    local vx = pn(velocity[1])
-    local vy = pn(velocity[2])
-    local vz = pn(velocity[3])
-     vx = pn(velocity[1])
-     vy = pn(velocity[2])*(velocity[2]==0 and -1 or 1)
-     vz = pn(velocity[3])
-    local startx = pos[1]+((hitbox.x-0.001)*0.5+(velocity[1] == 0 and 0 or (5-hitbox.x >0 and 5-hitbox.x or 1) ))*vx
-    local endx =   pos[1]-(hitbox.x*0.5)*vx
-    local starty = pos[2]+((hitbox.y-0.001)*0.5+(5-hitbox.y >0 and 5-hitbox.y or 1) )*vy
-    local endy =  pos[2]-(hitbox.y*0.5)*vy
-    local startz =pos[3]+((hitbox.z-0.001)*0.5+(velocity[3] == 0 and 0 or (5-hitbox.z >0 and 5-hitbox.z or 1) ))*vz
-    local endz =  pos[3]-(hitbox.z*0.5)*vz
-    local detected = {}
-    local currentx
-    local currenty
-    local currentz
-    local OnGround
-    if velocity[1] ~= 0 then
-       -- print((hitbox.x*0.5+(velocity[1] == 0 and 0 or 1 ))*vx)
-    end
-    for x = startx,endx,1*-vx do
-         for z = startz,endz,1*-vz do
-            for y = starty,endy,1*-vy do
-              local  xx = refunction.convertvaluetoreal(x,vx)
-              local  yy = refunction.convertvaluetoreal(y,vy)
-              local  zz = refunction.convertvaluetoreal(z,vz)
-                local block,bpos = refunction.GetBlock({xx,yy,zz},false)
-                if block and not detected[bpos] then
-                    detected[bpos] = true
-                    bpos = refunction.convertPositionto(bpos,"table") 
-                    if refunction.CheckForCollision(pos,{hitbox.x,hitbox.y,hitbox.z},nil,bpos,{4,4,4},nil) then
-
-                        if ((refunction.convertvaluetoreal(x) ~= refunction.convertvaluetoreal(startx)) or velocity[1] == 0 )and ((refunction.convertvaluetoreal(z) ~= refunction.convertvaluetoreal(startz))or velocity[3] == 0) then
-                           if velocity[2] == 0 and refunction.convertvaluetoreal(y)==refunction.convertvaluetoreal(starty)  then
-                                OnGround = true
-                                continue
-                            end
-                            currenty = currenty or (velocity[2]~=0 and bpos) 
-                            if currenty and math.abs(pos[2]-currenty[2]) > math.abs(pos[2]-bpos[2])  then
-                                currenty = bpos
-                            end
-                        end
-						if (refunction.convertvaluetoreal(y) ~= refunction.convertvaluetoreal(starty)) and ((refunction.convertvaluetoreal(z) ~= refunction.convertvaluetoreal(startz ))or velocity[3] == 0) then
-                            currentx =  currentx or (velocity[1]~=0 and bpos) 
-                            if currentx and math.abs(pos[1]-currentx[1]) > math.abs(pos[1]-bpos[1])  then
-                                currentx = bpos
-                            end
-                        end
-						if ((refunction.convertvaluetoreal(x) ~= refunction.convertvaluetoreal(startx))or velocity[1] == 0) and (refunction.convertvaluetoreal(y) ~= refunction.convertvaluetoreal(starty)) then
-                            currentz =  currentz or (velocity[3]~=0 and bpos) 
-                            if currentz and math.abs(pos[3]-currentz[3]) > math.abs(pos[3]-bpos[3])  then
-                                currentz = bpos
-                            end
-                        end
-                    end
-                end
-            end
-        end
-    end
-    if currentx then
-        --print(currentx.X)
-     --   local unit = refunction.GetUnit(currentx,pos)
-        --if pn(unit.X) == vx then
-        --refunction.CheckForCollision(pos,{hitbox.x,hitbox.y,hitbox.z},nil,currentx,{4,4,4},nil,true)
-       --print(refunction.convertPositionto(currentx,"string"))
-        oldvelocity[1] = {vx,pos[1],currentx}
-     --   print(refunction.convertPositionto(currentx,"string"))
-        local hitboxend = startx
-        local currentend = currentx[1]+2*-vx
-        pos[1] = currentend+hitbox.x/2*-vx
-        velocity[1] = 0
-        
-       -- end
-    end
-    if currentz then
-     --   local unit = refunction.GetUnit(currentz,pos)
-     --   if pn(unit.Z) == vz then
-
-        local hitboxend = startz
-        local currentend = currentz[3]+2*-vz
-        pos[3] = currentend+hitbox.z/2*-vz
-        velocity[3] = 0
-        
-      --  end
-    end
-  --  print( math.floor( velocity[2]+0.5) , (currenty and true or false),(hitbox.y*0.5+(velocity[2] == 0 and 0 or 1 ))*vy)
-    if currenty  then
-     --   local unit = refunction.GetUnit(currenty,pos)
-     --   if pn(unit.Y) == vy then
-        oldvelocity[2] = {vy,pos[2],currenty}
-    
-      --  print(currenty)
-        local hitboxend = starty
-        local currentend = currenty[2]+2*-vy
-        local distance = hitboxend-currentend*-vy
-        -- if distance ~= 0 then
-        --         velocity[2] -= distance
-        -- end
-        pos[2] = currentend+hitbox.y/2
-        velocity[2] = 0
-        
-      --  end
-    end
-    if (currenty or OnGround) and vy == -1  then
-        ValueListener.Change(uuid,"IsOnGround",true)
-    elseif not currenty or  (vy == 1 and velocity[2] ~= 0) then
-        ValueListener.Change(uuid,"IsOnGround",false)
+function interpolate(startVector3, finishVector3, alpha)
+    local function currentState(start, finish, alpha)
+        return start + (finish - start)*alpha
 
     end
-    --print(starty)
-    return velocity
+
+    return {
+        currentState(startVector3[1], finishVector3[1], alpha),
+        currentState(startVector3[2], finishVector3[2], alpha),
+        currentState(startVector3[3], finishVector3[3], alpha)
+    }
+end
+function move.update(uuid,delta)
+    local entity =  maindata.LoadedEntitys[uuid]
+    if not entity then return end 
+    if not entity.NotSaved then
+        entity.NotSaved = {}
+    end
+    local Velocity =entity.NotSaved.Velocity
+    local total = {0,0,0}
+    if  typeof(Velocity) ~= "table"  then return end
+    for i,v in pairs(Velocity) do
+        total[1] += v[1]
+        total[2] += v[2]
+        total[3] += v[3]
+    end	
+    entity.IsOnGround = collision_handler.IsGrounded(entity)
+    local pos = collision_handler.entityvsterrain(entity,total)
+    entity.Position = interpolate(entity.Position,pos,delta) 
 end
 function move.MoveTo(uuid,goal)
     goal = refunction.convertPositionto(goal,"table")
@@ -171,14 +79,14 @@ function move.MoveTo(uuid,goal)
     local timetotake = magnit/7
     repeat
         pos = maindata.LoadedEntitys[uuid].Position
-        local block,bpostion = refunction.RayCast(pos,direaction) 
-        local goingtobe =  refunction.ConvertPositionToReal(refunction.AddPosition(pos,direaction))
-        if block and false then
-			if refunction.GetMagnituide(pos,bpostion) <= refunction.GetMagnituide(pos,goingtobe) then
-				print("jump")
-              --  maindata.LoadedEntitys[uuid].NotSaved.Velocity.Jump = {0,1,0}
-            end
-        end
+        -- local block,bpostion = refunction.RayCast(pos,direaction) 
+        -- local goingtobe =  refunction.ConvertPositionToReal(refunction.AddPosition(pos,direaction))
+        -- if block  then
+		-- 	if refunction.GetMagnituide(pos,bpostion) <= refunction.GetMagnituide(pos,goingtobe) then
+		-- 		print("jump")
+        --         move.Jump(uuid)
+        --     end
+        -- end
         task.wait()
     until refunction.GetMagnituide({pos[1],goal[2],pos[3]},goal) <= 0.5 or move.Moving["uuid"] ~= currentnumber or  os.time()-timestart >= timetotake+5
    -- print("reached",uuid,move.Moving["uuid"], currentnumber,maindata.LoadedEntitys[uuid])
@@ -191,57 +99,29 @@ function move.MoveTo(uuid,goal)
     end
     return (move.Moving["uuid"] == currentnumber ) and "Done" or "Stopped"
 end
-function move.update(uuid,delta)
-	local entity =  maindata.LoadedEntitys[uuid]
-	if not entity.NotSaved then
-		entity.NotSaved = {}
-	end
-	local Velocity = maindata.LoadedEntitys[uuid].NotSaved.Velocity
-    local total = {0,0,0}
-    if  typeof(Velocity) ~= "table"  then return end
-    for i,v in pairs(Velocity) do
-        total[1] += v[1]
-        total[2] += v[2]
-        total[3] += v[3]
-    end	
-    local goal = refunction.AddPosition(entity.Position,total)
-     total =move.Lerp(entity.Position,goal,delta)
-    local diffrence = refunction.convertPositionto(refunction.SubPosition(goal,total),"table")
-    Velocity = move.canMove(uuid,diffrence)
-    maindata.LoadedEntitys[uuid].NotSaved.Velocity.Jump = {0,0,0}
-	entity.Position = refunction.convertPositionto(refunction.convertPositionto(Velocity,"vector3")+refunction.convertPositionto(entity.Position,"vector3"),"table")
 
-end
 local oldpos = {}
 function  move.HandleFall(uuid)
     local entity =  maindata.LoadedEntitys[uuid]
-    local pos = maindata.LoadedEntitys[uuid].Position
-    local ccx,ccz = refunction.GetChunk(pos)
-    if not maindata.LoadedBlocks[ccx.."x"..ccz] then return end
-
-    maindata.LoadedEntitys[uuid].NotSaved.Velocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity  or {}
-    local velocity =   maindata.LoadedEntitys[uuid].NotSaved.Velocity 
-   -- local downvelocity  = maindata.LoadedEntitys[uuid].NotSaved.Velocity.DownVelocity
-    local ysize = entity.HitBoxSize.y or 0
-    local feetposition = pos[2] - (ysize/2)
-    local featblock = refunction.GetBlock({pos[1],feetposition,pos[3]},false)
-    local fallendistance = entity.FallDistance
-    entity.FallTicks += 1
-    local fallrate = (((0.98^entity.FallTicks)-1)*entity.maxfallvelocity)
-    local lowestblock = refunction.GetFloor(pos)
-   -- if velocity[2]
-   local ypos = pos[2]
-    if entity.IsOnGround or not entity.CanFall  then
-     --   entity.NotSaved["LastYBlock"] = nil
-       -- print("e")
-        entity.FallTicks = 0
-        velocity.Fall = {0,0,0}
-    elseif not entity.IsOnGround and entity.CanFall then
-       -- velocity.Fall = {0,fallrate,0}
-    end
-    if ypos ~=   oldpos[uuid] then
-    oldpos[uuid] = ypos
+    if not entity then return end 
     
+    local pos =  entity.Position
+    local ccx,ccz = refunction.GetChunk(pos)
+    if not maindata.Chunk[ccx.."x"..ccz]  then return end
+    entity.NotSaved.Velocity  = entity.NotSaved.Velocity  or {}
+    local ysize = entity.HitBoxSize.y or 0
+
+    local fallendistance = entity.FallDistance
+
+    local fallrate = ((((0.98)^entity.FallTicks or 0 )-1)*(entity.MaxFallRate or  3.92) )/1.3
+
+   local ypos = pos[2]
+    if entity.IsOnGround or not entity.CanFall or entity.Jumping == true then
+        entity.FallTicks = 0
+        entity.NotSaved.Velocity.Fall = {0,0,0}
+    elseif not entity.IsOnGround and entity.CanFall then
+        entity.FallTicks += 1
+        entity.NotSaved.Velocity.Fall = {0,fallrate,0}
     end
 end
 return move

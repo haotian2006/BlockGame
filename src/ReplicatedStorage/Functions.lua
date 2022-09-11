@@ -202,24 +202,56 @@ function Function.DealWithRotation(blockdata)
     }
     local offset = {0,0,0}
     local size = {4,4,4}
+	local size2
+	local offset2
+	local size3
+	local offset3
 	if Block_Path[blockdata[1]] then
         local model = Block_Path[blockdata[1]].Model
         if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
             size = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
             offset = Function.convertPositionto(model:FindFirstChild("BasePart").Position - model:FindFirstChild("MainPart").Position,"table")
+			model = model.MainPart
         elseif not model:IsA("Model") then
 
         else
             warn("error with model",blockdata[1])
         end
+		if model:FindFirstChild("MainPart") then
+				size2 = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
+				offset2 = Function.convertPositionto((model.Parent:FindFirstChild("BasePart").Position or model.Position) - model:FindFirstChild("MainPart").Position,"table")
+				model = model.MainPart
+				if model:FindFirstChild("MainPart") then
+					size3 = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
+					offset3 = Function.convertPositionto((model.Parent.Parent:FindFirstChild("BasePart").Position or model.Parent.Position) - model:FindFirstChild("MainPart").Position,"table")
+					model = model:FindFirstChild("MainPart") 
+				end
+		end
     end
     local NewPos = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
   	  CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
     	(Function.convertPositionto(offset,"CFrame"):Inverse())
     		).Position,"table")
     local newsize = rotationstuffaaaa[Function.convertPositionto(setup)](size)
-   -- print(hpos,newsize)
-    return  NewPos,newsize
+	local NewPos2
+	local newsize2
+	local NewPos3
+	local newsize3
+   if size2 then
+	 NewPos2 = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
+	CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
+	(Function.convertPositionto(offset2,"CFrame"):Inverse())
+		).Position,"table")
+ 	newsize2 = rotationstuffaaaa[Function.convertPositionto(setup)](size2)
+   end
+   if size3 then
+	NewPos3 = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
+   CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
+   (Function.convertPositionto(offset3,"CFrame"):Inverse())
+	   ).Position,"table")
+	   newsize3 = rotationstuffaaaa[Function.convertPositionto(setup)](size3)
+  end
+    return  NewPos,newsize,NewPos2,newsize2,NewPos3,newsize3
 end
 function Function.GetOffset(name)
     local offset = {0,0,0}
@@ -265,7 +297,7 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 			--v:Clone().Parent = clonedblock
 		--end
 		clonedblock.Name = Function.ConvertPositionToReal(Position,"string")
-		clonedblock.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse(s)
+		clonedblock.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse()
 		clonedblock.Parent =paren or chunkfolder
 		clonedblock:SetAttribute("Name",Name)
 		clonedblock:SetAttribute("State",Id)

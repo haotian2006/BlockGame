@@ -1,3 +1,4 @@
+
 local functions = require(game.ReplicatedStorage.Functions)
 local ProximityPromptService = game:GetService("ProximityPromptService")
 local UserInputService = game:GetService("UserInputService")
@@ -7,7 +8,12 @@ local refunction = require(game.ReplicatedStorage.Functions)
 local remotes = game.ReplicatedStorage.Events
 local currentlylookingat 
 local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
+--local KeyFramePlayer = require(game.ReplicatedStorage.Assests:WaitForChild("KeyFramePlayer"))
+--  KeyFramePlayer:LoadAnimation(aa.PlayerVeiwPort.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
+--  KeyFramePlayer:LoadAnimation(viewModel.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
+
 local Current_Entity 
+local oldentity
 local a = 3
 local controlls = {
     KeyBoard = {
@@ -25,6 +31,12 @@ local controlls = {
     TouchScreen = {
     
     },
+    Other = {
+
+    },
+    updateRun = {
+
+    }
 }
 local keypressed = {}
 controlls.FallTicks = 0
@@ -114,6 +126,8 @@ function controlls.Place(input,gameProcessedEvent)
     local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction*16,raycastParams)
     if raycast then
         if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunk) then
+            local hitpos = raycast.Position
+            local realpos = refunction.ConvertPositionToReal(hitpos,"table")
             local orientation = {0,0,0}
             local angle =getangle(direaction)
              local dx = math.abs(direaction.X)
@@ -138,12 +152,15 @@ function controlls.Place(input,gameProcessedEvent)
             local face = NormalToFace(raycast.Normal,raycast.Instance)
             if not face then return end
             local ddd = Player.Character.Head.Position- raycast.Instance.position
+            if hitpos.Y >  realpos[2] then 
+                orientation[3] = 180
+            else
+            end
             if angle >=-40 and angle <= - 39 then
                 orientation[1] = 90
             elseif angle >= 39 and angle <=  40 then
                 orientation[1] = -90
             end
-            print(orientation)
             local newpos = refunction.convertPositionto(refunction.AddPosition(raycast.Instance.position,faces[face]),"table")
             remotes.Block.Place:InvokeServer("Slab",newpos,orientation)
 
@@ -225,15 +242,41 @@ function update.UpdatePosition(delta)
         if total[2] > 0 then 
             --print( total[2])
         end
+        entity.Jumping = controlls.Jumping
         entity.Position = controlls.PlayerPosition
-        controlls.IsOnGround = collision_handler.IsGrounded(entity)
+       
        -- print(controlls.IsOnGround )
         local pos = collision_handler.entityvsterrain(entity,total)
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
 local speed = 1
-local jumpedamount =0 
-local jumpheight = 8.7
+local jumpheight = 7.4
+function controlls.Other.Jump()
+    if  controlls.Jumping == true then return end
+
+    local e 
+    local jumpedamount =0 
+    e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
+        local jump = jumpheight*deltaTime*4.5
+        if controlls.IsOnGround  and controlls.Jumping == false then
+            if jumpedamount == 0 then
+                jumpedamount += jumpheight*deltaTime*4.5
+               -- jump = 4.1*deltatime
+            end 
+           end
+        if jumpedamount > 0 and jumpedamount <=jumpheight  then
+         jumpedamount += jumpheight*deltaTime*4.5
+         jump = jumpheight*deltaTime*4.5
+         controlls.Jumping = true
+         else
+             controlls.Jumping = false
+             jump = 0
+             jumpedamount = 0
+             e:Disconnect()
+        end
+        controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,jump,0}
+    end)
+end
 function update.Movement(deltatime)
     if not controlls.PlayerNbt then   
        local b = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)     
@@ -253,30 +296,20 @@ function update.Movement(deltatime)
     LookVector = Vector3.new(LookVector.X,0,LookVector.Z).Unit
     RightVector = Vector3.new(RightVector.X,0,RightVector.Z).Unit
 
-    local foward = LookVector* speed*(keypressed[controlls.KeyBoard.Foward]and 1 or 0)
-    local Back = LookVector* -speed*(keypressed[controlls.KeyBoard.Backward]and 1 or 0)
-    local Left = RightVector* -speed*(keypressed[controlls.KeyBoard.Left]and 1 or 0)
-    local Right = RightVector* speed*(keypressed[controlls.KeyBoard.Right]and 1 or 0)
+    local foward = LookVector* speed/( (keypressed[controlls.KeyBoard.Left] or keypressed[controlls.KeyBoard.Right]) and 1.5 or 1) 
+        *(keypressed[controlls.KeyBoard.Foward]and 1 or 0)
+    local Back = LookVector* -speed/( (keypressed[controlls.KeyBoard.Left] or keypressed[controlls.KeyBoard.Right]) and 1.5 or 1) 
+        *(keypressed[controlls.KeyBoard.Backward]and 1 or 0)
+    local Left = RightVector* -speed/( (keypressed[controlls.KeyBoard.Back] or keypressed[controlls.KeyBoard.Foward]) and 1.5 or 1) 
+        *(keypressed[controlls.KeyBoard.Left]and 1 or 0)
+    local Right = RightVector* speed/( (keypressed[controlls.KeyBoard.Back] or keypressed[controlls.KeyBoard.Foward]) and 1.5 or 1) 
+        *(keypressed[controlls.KeyBoard.Right]and 1 or 0)
     local Jump = keypressed[controlls.KeyBoard.Jump]
     velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
-   local jump = jumpheight*deltatime*4.5
-   if jumpedamount > 0 and jumpedamount <=jumpheight  then
-    jumpedamount += jumpheight*deltatime*4.5
-    jump = jumpheight*deltatime*4.5
-    controlls.Jumping = true
-    else
-        controlls.Jumping = false
-        jump = 0
-        jumpedamount = 0
-   end
-   if controlls.IsOnGround and Jump and controlls.Jumping == false then
-    if jumpedamount == 0 then
-        jumpedamount += jumpheight*deltatime*4.5
-       -- jump = 4.1*deltatime
-    end 
-   end
-   controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,jump,0}
+    if Jump then
+        controlls.Other.Jump()
+    end
    if workspace.Entity:FindFirstChild(Player.Name) then
     workspace.Entity:FindFirstChild(Player.Name).PrimaryPart.CFrame = refunction.convertPositionto(controlls.PlayerPosition,"CFrame")
     --game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
@@ -292,12 +325,13 @@ function  update.HandleFall()
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.maxfallvelocity)/1.3
+    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.3
 
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then
-        controlls.FallTicks = 0
         entity.NotSaved.Velocity.Fall = {0,0,0}
+        controlls.IsFalling = false
+        controlls.FallTicks = 0
     elseif not controlls.IsOnGround and entity.CanFall then
         controlls.FallTicks += 1
         entity.NotSaved.Velocity.Fall = {0,fallrate,0}
@@ -309,7 +343,7 @@ function update.Entity(deltaTime)
         Current_Entity =  game.Workspace.Entity:FindFirstChild(Player.Name)
     end
     elapsed += deltaTime
-		if elapsed > 0.25 and Current_Entity then
+		if elapsed > 0.15 and Current_Entity then
         local neck =  Current_Entity:FindFirstChild("Neck",true)
         local MainWeld = Current_Entity:FindFirstChild("MainWeld",true)
         if neck then
@@ -328,8 +362,11 @@ function update.Entity(deltaTime)
 end
 local follow = false
 local oldyy = 180
+local playerinfo = {}
+local second 
 function update.Camera()
     if game.Workspace.Entity:FindFirstChild(Player.Name) then
+        second = second or Current_Entity:FindFirstChild("SecondLayer",true)
         local muti
         local entityw = game.Workspace.Entity:FindFirstChild(Player.Name)
         local Torso = entityw:FindFirstChild("Torso",true)
@@ -361,7 +398,7 @@ function update.Camera()
         if not keypressed["W"] and not keypressed["A"] and  keypressed["S"] and  keypressed["D"] then
             muti = 120
         end
-        if not keypressed["W"] and  keypressed["A"] and   keypressed["S"]  and keypressed["A"] then
+        if not keypressed["W"] and  keypressed["A"] and   keypressed["S"]   then
             muti = -120
         end
         if follow ==true or muti then
@@ -378,8 +415,67 @@ function update.Camera()
          oldyy = math.abs(yy)
     end
     end
+    if (camera.CFrame.Position - camera.Focus.Position).Magnitude < 0.6 and Current_Entity then
+		--print("fps")
+        Player.PlayerGui.Arms.vp.Visible = true
+        second.Parent = nil
+        if playerinfo[1] == nil then
+           for i,v in ipairs(Current_Entity:GetDescendants())do
+            local success = pcall(function()  v["Transparency"] = v["Transparency"] end)
+                if success and v.Transparency == 0 then
+                    table.insert(playerinfo,v)
+                    v.Transparency =1
+                end
+           end
+        else
+            for i,v in ipairs(playerinfo)do
+                if  v["Transparency"] then
+                    v.Transparency =1
+                end
+           end
+        end
+	elseif Current_Entity then
+		--print("not fps")
+        Player.PlayerGui.Arms.vp.Visible = false
+        second.Parent = Current_Entity:FindFirstChild("Model",true)
+        for i,v in ipairs(playerinfo)do
+            if  v["Transparency"] then
+                v.Transparency =0
+            end
+       end
+	end
 end
+local viewModel = game.ReplicatedStorage.Assests.PlayerStuff:WaitForChild("PlayerVeiwPort"):Clone()
+local updateRun = controlls.updateRun 
+local played = false
+function updateRun.Arm()
+    local entity =  controlls.PlayerNbt
+    if  entity then 
+        entity.FallTicks =  controlls.FallTicks
+        controlls.IsOnGround = collision_handler.IsGrounded(entity)
+        entity.IsOnGround =  controlls.IsOnGround 
+    end 
+    if Current_Entity and Player.PlayerGui.Arms.vp then
+        Player.PlayerGui.Arms.vp.CurrentCamera = game.Workspace.CurrentCamera
+        viewModel.Parent = Player.PlayerGui.Arms.vp
+        viewModel.Head.CFrame = camera.CFrame
+        if not played then
+            played = true
+            viewModel.Humanoid.Animator:LoadAnimation(game.ReplicatedStorage.Assests.Animation):Play()
+        end
+    end
+end
+
 local delayrun = {}
+
+    game:GetService("RunService").RenderStepped:Connect(function()
+        for i,v in pairs(updateRun)do
+            task.spawn(function()
+                    v()
+            end)
+        end
+    end)
+
 game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
     for i,v in pairs(update)do
         task.spawn(function()
