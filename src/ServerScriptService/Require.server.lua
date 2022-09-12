@@ -9,11 +9,12 @@ behaviors = {
 },
 EyeOffset = 6.7,
 CanFall = true,
+MaxJump = 5.9,
 JumpWhen = {
 	FullJump = 4,
 	SmallJump = 2,
 },
-AutoJump= true,
+AutoJump= false,
       Rotation = {0,0,0},
       Events = {},
 ["NotSaved"] = {Velocity={}},
@@ -42,7 +43,7 @@ game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 end)
 local mainenetity = require(game.ServerStorage.MainEntityHandler)
 local data = require(game.ServerStorage.MainData)
-local amount = 2
+local amount = 20
 if true then
   --  return
 end

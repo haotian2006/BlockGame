@@ -28,7 +28,7 @@ local folder = {}
 	else
 		ori = Vector3.new(0,0,0)
 	end
-    local cframe = refunctions.convertPositionto(pos,"CFrame")* CFrame.Angles(math.rad(ori.X),math.rad(ori.Y),math.rad(ori.Z))*offset
+    local cframe = refunctions.convertPositionto(pos,"CFrame")* CFrame.Angles(math.rad(ori.X),math.rad(ori.Y),math.rad(ori.Z))*offset:Inverse()
     table.insert(folder,{mesh,cframe,name,id,fr ==1 and part.Size,pos,clonepart,fr})
   end
   return folder

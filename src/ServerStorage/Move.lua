@@ -8,7 +8,7 @@ function move.Jump(uuid)
     local entity =  maindata.LoadedEntitys[uuid]
     entity.Jumping = entity.Jumping or false
     if not entity or entity.Jumping == true then return end
-    local jumpheight = entity.MaxJump or 8.7
+    local jumpheight = entity.MaxJump or 5.9
     local e 
     local jumpedamount =0 
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
@@ -19,7 +19,7 @@ function move.Jump(uuid)
                -- jump = 4.1*deltatime
             end 
            end
-        if jumpedamount > 0 and jumpedamount <=jumpheight  then
+        if (jumpedamount > 0 and jumpedamount <=jumpheight)  or not maindata.LoadedEntitys[uuid] then
          jumpedamount += jumpheight*deltaTime*4.5
          jump = jumpheight*deltaTime*4.5
          entity.Jumping = true

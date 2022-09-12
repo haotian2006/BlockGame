@@ -145,9 +145,10 @@ function controlls.Place(input,gameProcessedEvent)
                 orientation[2] = 90
              end
              if dz == -1 then
-               -- orientation[3] = 180
+                orientation[2] = 180
              elseif  dz == 1 then
                 orientation[3] = 0
+                print("e")
              end
             local face = NormalToFace(raycast.Normal,raycast.Instance)
             if not face then return end
@@ -250,12 +251,12 @@ function update.UpdatePosition(delta)
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
 local speed = 1
-local jumpheight = 7.4
 function controlls.Other.Jump()
     if  controlls.Jumping == true then return end
 
     local e 
     local jumpedamount =0 
+    local jumpheight = controlls.PlayerNbt.MaxJump or 5.9
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
         local jump = jumpheight*deltaTime*4.5
         if controlls.IsOnGround  and controlls.Jumping == false then
@@ -386,19 +387,19 @@ function update.Camera()
             follow = false
         end
 
-        if (keypressed["W"] and not keypressed["S"] or not keypressed["W"] and keypressed["S"] ) and not keypressed["A"] and not keypressed["D"] then
+        if (keypressed[controlls.KeyBoard.Foward]) and not (keypressed[controlls.KeyBoard.Backward]) or not (keypressed[controlls.KeyBoard.Foward]) and (keypressed[controlls.KeyBoard.Backward])  and not (keypressed[controlls.KeyBoard.Left]) and not (keypressed[controlls.KeyBoard.Right]) then
             muti = 0
         end
-        if (keypressed["W"] and keypressed["A"] ) or  keypressed["A"] and not keypressed["S"] and not keypressed["D"] then
+        if ((keypressed[controlls.KeyBoard.Foward]) and (keypressed[controlls.KeyBoard.Left]) ) or  (keypressed[controlls.KeyBoard.Left]) and not (keypressed[controlls.KeyBoard.Backward]) and not (keypressed[controlls.KeyBoard.Right]) then
             muti = 120
         end
-        if (keypressed["W"] and keypressed["D"]) or keypressed["D"] and not keypressed["A"] and  not keypressed["S"]  then
+        if ((keypressed[controlls.KeyBoard.Foward]) and (keypressed[controlls.KeyBoard.Right])) or (keypressed[controlls.KeyBoard.Right]) and not (keypressed[controlls.KeyBoard.Left]) and  not (keypressed[controlls.KeyBoard.Backward])  then
             muti = -120
         end
-        if not keypressed["W"] and not keypressed["A"] and  keypressed["S"] and  keypressed["D"] then
+        if not (keypressed[controlls.KeyBoard.Foward]) and not (keypressed[controlls.KeyBoard.Left]) and  (keypressed[controlls.KeyBoard.Backward]) and (keypressed[controlls.KeyBoard.Right]) then
             muti = 120
         end
-        if not keypressed["W"] and  keypressed["A"] and   keypressed["S"]   then
+        if not (keypressed[controlls.KeyBoard.Foward]) and  (keypressed[controlls.KeyBoard.Left]) and   (keypressed[controlls.KeyBoard.Backward])   then
             muti = -120
         end
         if follow ==true or muti then

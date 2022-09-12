@@ -1,3 +1,4 @@
+local RunService = game:GetService("RunService")
 local collisions ={}
 local refunction = require(script.Parent.Functions)
 local function getincreased(min,goal2,increased2)
@@ -13,7 +14,7 @@ function  collisions.IsGrounded(entity)
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2,
-        position[2]-(hitbox.y/2+0.01),
+        position[2]-(hitbox.y/2+0.03),
         position[3]-hitbox.z/2,
     }
     local max ={
@@ -33,7 +34,7 @@ function  collisions.IsGrounded(entity)
                          -- print(collisions.AABBcheck({position[1], position[2]-1,position[3]},a2,{hitbox.x,hitbox.y,hitbox.z},{4,4,4},nil,nil)  )
                     end
                    local a2 = refunction.convertPositionto(a,"table")
-                   local newpos ,newsize,n2,s2,n3,s3 = collisions.DealWithRotation(block)
+                   local newpos ,newsize,n2,s2,n3,s3,n4,s4 = collisions.DealWithRotation(block)
                    if  collisions.AABBcheck({position[1], position[2]-1,position[3]},newpos,{hitbox.x,hitbox.y,hitbox.z},newsize) then 
                     return true,block
                     end  
@@ -43,6 +44,9 @@ function  collisions.IsGrounded(entity)
                         if  n3 and collisions.AABBcheck({position[1], position[2]-1,position[3]},n3,{hitbox.x,hitbox.y,hitbox.z},s3) then 
                             return true,block
                             end  
+                            if  n4 and collisions.AABBcheck({position[1], position[2]-1,position[3]},n4,{hitbox.x,hitbox.y,hitbox.z},s4) then 
+                                return true,block
+                                end  
                 end
 
             end 
@@ -51,6 +55,7 @@ function  collisions.IsGrounded(entity)
     return false
 end
 function  collisions.entityvsterrain(entity,velocity)
+    local oldv = velocity
     local position = entity.Position
    -- print(velocity[2])
     local remainingtime = 1
@@ -65,7 +70,7 @@ function  collisions.entityvsterrain(entity,velocity)
     velocity[3] *= (1-math.abs(normal[3]))*remainingtime
         local bb
         normal = {0,0,0}
-        MinTime,normal,bb = collisions.entityvsterrainloop(entity,position,velocity)
+        MinTime,normal,bb,velocity = collisions.entityvsterrainloop(entity,position,velocity,{},false,oldv)
        -- game.Players.LocalPlayer.PlayerGui.ScreenGui.Printa.Text = aaaa
         -- entity.Position[1] += velocity[1]*MinTime
         -- entity.Position[2] += velocity[2]*MinTime
@@ -99,7 +104,7 @@ function  collisions.entityvsterrain(entity,velocity)
                 position[1] += 0.001
             end
             if velocity[2] >0 then
-                position[2] -= 0.001
+                position[2] -= 0.0001
             elseif velocity[2] <0 then
                 position[2] += 0.001
             end
@@ -159,6 +164,7 @@ function collisions.shouldjump(entity,pos,p,s,pri)
     local blockfeet = p[2] - s[2]/2
     local jumpneeded = s[2] -(feetpos - blockfeet)
     local blockheight =  p[2] + s[2]/2
+    blockheight = {p[1],blockheight,p[3]}
     if jumpneeded > s[2] or jumpneeded<= 0 then
         return nil
     end
@@ -169,7 +175,7 @@ function collisions.shouldjump(entity,pos,p,s,pri)
     end
     return nil
 end
-function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop)
+function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop,old)
     local hitbox = entity.HitBoxSize
     local min ={
         position[1]-hitbox.x/2+(velocity[1] <0 and velocity[1]-1 or 0)   ,
@@ -190,24 +196,24 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
     for x = min[1],getincreased(min[1],max[1],gridsize),gridsize do    
         for y = min[2],getincreased(min[2],max[2],gridsize),gridsize do
             for z = min[3],getincreased(min[3],max[3],gridsize),gridsize do
-                if whitelist and whitelist[refunction.convertPositionto({x,y,z},"string")] then continue end
                 local block,a = refunction.GetBlock({x,y,z},false,position)
 
+                if whitelist and whitelist[a] then continue end
                 if block then
                    local a2 = refunction.convertPositionto(a,"table")
                    local typejump 
                    local needed
                    local maxheight
                    local currentmin = 1
-                   local newpos ,newsize,n2,s2,n3,s3 = collisions.DealWithRotation(block)
+                   local newpos ,newsize,n2,s2,n3,s3,n4,s4 = collisions.DealWithRotation(block)
                    if  collisions.AABBcheck(bppos,newpos,bpsize,newsize,true) then  
-                    local collisiontime,newnormal = collisions.SweaptAABB(position,newpos,{hitbox.x,hitbox.y,hitbox.z},newsize,velocity,mintime)
-                    if collisiontime < 1 then
+                    local collisiontime1,newnormal1 = collisions.SweaptAABB(position,newpos,{hitbox.x,hitbox.y,hitbox.z},newsize,velocity,mintime)
+                    if collisiontime1 < 1 then
                        zack = {newpos,newsize}
-                        currentmin = collisiontime
-                        normal = newnormal
+                        currentmin = collisiontime1
+                        normal = newnormal1
                         local a,b,c = collisions.shouldjump(entity,position,newpos,newsize)
-                        if not needed or c >=maxheight  then
+                        if not needed or c[2] >=maxheight[2]  then
                           typejump,needed,maxheight =  a,b,c
                         end
                      end
@@ -222,7 +228,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                             normal = newnormal
                         end
                         local a,b,c = collisions.shouldjump(entity,position,n2,s2)
-                        if not needed or c >=maxheight  then
+                        if not needed or c[2] >=maxheight[2]  then
                           typejump,needed,maxheight =  a,b,c
                         end
                         end
@@ -237,34 +243,96 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                                 normal = newnormal
                             end
                         local a,b,c = collisions.shouldjump(entity,position,n2,s2)
-                        if not needed or c >=maxheight  then
+                        if not needed or c[2] >=maxheight[2]  then
+                          typejump,needed,maxheight =  a,b,c
+                        end
+                    end
+                end
+                    if s4 and collisions.AABBcheck(bppos,n4,bpsize,s4,true) then
+                       
+                        local collisiontime,newnormal = collisions.SweaptAABB(position,n4,{hitbox.x,hitbox.y,hitbox.z},s4,velocity,mintime)
+                        if collisiontime < 1 then
+                            if collisiontime < currentmin  then
+                                currentmin = collisiontime
+                                                        zack = {n4,s4}
+                                normal = newnormal
+                            end
+                        local a,b,c = collisions.shouldjump(entity,position,n2,s2)
+                        if not needed or c[2] >=maxheight[2]  then
                           typejump,needed,maxheight =  a,b,c
                         end
                     end
                     end
+                
+                    if game:GetService("RunService"):IsClient() then
+                        --print(a2[2],currentmin)
+                    end
                     mintime = currentmin < mintime and currentmin or mintime
                      if mintime < 1 and not looop and typejump  then
-                        if typejump == "Small" then
-                            position[2] += needed+1
-                           -- entity.NotSaved.Velocity.Stairs = {0,-100,0}
-                           return collisions.entityvsterrainloop(entity,position,velocity,{},true)
-                        elseif typejump == "Full" and entity.AutoJump  then
-                             local mintime2 = collisions.entityvsterrainloop(entity,{position[1],position[2]+5,position[3]},{velocity[1],velocity[2],velocity[3]},{[refunction.convertPositionto(a2)] = true},true)
-                             if mintime2 < 1 then
-                             else
-                                if game.ServerStorage:FindFirstChild("Move") then
-                               require(game.ServerStorage.Move).Jump(entity.uuid)
-                                elseif game.Players.LocalPlayer.PlayerScripts.Controlls then
-                                    require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controlls")).Other.Jump()
-                               end
-                             end
+                        local direaction = refunction.convertPositionto(refunction.GetUnit(maxheight,position),"table")
+                        if typejump == "Small" and entity.IsOnGround and needed >=0.1 then
+                         --  print(needed,maxheight)
+                           needed +=0.1
+                           local m2,n2,z2 = collisions.entityvsterrainloop(entity,{position[1],position[2]+needed,position[3]},velocity,{[refunction.convertPositionto(a2)] = true},true)
+                           if m2 <1 then
+                            local m3,n3,z3 =  collisions.entityvsterrainloop(entity,{position[1],position[2]+needed,position[3]},{velocity[1],0,0},{[refunction.convertPositionto(a2)] = true},true)
+                                if m3 < 1 then
+                                    local m4,n4,z4 =  collisions.entityvsterrainloop(entity,{position[1],position[2]+needed,position[3]},{0,0,velocity[3]},{[refunction.convertPositionto(a2)] = true},true)
+                                    if m4 < 1 then 
+                                    else
+                                        velocity[1] = 0
+                                        position[2] += needed
+                                        return m4,n4,z4 ,velocity
+                                    end
+                                else
+                                    velocity[3] = 0
+                                    position[2] += needed
+                                    return m3,n3,z3 ,velocity
+                                end
+                           else
+                            position[2] += needed
+                            return m2,n2,z2 ,velocity
+                           end
+                        elseif typejump == "Full" and entity.AutoJump   then
+                            local m2,n2,z2 = collisions.entityvsterrainloop(entity,{position[1],position[2],position[3]},{velocity[1], 4,velocity[3]},{[refunction.convertPositionto(a2)] = true},true)
+                            if not m2 or m2 <1 then
+                             local m3,n3,z3 =  collisions.entityvsterrainloop(entity,{position[1],position[2],position[3]},{velocity[1], 4,0},{[refunction.convertPositionto(a2)] = true},true)
+                                 if m3 < 1 then
+                                     local m4,n4,z4 =  collisions.entityvsterrainloop(entity,{position[1],position[2],position[3]},{0, 4,velocity[3]},{[refunction.convertPositionto(a2)] = true},true)
+                                     if m4 < 1 then 
+                                     else
+                                         velocity[1] = 0
+                                         if RunService:IsServer() then
+                                            require(game.ServerStorage.Move).Jump(entity.uuid)
+                                             else
+                                                 require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controlls")).Other.Jump()
+                                            end
+                                        -- return m4,n4,z4 ,velocity
+                                     end
+                                 else
+                                     velocity[3] = 0
+                                     if RunService:IsServer() then
+                                        require(game.ServerStorage.Move).Jump(entity.uuid)
+                                         else
+                                             require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controlls")).Other.Jump()
+                                        end
+                                  --   return m3,n3,z3 ,velocity
+                                 end
+                            else
+                                if RunService:IsServer() then
+                                    require(game.ServerStorage.Move).Jump(entity.uuid)
+                                     else
+                                         require(game.Players.LocalPlayer.PlayerScripts:FindFirstChild("Controlls")).Other.Jump()
+                                    end
+                             --return m2,n2,z2 ,velocity
+                            end
                         end
                     end
                 end
             end 
         end 
     end 
-    return mintime,normal,zack
+    return mintime,normal,zack,velocity
 end
 --b1:entitypos b2:blockpos s1:entitysize s2:blocksize o1:entity orientation o2:block orientation 
 function  collisions.SweaptAABB(b1,b2,s1,s2,velocity,mintime)

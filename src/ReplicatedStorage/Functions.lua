@@ -124,10 +124,11 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 		local cx,cz = Function.GetChunk(pos)
 		if workspace.Chunk:FindFirstChild(cx.."x"..cz) and workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
 			local blocka = workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
+			local mainbb 
 			if blocka:IsA("Model") then
-				blocka = blocka.PrimaryPart or blocka.MainPart or blocka
+				mainbb = blocka:FindFirstChild("MainPart") or blocka.PrimaryPart or blocka
 			end
-			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
+			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(mainbb and mainbb.Orientation or blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
 		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
 			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
@@ -206,6 +207,8 @@ function Function.DealWithRotation(blockdata)
 	local offset2
 	local size3
 	local offset3
+	local size4
+	local offset4
 	if Block_Path[blockdata[1]] then
         local model = Block_Path[blockdata[1]].Model
         if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
@@ -225,6 +228,11 @@ function Function.DealWithRotation(blockdata)
 					size3 = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
 					offset3 = Function.convertPositionto((model.Parent.Parent:FindFirstChild("BasePart").Position or model.Parent.Position) - model:FindFirstChild("MainPart").Position,"table")
 					model = model:FindFirstChild("MainPart") 
+					if model:FindFirstChild("MainPart") then
+						size4 = Function.convertPositionto(model:FindFirstChild("MainPart").Size,"table")
+						offset4 = Function.convertPositionto((model.Parent.Parent.Parent:FindFirstChild("BasePart").Position or model.Parent.Parent.Position) - model:FindFirstChild("MainPart").Position,"table")
+						model = model:FindFirstChild("MainPart") 
+					end
 				end
 		end
     end
@@ -237,6 +245,8 @@ function Function.DealWithRotation(blockdata)
 	local newsize2
 	local NewPos3
 	local newsize3
+	local NewPos4
+	local newsize4
    if size2 then
 	 NewPos2 = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
 	CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
@@ -251,7 +261,14 @@ function Function.DealWithRotation(blockdata)
 	   ).Position,"table")
 	   newsize3 = rotationstuffaaaa[Function.convertPositionto(setup)](size3)
   end
-    return  NewPos,newsize,NewPos2,newsize2,NewPos3,newsize3
+  if size4 then
+	NewPos4 = Function.convertPositionto((Function.convertPositionto(hpos,"CFrame")*
+   CFrame.fromOrientation(math.rad(orientation[1]),math.rad(orientation[2]),math.rad(orientation[3]))*
+   (Function.convertPositionto(offset4,"CFrame"):Inverse())
+	   ).Position,"table")
+	   newsize4 = rotationstuffaaaa[Function.convertPositionto(setup)](size4)
+  end
+    return  NewPos,newsize,NewPos2,newsize2,NewPos3,newsize3,NewPos4,newsize4
 end
 function Function.GetOffset(name)
     local offset = {0,0,0}
@@ -289,7 +306,7 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 		local clonedblock
 		local offset = Function.convertPositionto(Function.GetOffset(Name),"CFrame")
         if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
-			 clonedblock = model.MainPart:Clone()
+			 clonedblock = model:Clone()
 		elseif not model:IsA("Model") then
 			clonedblock = Block_Path[Name].Model:Clone()
         end
@@ -297,10 +314,17 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 			--v:Clone().Parent = clonedblock
 		--end
 		clonedblock.Name = Function.ConvertPositionToReal(Position,"string")
-		clonedblock.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse()
-		clonedblock.Parent =paren or chunkfolder
+		if clonedblock:IsA("Model") then
+			if clonedblock:FindFirstChild("BasePart") then
+				clonedblock:FindFirstChild("BasePart"):Destroy()
+			end
+			clonedblock.MainPart.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse()
+		else
+			clonedblock.CFrame = CFrame.new(Position) * CFrame.fromOrientation(math.rad(Orientation.X),math.rad(Orientation.Y),math.rad(Orientation.Z))*offset:Inverse()
+		end
 		clonedblock:SetAttribute("Name",Name)
 		clonedblock:SetAttribute("State",Id)
+		clonedblock.Parent =paren or chunkfolder
 
 	end
 end

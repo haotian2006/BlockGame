@@ -19,6 +19,7 @@ local Data = {
 	Rotation = {0,0,0},
 	EyeOffset = 6.7,
 	FallDistance = 0,
+	MaxJump = 5.9,
 	MaxFallRate = 3.92,
 	FallTicks = 0,
 	CanTakeDamage = true,
