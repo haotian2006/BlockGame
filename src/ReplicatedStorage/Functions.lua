@@ -3,10 +3,13 @@ local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Texture = RS.Block_Texture
 local maindata 
+local Function = {}
+script.Parent.GetFunctions.OnInvoke = function()
+	return Function
+end
 if game:GetService("RunService"):IsServer() then
 	maindata = require(game.ServerStorage.MainData)
 end
-local Function = {}
 
 local function Round(x:number)
 	local m = x/math.abs(x)
@@ -35,6 +38,7 @@ function Function.returnDatastringcomponets(data:string)
     local splited = string.split(data,",")
     return splited[1],splited[2],splited[3]
 end
+
 function Function.GetMagnituide(pos1:string,pos2:string)
 	pos1 = Function.convertPositionto(pos1,"string")
     pos2 = Function.convertPositionto(pos2,"string")
@@ -387,7 +391,24 @@ function Function.RayCast(StartingPosition,Direaction)
 	end
 	return nil
 end
-
+function Function.GetNearByPlayers(Position,Distance,Typ)
+	Position = Function.convertPositionto(Position,"vector3")
+	Typ = Typ or "Close"
+	local deload = false
+	local loadedplayers = {}
+	for i,v in ipairs(game.Players:GetPlayers()) do
+		local char = maindata.LoadedEntitys[v.Name] 
+		if char and char.Position then
+			if (Function.convertPositionto({char.Position[1],0,char.Position[3]},"vector3")-Vector3.new(Position.X,0,Position.Z)).Magnitude > (Distance) then
+				table.insert(loadedplayers,char)
+				if Typ == "Close" then
+					break
+				end
+			end
+		end
+	end
+	return Typ == "Close" and loadedplayers[1] or loadedplayers
+end
 
 
 
