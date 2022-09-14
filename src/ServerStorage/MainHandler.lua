@@ -15,7 +15,7 @@ local moverefunction = require(game.ServerStorage.Move)
 local value_changer = require(game.ServerStorage.ValueListener)
 local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
 local loadthread = workthingyt.New(script.Parent:WaitForChild("LoadChunkIdk"),"Load",100)
-
+local compresser = require(game.ReplicatedStorage.Compresser)
 local new 
 local Main = {
 	
@@ -257,42 +257,6 @@ function Main.GetChunk(Player,Chunk,firsttime)
 		end
 	return Main.GetSortedTable(maindata.Chunk[Chunk],Chunk,{},Player)
 end
-
-function Main.render(Player,RD,RenderedChunks)
-	local lc = {}
-	local char = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
-	if not char then return end
-	char = refunction.convertPositionto(char.Position,"vector3")
-	local nearbychunks = refunction.GetSurroundingChunk(char,RD)
-	local incease = 0
-	updateentitytable(Player,EntitysDeloadDistance-2,Player.Character.Position)	
-	for i,v in ipairs(nearbychunks)do
-		if RenderedChunks[v] then continue end
-		if not maindata.Chunk[v] then
-			maindata.Chunk[v] = {}
-			for index,coord in ipairs(refunction.XZCoordInChunk(v)) do
-				incease += 1
-				if index%200 == 0  then
-					task.wait()
-				end
-				for y = 0,80,4 do
-					local coords = string.split(coord,"x")
-					local position = Vector3.new(coords[1],y,coords[2])
-					local block,id = GenHandler.GetBlock(position)
-					id = 0
-					if  block ~= nil and block ~="Air" then
-						local packpos = pack(position)
-						maindata.Chunk[v][packpos] = {block,id}
-
-					end
-				end
-			end
-	
-		end
-		lc = Main.GetSortedTable(maindata.Chunk[v],v,RenderedChunks,lc)
-	end
-	return lc--,array
-end
 function Main.CreateEntity(Name,customname)
 	local uuid = HTTPs:GenerateGUID()
 	maindata.Entitys[uuid] = entityhandler.BasicNbt
@@ -448,7 +412,6 @@ function Main.GetBlock(Player,Pos)
 end
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
 RS.Events.Block.GetChunk.OnServerInvoke = Main.GetChunk
-RS.Events.Block.QuickRender.OnServerInvoke = Main.render
 RS.Events.Interact.OnServerEvent:Connect(Main.OnInteract)
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
 RS.Events.Entitys.GetPlayer.OnServerInvoke = Main.GetPlayer
