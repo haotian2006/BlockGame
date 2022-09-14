@@ -43,10 +43,14 @@ game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 end)
 local mainenetity = require(game.ServerStorage.MainEntityHandler)
 local data = require(game.ServerStorage.MainData)
-local amount = 20
+local amount = 9
 if true then
   --  return
 end
 for i = 0,amount,1 do
     mainenetity.CreateEntity("Mar",{-math.random(30,120),89,-math.random(80,200)},"Bob"..i)
+	if i ==0 then
+		print(maindata.Entitys)
+	end
 end
+

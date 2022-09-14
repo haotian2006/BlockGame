@@ -17,7 +17,8 @@ local oldentity
 local a = 3
 local controlls = {
     KeyBoard = {
-        Place = "MouseButton2",
+        Interact_Use  = "MouseButton2",
+        Crouch= "LeftShift",
         Destroy = "MouseButton1",
         Foward = "W",
         Backward = "S",
@@ -95,6 +96,29 @@ local function getangle(originalRayVector)
     local new = Vector3.new(1,originalRayVector.Y,1)
     return math.deg(math.atan(new.Unit:Dot(Vector3.new(1,0,1).Unit)))*(originalRayVector.Y/math.abs(originalRayVector.Y))
 end
+local function getModel(part)
+    local parenta = part
+    local aaaa 
+    if part:IsDescendantOf(game.Workspace.Chunk) then
+        repeat
+            if parenta.Parent == game.Workspace.Workspace.Chunk then
+                aaaa = parenta
+                break
+            end
+            parenta = parenta.Parent
+        until parenta == game or parenta.Name == "Workspace" 
+    elseif part:IsDescendantOf(game.Workspace.Entity) then
+        repeat
+            if parenta.Parent == game.Workspace.Entity then
+                aaaa = parenta
+                break
+            end
+            parenta = parenta.Parent
+        until parenta == game or parenta.Name == "Workspace" 
+    end
+    return aaaa
+end
+
 local function pn(value)
     local values = value/math.abs(value)
     if values ~= values then
@@ -114,7 +138,7 @@ function interpolate(startVector3, finishVector3, alpha)
         currentState(startVector3[3], finishVector3[3], alpha)
     }
 end
-function controlls.Place(input,gameProcessedEvent)
+function controlls.Interact_Use(input,gameProcessedEvent)
     if gameProcessedEvent or not ButtonsWork then return end
     if  not Current_Entity or not Current_Entity.HitBox or not Current_Entity.HitBox.EyeSight then return end
     local mousepos = UserInputService:GetMouseLocation()
@@ -125,13 +149,17 @@ function controlls.Place(input,gameProcessedEvent)
     raycastParams.FilterDescendantsInstances = {Current_Entity}
     local raycast = workspace:Raycast(Current_Entity.HitBox.EyeSight.Position,direaction*16,raycastParams)
     if raycast then
-        if raycast.Instance and raycast.Instance:IsDescendantOf(game.Workspace.Chunk) then
+        if raycast.Instance  then
+            local parents = raycast.Instance:IsDescendantOf(game.Workspace.Chunk)and "Block" or raycast.Instance:IsDescendantOf(game.Workspace.Entity) and "Entity" 
             local hitpos = raycast.Position
             local realpos = refunction.ConvertPositionToReal(hitpos,"table")
             local orientation = {0,0,0}
             local angle =getangle(direaction)
              local dx = math.abs(direaction.X)
              local dz = math.abs(direaction.Z)
+             local parentm = raycast.Instance
+             local mainpart = getModel(raycast.Instance) or raycast.Instance
+             parentm = parents == "Block" and (mainpart:IsA("Model") and mainpart.MainPart or raycast.Instance ) or raycast.Instance
              if dx < dz then
                 dx = 0
                 dz = direaction.Z / dz
@@ -148,11 +176,9 @@ function controlls.Place(input,gameProcessedEvent)
                 orientation[2] = 180
              elseif  dz == 1 then
                 orientation[3] = 0
-                print("e")
              end
-            local face = NormalToFace(raycast.Normal,raycast.Instance)
-            if not face then return end
-            local ddd = Player.Character.Head.Position- raycast.Instance.position
+            local face = NormalToFace(raycast.Normal,raycast.Instance) or "Right"
+            local ddd = Player.Character.Head.Position- raycast.Instance.Position
             if hitpos.Y >  realpos[2] then 
                 orientation[3] = 180
             else
@@ -162,12 +188,12 @@ function controlls.Place(input,gameProcessedEvent)
             elseif angle >= 39 and angle <=  40 then
                 orientation[1] = -90
             end
-            local newpos = refunction.convertPositionto(refunction.AddPosition(raycast.Instance.position,faces[face]),"table")
-            remotes.Block.Place:InvokeServer("Slab",newpos,orientation)
-
-
-           -- raycast.Instance.Color = Color3.new(0.525490, 0.164705, 0.164705)
-        end
+            local newpos = refunction.convertPositionto(refunction.AddPosition(raycast.Instance.Position,faces[face]),"table")
+            remotes.Interact:FireServer({mainpart.Name,parentm.CFrame,parents,newpos,orientation,raycast,keypressed[controlls.KeyBoard.Crouch]})
+            --name,CFrame,type(block or entity),newblockpos,newblockorienation,raycast
+        else
+            remotes.Interact:FireServer({nil,nil,"Use",nil,nil,raycast,keypressed[controlls.KeyBoard.Crouch]})
+        end 
     end
 end
 

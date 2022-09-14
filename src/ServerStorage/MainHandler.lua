@@ -423,6 +423,16 @@ function Main.GetPlayer(player,Pos,a,neck,Body)
 		return player	
 
 end
+ --name,CFrame,type(block or entity),newblockpos,newblockorienation,raycastinfo,IsCroucing
+function Main.OnInteract(player,data)
+	if data[3] == "Block" then
+
+	elseif data[3] == "Entity" then
+		entityhandler.Intereact(data[1],data)
+	else 
+
+	end
+end
 function Main.GetBlock(Player,Pos)
 	Pos = refunction.convertPositionto(Pos,"table")
 	local Player = maindata.LoadedEntitys[Player.Name] or maindata.Entitys[Player.Name]
@@ -439,7 +449,7 @@ end
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
 RS.Events.Block.GetChunk.OnServerInvoke = Main.GetChunk
 RS.Events.Block.QuickRender.OnServerInvoke = Main.render
-RS.Events.Block.Place.OnServerInvoke = Main.Place
+RS.Events.Interact.OnServerEvent:Connect(Main.OnInteract)
 RS.Events.Entitys.NearByEntitys.OnServerInvoke = Main.GetNearByEntitys
 RS.Events.Entitys.GetPlayer.OnServerInvoke = Main.GetPlayer
 RS.Events.Block.GetBlock.OnServerInvoke = Main.GetBlock

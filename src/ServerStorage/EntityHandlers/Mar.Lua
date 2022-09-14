@@ -32,6 +32,10 @@ local data = {
                x = 2.2,
                y = 7.5,
              },
+             ["componet.on_interact"] ={
+                func = "SayHi"
+            },
+
         },
         component_groups = {
             baby = {
@@ -79,5 +83,10 @@ local data = {
 
         },
     },
+    functions = {
+        SayHi = function(uuid)
+            print("Hi I'm Bob")
+        end
+    }
 }
 return data

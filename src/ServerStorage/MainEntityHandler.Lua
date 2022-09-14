@@ -77,9 +77,11 @@ local function addevent(event,entity,values,time)
 	entity.Events[event] = {values,time} --{}
 end
 local function getentityhandlerfromuuid(uuid)
+	if not getentityfromuuid(uuid) or not handlers[getentityfromuuid(uuid).Name] then return nil end
 	return require(handlers[getentityfromuuid(uuid).Name])
 end
 local function getentityhandlerfromname(name)
+	if not handlers[name] then return nil end
 	return require(handlers[name])
 end
 local function spit_component(stuff)
@@ -88,6 +90,7 @@ local function spit_component(stuff)
 end
 local function gettrashbehfromuuid(uuid)
 	local entity = getentityfromuuid(uuid)
+	if not entity then return nil end
 	local bh = entity["NotSaved"]
 	if not bh then
 		entity["NotSaved"] = {}
@@ -136,6 +139,7 @@ local function comparebeh(beh1,beh2)
 end
 local function behcanrun(uuid,beh,Stop,canbesame)
 	local garbage = gettrashbehfromuuid(uuid)
+	if not garbage then return end
 	local behs = getentityfromuuid(uuid).behaviors
 	local priority  = behs[beh].priority
 	local ishighest = true
@@ -216,6 +220,15 @@ function Data.componet.health(entity,data,isadd)
 		ValueListener.Change(entity,"maxhealth",nil)	
 	end
 end
+function Data.componet.on_interact(entity,data,isadd)
+	local func = data["func"]
+	entity.on_interact = entity.on_interact or {}
+	if isadd then
+		ValueListener.Change(entity,"on_interact.func",func)	
+	else
+		ValueListener.Change(entity,"on_interact.func",nil)	
+	end
+end
 function Data.componet.HitBoxSize(entity,data,isadd)
 	local x = data["x"]  or 0
 	local y = data["y"] or 0
@@ -286,6 +299,16 @@ end
 function  Data.componet.add(entity,cname,data,isadd:boolean)
 	Data.componet[cname](entity,data,isadd)
 end
+function  Data.Intereact(uuid,data)
+	local handler = getentityhandlerfromuuid(uuid)
+	local entity = getentityfromuuid(uuid)
+	if handler and entity and entity["on_interact"] then
+		if handler.functions[entity["on_interact"].func] then
+			handler.functions[entity["on_interact"].func](uuid)
+		end
+	end
+end
+
 function  Data.CreateEntity(entityName,Position,CustomName)
 	local generateduuid = httpsservice:GenerateGUID(false)
 	local current_nbt = deepCopy(Data.BasicNbt)
