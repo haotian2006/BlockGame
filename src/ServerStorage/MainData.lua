@@ -112,6 +112,9 @@ function Data.PlaceEntity(uuid:string,data,Deload)
 		Data.LoadedEntitys[uuid] = data
 		return
 	end
+	if Deload then
+		 Data.Entitys.LoadedEntitys[uuid] = nil
+	end
 	data = https:JSONEncode(data)
 	data = compresser.compress(data)
 	local parenta = Data.GetChunkParent(chunk)

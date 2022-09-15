@@ -320,7 +320,7 @@ function  Data.CreateEntity(entityName,Position,CustomName)
 	for name,data in pairs(entityhandler.entity.components)do
 		add(current_nbt,name,data,true)
 	end
-	MainData.LoadedEntitys[generateduuid] = current_nbt
+	MainData.PlaceEntity(generateduuid,current_nbt)
 	return generateduuid
 end
 return Data 
