@@ -3,7 +3,7 @@ local values = {
 }
 local MainData = require(game.ServerStorage.MainData)
 local function getentityfromuuid(uuid)
-	return MainData.LoadedEntitys[uuid] or  MainData.Entitys[uuid]
+	return MainData.LoadedEntitys[uuid] 
 end
 function values.DcAll(uuid)
     for i,v in pairs(values.events[uuid])do

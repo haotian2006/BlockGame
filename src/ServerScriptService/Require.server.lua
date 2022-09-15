@@ -33,10 +33,11 @@ local function deepCopy(original)
 	return copy
 end
 game.Players.PlayerAdded:Connect(function(player)
-  maindata.Entitys[player.Name] = deepCopy(copy)
-  maindata.Entitys[player.Name].uuid = player.Name
-  maindata.Entitys[player.Name].CustomName = player.Name
-  maindata.LoadedEntitys[player.Name] = maindata.Entitys[player.Name]
+  maindata.LoadedEntitys[player.Name] = deepCopy(copy)
+  maindata.LoadedEntitys[player.Name].uuid = player.Name
+  maindata.LoadedEntitys[player.Name].IsPlayer = true
+  maindata.LoadedEntitys[player.Name].CustomName = player.Name
+  maindata.LoadedEntitys[player.Name] = maindata.LoadedEntitys[player.Name]
 end)
 game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 	require(game.ReplicatedStorage.Debughandler):printglobal()
@@ -50,7 +51,6 @@ end
 for i = 0,amount,1 do
     mainenetity.CreateEntity("Mar",{-math.random(30,120),89,-math.random(80,200)},"Bob"..i)
 	if i ==0 then
-		print(maindata.Entitys)
 	end
 end
 

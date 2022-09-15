@@ -71,7 +71,7 @@ local function deepCopy(original)
 	return copy
 end
 local function getentityfromuuid(uuid)
-	return MainData.LoadedEntitys[uuid] or  MainData.Entitys[uuid]
+	return MainData.LoadedEntitys[uuid] 
 end
 local function addevent(event,entity,values,time)
 	entity.Events[event] = {values,time} --{}
@@ -320,7 +320,7 @@ function  Data.CreateEntity(entityName,Position,CustomName)
 	for name,data in pairs(entityhandler.entity.components)do
 		add(current_nbt,name,data,true)
 	end
-	MainData.Entitys[generateduuid] = current_nbt
+	MainData.LoadedEntitys[generateduuid] = current_nbt
 	return generateduuid
 end
 return Data 

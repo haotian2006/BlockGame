@@ -205,29 +205,6 @@ function controlls.Destroy(input,gameProcessedEvent)
             task.wait()
     until keypressed[getkeyfromiput(input)] == nil
 end
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if  input.UserInputType  then
-        keypressed[input.UserInputType.Name] = true
-    end
-    if input.KeyCode then
-        keypressed[input.KeyCode.Name] = true
-    end
-    for i,v in pairs(controlls.KeyBoard)do
-        if v == input.KeyCode.Name or v == input.UserInputType.Name then
-            if controlls[i] then
-                controlls[i](input,gameProcessedEvent)
-            end
-        end
-    end
-end)
-UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
-    if  input.UserInputType  then
-        keypressed[input.UserInputType.Name] = nil
-    end
-    if input.KeyCode then
-        keypressed[input.KeyCode.Name] = nil
-    end
-end)
 
 function update.OutLines()
     if  not Current_Entity or not Current_Entity.HitBox or not Current_Entity.HitBox.EyeSight then return end
@@ -512,6 +489,29 @@ game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
                 delayrun[i] = false
             end
         end)
+    end
+end)
+UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
+    if  input.UserInputType  then
+        keypressed[input.UserInputType.Name] = true
+    end
+    if input.KeyCode then
+        keypressed[input.KeyCode.Name] = true
+    end
+    for i,v in pairs(controlls.KeyBoard)do
+        if v == input.KeyCode.Name or v == input.UserInputType.Name then
+            if controlls[i] then
+                controlls[i](input,gameProcessedEvent)
+            end
+        end
+    end
+end)
+UserInputService.InputEnded:Connect(function(input, gameProcessedEvent)
+    if  input.UserInputType  then
+        keypressed[input.UserInputType.Name] = nil
+    end
+    if input.KeyCode then
+        keypressed[input.KeyCode.Name] = nil
     end
 end)
 return controlls

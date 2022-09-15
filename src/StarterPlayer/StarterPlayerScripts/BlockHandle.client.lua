@@ -1,3 +1,4 @@
+local HttpService = game:GetService("HttpService")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
 local refunction = require(RS.Functions)
@@ -12,6 +13,7 @@ local debug = require(game.ReplicatedStorage.Debughandler)
 local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
 local storedchunk = require(script.Parent:WaitForChild("ChunksToBeLoaded"))
 local loadthread = workthingyt.New(script.Parent:WaitForChild("ChunksToBeLoaded"),"LoadChunk",100)
+local compressor = require(game.ReplicatedStorage.Compresser)
 local function WaitForDescendant(descendantOf, str)
 	assert(typeof(descendantOf) == "Instance", "Invalid type for argument 1 (descendatOf)")
 	assert(typeof(str) == "string", "Invalid type for argument 2 (str)")
@@ -258,6 +260,7 @@ local function frender(char)
 		continue
 	end
 	local Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
+	--Blocks = HttpService:JSONDecode(compressor.decompress(Blocks))
 	local index = 0
 	task.spawn(function()
 		local currena = chunk
