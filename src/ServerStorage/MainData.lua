@@ -1,5 +1,4 @@
 local compresser = require(game.ReplicatedStorage.Compresser)
-local refunctions = game.ReplicatedStorage.GetFunctions:Invoke()
 local https = game:GetService("HttpService")
 local Data = {
     ["Chunk"] ={
@@ -32,11 +31,16 @@ local Data = {
 		}
 
 	]]
-		
 	},
 	["LoadedEntitys"] ={},
 	DecodedChunks = {}
 }
+task.spawn(function()
+	local refunctions = Data.refunctions
+	repeat
+		refunctions = Data.refunctions
+		task.wait(0.1)
+	until refunctions
 local dc = Data["DecodedChunks"]
 local function deepCopy(original)
 	local copy = {}
@@ -49,7 +53,7 @@ local function deepCopy(original)
 	return copy
 end
 function Data.GetChunkParent(Chunk)
-	local cx,cz = string.split(Chunk,"x")
+	local cx,cz = unpack(string.split(Chunk,"x"))
 	local x = math.floor(tonumber(cx)/200)
 	local z = math.floor(tonumber(cz)/200)
 	return x.."-"..z
@@ -61,6 +65,42 @@ function Data.CompressAllDC()
 		dc[c] = nil
 	end
 end
+local setted = {}
+local ab = true
+function  Data.SetChunkTimer(Chunk)
+	task.spawn(function()
+		if  setted[Chunk] then return end
+		setted[Chunk] = true
+		local cx,cz = unpack(string.split(Chunk,"x"))
+		cx = tonumber(cx)
+		cz = tonumber(cz)
+		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
+		local time = math.clamp(100-30*#game.Players:GetPlayers(),50,100)
+		while true do
+			if Chunk == "-1x-1" then
+				print(time)
+			end
+			task.wait(1)
+			time -= 1
+			local closestplayer = refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close")
+			if not closestplayer then
+				if Chunk == "-1x-1" then
+				end
+			end
+			if closestplayer then
+				time = math.clamp(100-100*#game.Players:GetPlayers(),5,100)
+			end
+			if time <= 0 or not Data.DecodedChunks[Chunk] then
+				break
+			end
+		end
+		setted[Chunk] = nil
+		if  Data.DecodedChunks[Chunk] then
+		Data.UpdateChunk(Chunk,true)
+		Data.UpdateEntitysInChunk(Chunk,true)
+		end
+	end)
+end
 function Data.GetChunk(Chunk:string):table
 	if dc[Chunk] then
 		return dc[Chunk]
@@ -68,40 +108,28 @@ function Data.GetChunk(Chunk:string):table
 	if not Data.Chunk[Data.GetChunkParent(Chunk)] or not Data.Chunk[Data.GetChunkParent(Chunk)][Chunk] then
 		return nil
 	end
-	local data = compresser.decompress(Data.Chunk[Data.GetChunkParent(Chunk)][Chunk])
+	local data = Data.Chunk[Data.GetChunkParent(Chunk)][Chunk]
+	print(typeof(data))
+	data = compresser.decompress(data,"a")
+	data = https:JSONDecode(data)
 	dc[Chunk] = data
-	local cx,cz = string.split(Chunk,"x")
-	cx = tonumber(cx)
-	cz = tonumber(cz)
-	local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
 	Data.LoadEntitysInChunk(Chunk)
-	task.spawn(function()	
-		local time = math.clamp(100-10*#game.Players:GetPlayers(),50,100)
-		while true do
-			task.wait(1)
-			time -= 1
-			local closestplayer = refunctions.GetNearByPlayers(chunckpos,"Close",10*16*4)
-			if closestplayer then
-				time = math.clamp(100-10*#game.Players:GetPlayers(),50,100)
-			end
-			if time <= 0 then
-				break
-			end
-		end
-		Data.UpdateChunk(Chunk,true)
-		Data.UpdateEntitysInChunk(Chunk,true)
-	end)
+	Data.SetChunkTimer(Chunk)
 	return dc[Chunk]
 end
-function Data.PlaceChunk(chunk:string,data)
-	if Data.DecodedChunks[chunk] then
+function Data.PlaceChunk(chunk:string,data,deload)
+		if Data.DecodedChunks[chunk] then
+			Data.DecodedChunks[chunk] = data
+			return
+		end
 		Data.DecodedChunks[chunk] = data
-		return
-	end
-	data = https:JSONEncode(data)
-	data = compresser.compress(data)
-	local parenta = Data.GetChunkParent(chunk)
-	Data.Chunk[parenta][chunk] = data
+		Data.SetChunkTimer(chunk)
+		data = https:JSONEncode(data)
+		data = compresser.compress(data)
+		local parenta = Data.GetChunkParent(chunk)
+		Data.Chunk[parenta] = Data.Chunk[parenta] or {}
+		Data.Chunk[parenta][chunk] = data
+	return
 end
 function Data.PlaceEntity(uuid:string,data,Deload)
 	local Coord = data.Position or Vector3.new(0,0,0)
@@ -152,9 +180,9 @@ end
 
 function Data.UpdateEntitysInChunk(chunk,Deload:boolean)
 	local newtable = {}
-	if not Data.LoadedEntitys[chunk] then return end
 	for uuid,nbt in pairs(Data.LoadedEntitys)do
 			local x,y = nbt.Position and refunctions.GetChunk(nbt.Position) or 0,0
+			if nbt["IsPlayer"] then continue end
 			if x..","..y == chunk then
 				newtable[uuid] = nbt
 			end
@@ -189,5 +217,6 @@ task.spawn(function()
 		task.wait(100)
 
 	end
+end)
 end)
 return Data

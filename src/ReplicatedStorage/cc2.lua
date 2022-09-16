@@ -1,7 +1,3 @@
---Thank 1waffle1 for making this its such an life saver
-local workers = require(game.ReplicatedStorage.WorkerThreads)
-local Compress = workers.New(script.Parent.cc2,"rcompress",4)
-local DeCompress = workers.New(script.Parent.cc2,"rdecompress",4)
 local dictionary, length = {}, 0
 for i = 32, 127 do
 	if i ~= 34 and i ~= 92 then
@@ -83,18 +79,8 @@ local function compress(text)
 	spans[width] = span
     return table.concat(spans, ",").."|"..table.concat(sequence)
 end
-local function queuecompress(text)
-	return Compress:DoWork(text)
-end
-local function queuedecompress(text)
-	return DeCompress:DoWork(text)
-end
-local function decompress(text,a)
+local function decompress(text)
 	local dictionary = copy(dictionary)
-	if a then
-		print(typeof(text))
-	end
-	print(a)
 	local sequence, spans, content = {}, text:match("(.-)|(.*)")
 	local groups, start = {}, 1
 	for span in spans:gmatch("%d+") do
@@ -123,6 +109,4 @@ local function decompress(text,a)
 	end
 	return unescape(table.concat(sequence))
 end
-
---return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress}
-return {compress = compress, decompress = decompress}
+return {rcompress = compress, rdecompress = decompress}

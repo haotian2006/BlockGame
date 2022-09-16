@@ -177,11 +177,11 @@ local function can(position,tabl,player,blockdata)
 	return c
 end
 function Main.GetSortedTable(Data,Chunk,lc,Player)
-	local char = maindata.LoadedEntitys[Player.Name] 
-	char = refunction.convertPositionto(char.Position,"vector3")
+	-- local char = maindata.LoadedEntitys[Player.Name] 
+	-- char = refunction.convertPositionto(char.Position,"vector3")
 	local size = 0
 	for coord,data in pairs(Data) do
-		if can(coord,Data,char.Y,data)  then	
+		if can(coord,Data,0,data)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		size +=1
@@ -221,9 +221,9 @@ end
 function Main.GetChunk(Player,Chunk,firsttime)
 	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
+	local currentable = {}
 	if not maindata.GetChunk(Chunk) then
 		--maindata.Chunk[Chunk] = loadthread:DoWork(Chunk)
-		 local currentable = {}
 		for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
 				for y = 0,80,4 do
 					--task.spawn(function()
@@ -237,9 +237,13 @@ function Main.GetChunk(Player,Chunk,firsttime)
 						end
 				end
 			end
-			maindata.PlaceChunk(Chunk,currentable)
+			maindata.DecodedChunks[Chunk] =currentable 
+			maindata.SetChunkTimer(Chunk)
+			--maindata.PlaceChunk(Chunk,currentable)
+		else
+			currentable = maindata.GetChunk(Chunk)
 		end
-	return maindata.GetChunk(Chunk)
+	return Main.GetSortedTable(currentable,Chunk,lc,Player )
 end
 
 function updateentitytable(Player,Distance,pos)
@@ -269,7 +273,7 @@ function Main.GetNearByEntitys(Player,Distance)
 		--print(maindata.LoadedEntitys)
 		for uuid,nbt in pairs(maindata.LoadedEntitys) do
 				local position =Vector3.new(unpack(nbt.Position))
-				if (playerpos-position).magnitude <= Distance*16*4 then
+				if (playerpos-position).Magnitude <= Distance*16*4 then
 					placeentity[uuid] = nbt
 				end
 		end
@@ -391,6 +395,7 @@ function Main.GetBlock(Player,Pos)
 		end 
 	end 
 end
+
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
 RS.Events.Block.GetChunk.OnServerInvoke = Main.GetChunk
 RS.Events.Interact.OnServerEvent:Connect(Main.OnInteract)

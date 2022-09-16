@@ -4,9 +4,6 @@ local Block_Modle = RS.Block_Models
 local Block_Texture = RS.Block_Texture
 local maindata 
 local Function = {}
-script.Parent.GetFunctions.OnInvoke = function()
-	return Function
-end
 if game:GetService("RunService"):IsServer() then
 	maindata = require(game.ServerStorage.MainData)
 end
@@ -399,7 +396,7 @@ function Function.GetNearByPlayers(Position,Distance,Typ)
 	for i,v in ipairs(game.Players:GetPlayers()) do
 		local char = maindata.LoadedEntitys[v.Name] 
 		if char and char.Position then
-			if (Function.convertPositionto({char.Position[1],0,char.Position[3]},"vector3")-Vector3.new(Position.X,0,Position.Z)).Magnitude > (Distance) then
+			if (Function.convertPositionto({char.Position[1],0,char.Position[3]},"vector3")-Vector3.new(Position.X,0,Position.Z)).Magnitude <= Distance then
 				table.insert(loadedplayers,char)
 				if Typ == "Close" then
 					break
@@ -407,7 +404,7 @@ function Function.GetNearByPlayers(Position,Distance,Typ)
 			end
 		end
 	end
-	return Typ == "Close" and loadedplayers[1] or loadedplayers
+	return (Typ == "Close" and loadedplayers[1]) or (Typ ~= "Close" and loadedplayers)
 end
 
 
@@ -418,8 +415,7 @@ end
 
 
 
-
-
+maindata["refunctions"] = Function
 end
 return Function
 
