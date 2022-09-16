@@ -200,10 +200,10 @@ function Data.LoadEntitysInChunk(Chunk:string)
 	local parent = Data.GetChunkParent(Chunk)
 	if Data.Entitys[parent]then
 		if Data.Entitys[parent][Chunk] then
-			local decodeddata = compresser.decompress(Data.Entitys[parent][Chunk])
-			decodeddata = https.JSONDecode(decodeddata)
-			for uuid,nbt in pairs(decodeddata)do
-				Data.LoadedEntitys[uuid] = deepCopy(nbt)
+			for uuid,nbt in pairs(Data.Entitys[parent][Chunk])do
+				local decodeddata = compresser.decompress(nbt)
+				decodeddata = https.JSONDecode(decodeddata)
+				Data.LoadedEntitys[uuid] = decodeddata
 			end
 			Data.Entitys[parent][Chunk] = nil
 		end
