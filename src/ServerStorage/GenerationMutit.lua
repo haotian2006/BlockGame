@@ -1,5 +1,5 @@
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local amountofworkers = 6
+local amountofworkers = 20
 local getchunk = workers.New(script.Parent.GenerationHandler,"GetChunks",amountofworkers)
 local refunction = require(game.ReplicatedStorage.Functions)
 local func = {}
@@ -47,7 +47,7 @@ task.spawn(function()
                 end
             end)
         end
-        task.wait(.1)
+        task.wait(.5)
     end
 end)
 return func

@@ -111,15 +111,23 @@ local function decompress(text)
 end
 local function doc(table)
 	local newtable = {}
+	local index = 0 
 	for i,v in pairs(table)do
+		index +=1
 		local newtable = compress(game.HttpService:JSONEncode(v))
+		if index%2==0 or true then
+			end
 	end
 	return newtable
 end
 local function dedoc(table)
 	local newtable = {}
+	local index = 0 
 	for i,v in pairs(table)do
+		index +=1
 		local newtable = game.HttpService:JSONDecode(decompress(v))
+		if index%2==0 or true then
+		end
 	end
 	return newtable
 end

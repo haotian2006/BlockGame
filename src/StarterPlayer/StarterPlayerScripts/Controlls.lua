@@ -253,7 +253,7 @@ function update.UpdatePosition(delta)
         local pos = collision_handler.entityvsterrain(entity,total)
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
-local speed = 1
+local speed = .5
 function controlls.Other.Jump()
     if  controlls.Jumping == true then return end
 
@@ -310,10 +310,14 @@ function update.Movement(deltatime)
         *(keypressed[controlls.KeyBoard.Right]and 1 or 0)
     local Jump = keypressed[controlls.KeyBoard.Jump]
     velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
+    if velocity[1] == 0 then
+        velocity[1] = 0.0001
+    end
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
     if Jump then
         controlls.Other.Jump()
     end
+
    if workspace.Entity:FindFirstChild(Player.Name) then
     workspace.Entity:FindFirstChild(Player.Name).PrimaryPart.CFrame = refunction.convertPositionto(controlls.PlayerPosition,"CFrame")
     --game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()

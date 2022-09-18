@@ -1,7 +1,7 @@
 local LocalizationService = game:GetService("LocalizationService")
 --Thank 1waffle1 for making this its such an life saver
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local amountofworkers = 6
+local amountofworkers = 30
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
 local dictionary, length = {}, 0
@@ -115,7 +115,6 @@ local function queuecompress(key,text)
 		task.wait(0.1)
 	until cdone[key]
 	task.delay(.2,function()
-        cqueue[key] = nil
 		cdone[key] = nil
 	end)
 	return cdone[key]
@@ -126,9 +125,8 @@ local function queuedecompress(key,text)
 	end
 	repeat
 		task.wait(0.1)
-	until cdone[key]
+	until ddone[key]
 	task.delay(.2,function()
-        dqueue[key] = nil
 		ddone[key] = nil
 	end)
 	return ddone[key]
@@ -173,6 +171,7 @@ task.spawn(function()
 					cdone[i] = v
 				end
 			end)
+			task.wait(0.5)
 		end
 		task.wait(.5)
 	end
@@ -187,7 +186,7 @@ task.spawn(function()
 					ddone[i] = v
 				end
 			end)
-			task.wait(0.2)
+			task.wait(0.5)
 		end
 		task.wait(.5)
 	end

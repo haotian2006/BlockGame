@@ -154,13 +154,34 @@ local function QuickRender(char)
 			local Folder = Instance.new("Folder")
 			Folder.Name = chunk
 			for i,v in ipairs(blocktable)do
+				local model
+				if v[8] == 2 then
+					if v[7] then
+						model = v[7]:Clone()
+						if model:FindFirstChild("BasePart") then
+							model:FindFirstChild("BasePart"):Destroy()
+						end
+						v[1] = model:FindFirstChild("MainPart")
+	
+					end
+				elseif v[8] == 3 then
+					if v[7] then
+						v[1] = v[7]:Clone()
+						model = v[1]
+					end
+				else
+					model = v[1]
+				end
+	
 				v[1].CFrame = v[2]
-				v[1].Parent = Folder
-				v[1]:SetAttribute("Name",v[3])
-				v[1]:SetAttribute("State",v[4])
+				model.Parent = Folder
+				model:SetAttribute("Name",v[3])
+				model:SetAttribute("State",v[4])
 				v[1].Anchored = true
-				v[1].Size = v[5]
-				v[1].Name = refunction.convertPositionto(v[6],"string")
+				if v[8] == 1 then
+					v[1].Size = v[5]
+				end
+				model.Name = refunction.convertPositionto(v[6],"string")
 				
 			end
 			table.insert(newchunks,Folder)
@@ -260,17 +281,21 @@ local function frender(char)
 		done = true
 		continue
 	end
-	local Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
-	--Blocks = HttpService:JSONDecode(compressor.decompress(Blocks))
+	local Blocks
+	if i%1 == 0 then
+		Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
+	end
 	task.spawn(function()
-	local index = 0
+		if i%2 == 0 then
+			--Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
+		end
 		local currena = chunk
 		table.insert(curentlyload,currena)
 		local blocktable = loadthread:DoWork(Blocks)
 		local Folder = Instance.new("Folder")
 		Folder.Name = chunk
-		local model
 		for i,v in ipairs(blocktable)do
+			local model
 			if v[8] == 2 then
 				if v[7] then
 					model = v[7]:Clone()

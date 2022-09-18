@@ -227,16 +227,16 @@ function Main.GetChunk(Player,Chunk,firsttime)
 			maindata.SetChunkTimer(Chunk)
 			--maindata.PlaceChunk(Chunk,currentable)
 		else
-			local run = coroutine.running()
-			local should = false
-			task.spawn(function()
+			-- local run = coroutine.running()
+			-- local should = false
+			-- task.spawn(function()
 				currentable = maindata.GetChunk(Chunk)
-				should = true
-				coroutine.resume(run)
-			end)
-			if not should then
-				coroutine.yield()
-			end
+			-- 	should = true
+			-- 	coroutine.resume(run)
+			-- end)
+			-- if not should then
+			-- 	coroutine.yield()
+			-- end
 		end
 	return Main.GetSortedTable(currentable,Chunk,lc,Player )
 end

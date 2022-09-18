@@ -258,42 +258,42 @@ Data.behavior.nearest_attackable_target = {
 	btype = "Target"
 }
 local chun = 4
-Data.behavior.LoadChunk = {
-	func = function (uuid,data,d)
-		if game.Players:FindFirstChild(uuid) then
-			local lastchunk = ""
-			while true do
-				task.wait(1)
-				if game.Players:FindFirstChild(uuid) and MainData.LoadedEntitys[uuid] then
-					local pos = MainData.LoadedEntitys[uuid].Position
-					local cx,cz = refunction.GetChunk(pos)
-					if cx..","..cz ~= lastchunk then
-						local loaded = {}
-						for i = 0,chun,1 do
-							local chuncks = refunction.GetSurroundingChunk(pos,i)
-							for i,v in ipairs(chuncks) do
-								if not loaded[v] then
-									loaded[v] = true
-									local data = MainData.GetChunk()
-									if not data then							
-										local data = GenHandler.GetGeneration(v)
-										MainData.DecodedChunks[v] =data 
-									end
-									local newtable =  MainData.Compress(tostring(uuid)..v.."*",refunction.GetSortedTable(data,v))
-									game.ReplicatedStorage.Events.Block.SendChunk:FireClient(game.Players:FindFirstChild(uuid),newtable,tostring(uuid)..v.."*")
-								end
-							end 
-							task.wait(0.1)
-						end
-					end
-				else
-					return
-				end
-			end
-		end
-	end,
-	btype = "Load"
-}
+-- Data.behavior.LoadChunk = {
+-- 	func = function (uuid,data,d)
+-- 		if game.Players:FindFirstChild(uuid) then
+-- 			local lastchunk = ""
+-- 			while true do
+-- 				task.wait(1)
+-- 				if game.Players:FindFirstChild(uuid) and MainData.LoadedEntitys[uuid] then
+-- 					local pos = MainData.LoadedEntitys[uuid].Position
+-- 					local cx,cz = refunction.GetChunk(pos)
+-- 					if cx..","..cz ~= lastchunk then
+-- 						local loaded = {}
+-- 						for i = 0,chun,1 do
+-- 							local chuncks = refunction.GetSurroundingChunk(pos,i)
+-- 							for i,v in ipairs(chuncks) do
+-- 								if not loaded[v] then
+-- 									loaded[v] = true
+-- 									local data = MainData.GetChunk()
+-- 									if not data then							
+-- 										local data = GenHandler.GetGeneration(v)
+-- 										MainData.DecodedChunks[v] =data 
+-- 									end
+-- 									local newtable =  MainData.Compress(tostring(uuid)..v.."*",refunction.GetSortedTable(data,v))
+-- 									game.ReplicatedStorage.Events.Block.SendChunk:FireClient(game.Players:FindFirstChild(uuid),newtable,tostring(uuid)..v.."*")
+-- 								end
+-- 							end 
+-- 							task.wait(0.1)
+-- 						end
+-- 					end
+-- 				else
+-- 					return
+-- 				end
+-- 			end
+-- 		end
+-- 	end,
+-- 	btype = "Load"
+-- }
 Data.behavior.random_stroll = {
 	func = function (uuid,data)
 		local interval = data.interval or 120
@@ -361,7 +361,7 @@ function  Data.CreateEntity(entityName,Position,CustomName)
 	for name,data in pairs(entityhandler.entity.components)do
 		add(current_nbt,name,data,true)
 	end
-	MainData.PlaceEntity(generateduuid,current_nbt)
+	--MainData.PlaceEntity(generateduuid,current_nbt)
 	return generateduuid
 end
 return Data 

@@ -74,6 +74,11 @@ end
 local setted = {}
 local ab = true
 function  Data.SetChunkTimer(Chunk)
+	do
+		if true then
+		return true
+		end
+	end
 	task.spawn(function()
 		if  setted[Chunk] then return end
 		setted[Chunk] = true
@@ -81,7 +86,7 @@ function  Data.SetChunkTimer(Chunk)
 		cx = tonumber(cx)
 		cz = tonumber(cz)
 		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
-		local time = math.clamp(100-30*#game.Players:GetPlayers(),50,100)
+		local time = math.clamp(100-20*#game.Players:GetPlayers(),50,100)
 		while true do
 			if Chunk == "-1x-1" then
 				print(time)
@@ -94,7 +99,7 @@ function  Data.SetChunkTimer(Chunk)
 				end
 			end
 			if closestplayer then
-				time = math.clamp(100-100*#game.Players:GetPlayers(),5,100)
+				time = math.clamp(100-90*#game.Players:GetPlayers(),10,100)
 			end
 			if time <= 0 or not Data.DecodedChunks[Chunk] then
 				break
@@ -170,8 +175,15 @@ function Data.UpdateChunk(chunk:string,Deload:boolean)
 		local data = compresser.compress(chunk,Data.DecodedChunks[chunk])
 		Data.Chunk[parentc] = Data.Chunk[parentc] or {}
 		Data.Chunk[parentc][chunk] = data
-		if Deload then
+		local cx,cz = unpack(string.split(chunk,"x"))
+		cx = tonumber(cx)
+		cz = tonumber(cz)
+		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
+		if Deload and not refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close") then
 			Data.DecodedChunks[chunk] = nil
+		elseif Deload then
+			print("e")
+			Data.SetChunkTimer(chunk)
 		end
 		return 	Data.Chunk[parentc][chunk]
 	end
@@ -192,9 +204,17 @@ function Data.UpdateEntitysInChunk(chunk,Deload:boolean)
 	if not Deload then
 		return newtable
 	end
-	Data.Entitys[parentc] = Data.Entitys[parentc] or {}
-	Data.Entitys[parentc][chunk] = newtable	
-	return Data.Entitys[parentc][chunk] 
+	local cx,cz = unpack(string.split(chunk,"x"))
+		cx = tonumber(cx)
+		cz = tonumber(cz)
+		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
+	if Deload and not refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close") then
+		Data.Entitys[parentc] = Data.Entitys[parentc] or {}
+		Data.Entitys[parentc][chunk] = newtable	
+		Data.DeLoadEntitysInChunk(chunk)
+		return Data.Entitys[parentc][chunk] 
+	end
+	return
 end
 function Data.LoadEntitysInChunk(Chunk:string)
 	local parent = Data.GetChunkParent(Chunk)
@@ -207,6 +227,15 @@ function Data.LoadEntitysInChunk(Chunk:string)
 			Data.Entitys[parent][Chunk] = nil
 		end
 	end
+end
+function Data.DeLoadEntitysInChunk(Chunk:string)
+	local parent = Data.GetChunkParent(Chunk)
+	for uuid,nbt in pairs(Data.LoadedEntitys)do
+		if refunctions.GetChunk(nbt.Position) == Chunk then
+			Data.LoadedEntitys[uuid]  = nil
+		end
+	end
+	Data.Entitys[parent][Chunk] = nil
 end
 function Data.SaveAll()
 	

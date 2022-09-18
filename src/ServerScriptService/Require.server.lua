@@ -6,7 +6,6 @@ local copy = { -- a uuid
 ["Position"] = {-68,90,-120},
 HitBoxSize = {x =2.2,y=7.5,z=2.2},
 behaviors = {
-	LoadChunk = {},
 },
 ["NotReplicated"] = {},
 EyeOffset = 6.7,
