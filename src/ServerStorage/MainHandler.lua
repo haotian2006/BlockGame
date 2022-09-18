@@ -5,7 +5,7 @@ local refunction = require(RS.Functions)
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
-local GenHandler = require(game:GetService("ServerStorage").GenerationHandler)
+local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
 local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local pathfinding = require(game.ServerStorage.PathFinding)
 local maindata = require(game.ServerStorage.MainData)
@@ -223,25 +223,22 @@ function Main.GetChunk(Player,Chunk,firsttime)
 	local lc = {}
 	local currentable = {}
 	if not maindata.GetChunk(Chunk) then
-		--maindata.Chunk[Chunk] = loadthread:DoWork(Chunk)
-		for index,coord in ipairs(refunction.XZCoordInChunk(Chunk)) do
-				for y = 0,80,4 do
-					--task.spawn(function()
-						local coords = string.split(coord,"x")
-						local position = Vector3.new(coords[1],y,coords[2])
-						local block,id = GenHandler.GetBlock(position)
-						id = 0
-						if  block ~= nil and block ~="Air" then
-							local packpos = pack(position)
-							currentable[packpos] = {block,id,{0,0,0},packpos,Chunk,true}
-						end
-				end
-			end
+		print("e")
+			currentable = GenHandler.GetGeneration(Chunk)
 			maindata.DecodedChunks[Chunk] =currentable 
 			maindata.SetChunkTimer(Chunk)
 			--maindata.PlaceChunk(Chunk,currentable)
 		else
-			currentable = maindata.GetChunk(Chunk)
+			local run = coroutine.running()
+			local should = false
+			task.spawn(function()
+				currentable = maindata.GetChunk(Chunk)
+				should = true
+				coroutine.resume(run)
+			end)
+			if not should then
+				coroutine.yield()
+			end
 		end
 	return Main.GetSortedTable(currentable,Chunk,lc,Player )
 end

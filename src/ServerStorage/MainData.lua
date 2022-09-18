@@ -60,7 +60,7 @@ function Data.GetChunkParent(Chunk)
 end
 function Data.CompressAllDC()
 	for c,d in pairs(dc) do
-		local newcompressed = compresser.compress(dc[c])
+		local newcompressed = compresser.compress(c,dc[c])
 		Data.Chunk[Data.GetChunkParent(c)][c] = newcompressed
 		dc[c] = nil
 	end
@@ -96,8 +96,8 @@ function  Data.SetChunkTimer(Chunk)
 		end
 		setted[Chunk] = nil
 		if  Data.DecodedChunks[Chunk] then
-		Data.UpdateChunk(Chunk,true)
-		Data.UpdateEntitysInChunk(Chunk,true)
+			Data.UpdateChunk(Chunk,true)
+			Data.UpdateEntitysInChunk(Chunk,true)
 		end
 	end)
 end
@@ -109,9 +109,7 @@ function Data.GetChunk(Chunk:string):table
 		return nil
 	end
 	local data = Data.Chunk[Data.GetChunkParent(Chunk)][Chunk]
-	print(typeof(data))
-	data = compresser.decompress(data,"a")
-	data = https:JSONDecode(data)
+	data = compresser.decompress(Chunk,data)
 	dc[Chunk] = data
 	Data.LoadEntitysInChunk(Chunk)
 	Data.SetChunkTimer(Chunk)
@@ -124,8 +122,7 @@ function Data.PlaceChunk(chunk:string,data,deload)
 		end
 		Data.DecodedChunks[chunk] = data
 		Data.SetChunkTimer(chunk)
-		data = https:JSONEncode(data)
-		data = compresser.compress(data)
+		data = compresser.compress(chunk,data)
 		local parenta = Data.GetChunkParent(chunk)
 		Data.Chunk[parenta] = Data.Chunk[parenta] or {}
 		Data.Chunk[parenta][chunk] = data
@@ -143,8 +140,7 @@ function Data.PlaceEntity(uuid:string,data,Deload)
 	if Deload then
 		 Data.Entitys.LoadedEntitys[uuid] = nil
 	end
-	data = https:JSONEncode(data)
-	data = compresser.compress(data)
+	data = compresser.compress(uuid,data)
 	local parenta = Data.GetChunkParent(chunk)
 	Data.Entitys[parenta][chunk][uuid] = data
 end
@@ -158,16 +154,14 @@ function Data.PlaceBlock(Coord,data)
 	end
 	local data = Data.GetChunk(cx..","..cz)
 	data[Coord] = data
-	data = https:JSONEncode(data)
-	data = compresser.compress(data)
+	data = compresser.rcompress(data)
 	local parenta = Data.GetChunkParent(chunk)
 	Data.Chunk[parenta][chunk] = data
 end
 function Data.UpdateChunk(chunk:string,Deload:boolean)
 	local parentc = Data.GetChunkParent(chunk)
 	if Data.DecodedChunks[chunk] then
-		local data = https:JSONEncode(Data.DecodedChunks[chunk])
-		data = compresser.compress(data)
+		local data = compresser.compress(chunk,Data.DecodedChunks[chunk])
 		Data.Chunk[parentc] = Data.Chunk[parentc] or {}
 		Data.Chunk[parentc][chunk] = data
 		if Deload then
@@ -188,7 +182,7 @@ function Data.UpdateEntitysInChunk(chunk,Deload:boolean)
 			end
 	end
 	local parentc = Data.GetChunkParent(chunk)
-	compresser.compress(https:JSONEncode(newtable))
+	compresser.compress(chunk,newtable)
 	if not Deload then
 		return newtable
 	end
@@ -201,8 +195,7 @@ function Data.LoadEntitysInChunk(Chunk:string)
 	if Data.Entitys[parent]then
 		if Data.Entitys[parent][Chunk] then
 			for uuid,nbt in pairs(Data.Entitys[parent][Chunk])do
-				local decodeddata = compresser.decompress(nbt)
-				decodeddata = https.JSONDecode(decodeddata)
+				local decodeddata = compresser.decompress(uuid,nbt)
 				Data.LoadedEntitys[uuid] = decodeddata
 			end
 			Data.Entitys[parent][Chunk] = nil

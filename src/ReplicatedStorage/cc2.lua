@@ -109,4 +109,18 @@ local function decompress(text)
 	end
 	return unescape(table.concat(sequence))
 end
-return {rcompress = compress, rdecompress = decompress}
+local function doc(table)
+	local newtable = {}
+	for i,v in pairs(table)do
+		local newtable = compress(game.HttpService:JSONEncode(v))
+	end
+	return newtable
+end
+local function dedoc(table)
+	local newtable = {}
+	for i,v in pairs(table)do
+		local newtable = game.HttpService:JSONDecode(decompress(v))
+	end
+	return newtable
+end
+return {rcompress = compress, rdecompress = decompress,doc= doc,dedoc=dedoc}

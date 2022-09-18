@@ -1,7 +1,9 @@
+local LocalizationService = game:GetService("LocalizationService")
 --Thank 1waffle1 for making this its such an life saver
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local Compress = workers.New(script.Parent.cc2,"rcompress",4)
-local DeCompress = workers.New(script.Parent.cc2,"rdecompress",4)
+local amountofworkers = 6
+local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
+local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
 local dictionary, length = {}, 0
 for i = 32, 127 do
 	if i ~= 34 and i ~= 92 then
@@ -12,10 +14,32 @@ for i = 32, 127 do
 end
 
 local escapemap = {}
+local cqueue ={}
+local cdone = {}
+local dqueue ={}
+local ddone = {}
 for i = 1, 34 do
 	i = ({34, 92, 127})[i-31] or i
 	local c, e = string.char(i), string.char(i + 31)
 	escapemap[c], escapemap[e] = e, c
+end
+local function divide(original,times)
+	local tables = {}
+	for i =1,times do
+		tables[i] = {}
+	end
+	local length = 0
+	for i,v in pairs(original)do
+		length +=1
+		for t =times,1,-1 do
+			if length%t ==0 then
+				tables[t][i] = v
+				break
+			end
+		end
+		original[i] = nil
+	end
+	return tables
 end
 local function escape(s)
 	return (s:gsub("[%c\"\\]", function(c)
@@ -83,18 +107,34 @@ local function compress(text)
 	spans[width] = span
     return table.concat(spans, ",").."|"..table.concat(sequence)
 end
-local function queuecompress(text)
-	return Compress:DoWork(text)
+local function queuecompress(key,text)
+	if not cqueue[key] then
+	cqueue[key] = text
+	end
+	repeat
+		task.wait(0.1)
+	until cdone[key]
+	task.delay(.2,function()
+        cqueue[key] = nil
+		cdone[key] = nil
+	end)
+	return cdone[key]
 end
-local function queuedecompress(text)
-	return DeCompress:DoWork(text)
+local function queuedecompress(key,text)
+	if not dqueue[key] then
+		dqueue[key] = text
+	end
+	repeat
+		task.wait(0.1)
+	until cdone[key]
+	task.delay(.2,function()
+        dqueue[key] = nil
+		ddone[key] = nil
+	end)
+	return ddone[key]
 end
 local function decompress(text,a)
 	local dictionary = copy(dictionary)
-	if a then
-		print(typeof(text))
-	end
-	print(a)
 	local sequence, spans, content = {}, text:match("(.-)|(.*)")
 	local groups, start = {}, 1
 	for span in spans:gmatch("%d+") do
@@ -123,6 +163,35 @@ local function decompress(text,a)
 	end
 	return unescape(table.concat(sequence))
 end
+task.spawn(function()
+	while true do
+		local splitted = divide(cqueue,amountofworkers)
+		for i,v in ipairs(splitted) do
+			task.spawn(function()
+				local newtable = Compress:DoWork(v)
+				for i,v in pairs(newtable)do
+					cdone[i] = v
+				end
+			end)
+		end
+		task.wait(.5)
+	end
+end)
+task.spawn(function()
+	while true do
+		local splitted = divide(dqueue,amountofworkers)
+		for i,v in ipairs(splitted) do
+			task.spawn(function()
+				local newtable = DeCompress:DoWork(v)
+				for i,v in pairs(newtable)do
+					ddone[i] = v
+				end
+			end)
+			task.wait(0.2)
+		end
+		task.wait(.5)
+	end
+end)
 
---return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress}
-return {compress = compress, decompress = decompress}
+return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress,cqueue= cqueue,dqueue=dqueue}
+--return {compress = compress, decompress = decompress}

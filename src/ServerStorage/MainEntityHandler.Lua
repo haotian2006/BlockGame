@@ -36,6 +36,7 @@ local Data = {
 	--otherstuff
 	["NotSaved"] = {},
 	["behaviors"] = {},
+	["NotReplicated"] = {},
 	Events = {},
 	Effects ={},
    },
@@ -252,6 +253,14 @@ Data.behavior.nearest_attackable_target = {
 	
 	end,
 	btype = "Target"
+}
+Data.behavior.LoadChunk = {
+	func = function (uuid,data,d)
+		if game.Players:FindFirstChild(uuid) then
+			
+		end
+	end,
+	btype = "Load"
 }
 Data.behavior.random_stroll = {
 	func = function (uuid,data)

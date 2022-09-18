@@ -1,4 +1,4 @@
-task.wait(5)
+
 local HttpService = game:GetService("HttpService")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
@@ -7,7 +7,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 4
+local render = 5
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -262,8 +262,8 @@ local function frender(char)
 	end
 	local Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
 	--Blocks = HttpService:JSONDecode(compressor.decompress(Blocks))
-	local index = 0
 	task.spawn(function()
+	local index = 0
 		local currena = chunk
 		table.insert(curentlyload,currena)
 		local blocktable = loadthread:DoWork(Blocks)
