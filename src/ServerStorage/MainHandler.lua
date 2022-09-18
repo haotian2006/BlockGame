@@ -2,7 +2,6 @@ local LocalizationService = game:GetService("LocalizationService")
 local RS = game:GetService("ReplicatedStorage")
 local HTTPs = game:GetService("HttpService")
 local refunction = require(RS.Functions)
-local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
 local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
@@ -147,7 +146,7 @@ local function pack(pos:Vector3)
 	return statement
 end
 local function GetPath(block:string)
-	return Block_Path[block].Model
+	return Block_Info[block].Model
 end
 function Main.Move()
 	
@@ -223,7 +222,6 @@ function Main.GetChunk(Player,Chunk,firsttime)
 	local lc = {}
 	local currentable = {}
 	if not maindata.GetChunk(Chunk) then
-		print("e")
 			currentable = GenHandler.GetGeneration(Chunk)
 			maindata.DecodedChunks[Chunk] =currentable 
 			maindata.SetChunkTimer(Chunk)

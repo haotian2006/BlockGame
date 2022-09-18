@@ -52,6 +52,12 @@ local function deepCopy(original)
 	end
 	return copy
 end
+function Data.Compress(key,data)
+	return compresser.compress(key,data)
+end
+function Data.DeCompress(key,data)
+	return compresser.decompress(key,data)
+end
 function Data.GetChunkParent(Chunk)
 	local cx,cz = unpack(string.split(Chunk,"x"))
 	local x = math.floor(tonumber(cx)/200)
