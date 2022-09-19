@@ -131,4 +131,16 @@ local function dedoc(table)
 	end
 	return newtable
 end
-return {rcompress = compress, rdecompress = decompress,doc= doc,dedoc=dedoc}
+local function Slowdoc(table)
+	local newtable = {}
+	local index = 0 
+	for i,v in pairs(table)do
+		index +=1
+		local newtable = compress(game.HttpService:JSONEncode(v))
+		if index%2==0 or true then
+			task.wait(0.1)
+			end
+	end
+	return newtable
+end
+return {rcompress = compress, rdecompress = decompress,doc= doc,dedoc=dedoc,Slowdoc = Slowdoc}

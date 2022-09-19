@@ -1,4 +1,13 @@
 local compresser = require(game.ReplicatedStorage.Compresser)
+local SaveInStudio = false
+local DataStore 
+local MainGameStore 
+if SaveInStudio or not game:GetService("RunService"):IsStudio() then
+	DataStore = game:GetService("DataStoreService")
+	MainGameStore = DataStore:GetDataStore("Test")
+	MainGameStore:ListKeysAsync()
+end
+
 local https = game:GetService("HttpService")
 local Data = {
     ["Chunk"] ={
