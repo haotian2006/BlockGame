@@ -331,8 +331,8 @@ function Function.PlaceBlock(Name:string,Position,Id:number,Orientation,paren)
 	end
 	local cx,cz = Function.GetChunk(Position)
 	local chunkname = cx.."x"..cz
-	local chunkfolder =workspace.Chunk:FindFirstChild(chunkname) or Instance.new("Folder",workspace.Chunk)
-	chunkfolder.Name = chunkname
+	if not workspace.Chunk:FindFirstChild(chunkname) then return nil end
+	local chunkfolder =workspace.Chunk:FindFirstChild(chunkname) 
 	if Block_Path[Name] and not chunkfolder:FindFirstChild(Function.convertPositionto(Position,"string")) then
 		local model =  Block_Path[Name].Model
 		local clonedblock
