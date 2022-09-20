@@ -13,7 +13,7 @@ for i = 32, 127 do
 		length = length + 1
 	end
 end
-
+--a
 local escapemap = {}
 local cqueue ={}
 local cdone = {}
