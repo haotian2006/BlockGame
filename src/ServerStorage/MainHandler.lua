@@ -390,7 +390,9 @@ function Main.GetBlock(Player,Pos)
 		end 
 	end 
 end
-
+game.ReplicatedStorage.place.OnServerEvent:connect(function()
+	maindata.SaveAll()
+end)
 RS.Events.Block.DestroyBlock.OnServerEvent:Connect(Main.destroyblock)
 RS.Events.Block.GetChunk.OnServerInvoke = Main.GetChunk
 RS.Events.Interact.OnServerEvent:Connect(Main.OnInteract)

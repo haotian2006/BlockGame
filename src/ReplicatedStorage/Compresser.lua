@@ -3,6 +3,7 @@ local LocalizationService = game:GetService("LocalizationService")
 local workers = require(game.ReplicatedStorage.WorkerThreads)
 local amountofworkers = 30
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
+local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",amountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
 local dictionary, length = {}, 0
 for i = 32, 127 do
@@ -161,6 +162,34 @@ local function decompress(text,a)
 	end
 	return unescape(table.concat(sequence))
 end
+local function slowcomp(table,ad)
+	local splitted = divide(table,amountofworkers)
+	local new_table = {}
+	local current,done= coroutine.running(),false
+	local amount = 0
+	for i,v in ipairs(splitted) do
+			task.spawn(function()
+				local e = SlowCompress:DoWork(v)
+				for ci,cv in pairs(e)do
+					new_table[ci] = cv
+				end
+				amount+=1
+				if amount ==#splitted then
+					coroutine.resume(current)
+					done = true
+					end
+				if i == #splitted then
+					if amount ==#splitted then
+					coroutine.resume(current)
+					end
+				end
+			end)
+	end
+	if not done then
+	coroutine.yield()
+	end
+	return new_table
+end
 task.spawn(function()
 	while true do
 		local splitted = divide(cqueue,amountofworkers)
@@ -192,5 +221,5 @@ task.spawn(function()
 	end
 end)
 
-return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress,cqueue= cqueue,dqueue=dqueue}
+return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress,cqueue= cqueue,dqueue=dqueue,slowcomp=slowcomp}
 --return {compress = compress, decompress = decompress}

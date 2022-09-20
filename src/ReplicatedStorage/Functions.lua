@@ -172,20 +172,20 @@ end
 local function pack2(x,y,z)
 	return x..","..y..","..z
 end
-local function can(position,tabl,blockdata)
+-- local function can(position,tabl,blockdata)
 	
-	local c = false
-	local splittedstring = string.split(position,",")
-	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
-	local ch= convetcunktostring(Function.GetChunk(position))
-	if tabl[pack2(x+4,y,z)] and not Block_Path[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Path[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Path[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Path[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Path[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
-	elseif convetcunktostring(Function.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(Function.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(Function.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(Function.GetChunk(pack2(x,y,z-4))) == ch  then
-			c = true
-	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Path[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Path[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
-			c = true
-	end
-	return c
-end
+-- 	local c = false
+-- 	local splittedstring = string.split(position,",")
+-- 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
+-- 	local ch= convetcunktostring(Function.GetChunk(position))
+-- 	if tabl[pack2(x+4,y,z)] and not Block_Path[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Path[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Path[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Path[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Path[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
+-- 	elseif convetcunktostring(Function.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(Function.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(Function.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(Function.GetChunk(pack2(x,y,z-4))) == ch  then
+-- 			c = true
+-- 	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Path[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Path[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
+-- 			c = true
+-- 	end
+-- 	return c
+-- end
 function Function.GetSortedTable(Data,Chunk)
 	local lc = {}
 	local size = 0

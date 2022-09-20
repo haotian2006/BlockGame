@@ -1,11 +1,11 @@
 local compresser = require(game.ReplicatedStorage.Compresser)
-local SaveInStudio = false
+local SaveInStudio = true
 local DataStore 
 local MainGameStore 
 
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test")
+	MainGameStore = DataStore:GetDataStore("Test2")
 
 end
 
@@ -70,10 +70,20 @@ function Data.DeCompress(key,data)
 end
 function Data.GetChunkParent(Chunk)
 	local cx,cz = unpack(string.split(Chunk,"x"))
-	local x = math.floor(tonumber(cx)/50)
-	local z = math.floor(tonumber(cz)/50)
-	return x.."-"..z
+	local x = math.floor(tonumber(cx)/6)
+	local z = math.floor(tonumber(cz)/6)
+	return x.."|"..z
 end
+-- function Data.GetChunkParentParent(Chunk)
+-- 	local cx,cz = unpack(string.split(Chunk,"|"))
+-- 	local x = math.floor(tonumber(cx)/2)
+-- 	local z = math.floor(tonumber(cz)/2)
+-- 	return x.."/"..z
+-- end
+-- local x = (tonumber(cx)/2)
+-- 	local z = (tonumber(cz)/2)
+-- 	x = x <0 and math.ceil(x) or math.floor(x)
+-- 	z = z <0 and math.ceil(z) or math.floor(z)
 function Data.CompressAllDC()
 	for c,d in pairs(dc) do
 		local newcompressed = compresser.compress(c,dc[c])
@@ -192,7 +202,6 @@ function Data.UpdateChunk(chunk:string,Deload:boolean)
 		if Deload and not refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close") then
 			Data.DecodedChunks[chunk] = nil
 		elseif Deload then
-			print("e")
 			Data.SetChunkTimer(chunk)
 		end
 		return 	Data.Chunk[parentc][chunk]
@@ -248,7 +257,36 @@ function Data.DeLoadEntitysInChunk(Chunk:string)
 	Data.Entitys[parent][Chunk] = nil
 end
 function Data.SaveAll()
-	
+	print("started")
+	local tocompress = deepCopy(Data.Chunk)
+	local placehold = compresser.slowcomp(Data.DecodedChunks)
+	print("stage 0 done")
+	for i,v in pairs(placehold)do
+		if not tocompress[Data.GetChunkParent(i)]  then
+			print("i")
+		end
+		tocompress[Data.GetChunkParent(i)]  = tocompress[Data.GetChunkParent(i)]  or {}
+		tocompress[Data.GetChunkParent(i)][i] = v
+	end
+	print("stage 1 done")
+	tocompress = compresser.slowcomp(tocompress,true)
+	print("stage 2 done")
+	local msg,sus
+	for i,v in pairs(tocompress)do
+			print("e")
+			local success, errorMessage = pcall(function()
+				MainGameStore:SetAsync("Chunk "..i,v)
+			end)
+			msg = not success and errorMessage or msg
+			sus = not success and success or sus
+			if not success then
+				local success, errorMessage = pcall(function()
+					MainGameStore:SetAsync("Chunk "..i,v)
+				end)
+			end
+		task.wait(0.5)
+	end
+	print("stage 4 done",msg,sus)
 end
 task.spawn(function()
 	while true do

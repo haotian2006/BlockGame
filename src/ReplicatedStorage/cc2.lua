@@ -114,7 +114,7 @@ local function doc(table)
 	local index = 0 
 	for i,v in pairs(table)do
 		index +=1
-		local newtable = compress(game.HttpService:JSONEncode(v))
+		 newtable[i] = compress(game.HttpService:JSONEncode(v))
 		if index%2==0 or true then
 			end
 	end
@@ -125,7 +125,7 @@ local function dedoc(table)
 	local index = 0 
 	for i,v in pairs(table)do
 		index +=1
-		local newtable = game.HttpService:JSONDecode(decompress(v))
+		 newtable[i] = game.HttpService:JSONDecode(decompress(v))
 		if index%2==0 or true then
 		end
 	end
@@ -136,9 +136,9 @@ local function Slowdoc(table)
 	local index = 0 
 	for i,v in pairs(table)do
 		index +=1
-		local newtable = compress(game.HttpService:JSONEncode(v))
-		if index%2==0 or true then
-			task.wait(0.5)
+		 newtable[i] = compress(game.HttpService:JSONEncode(v))
+		if index%3==0  then
+			task.wait(0.1)
 			end
 	end
 	return newtable
