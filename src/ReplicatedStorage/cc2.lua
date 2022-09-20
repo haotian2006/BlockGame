@@ -139,9 +139,8 @@ local function Slowdoc(table)
 	for i,v in pairs(table)do
 		index +=1
 		 newtable[i] = compress(game.HttpService:JSONEncode(v))
-		if index%3==0  then
 			task.wait(.2)
-			end
+
 	end
 	return newtable
 end
