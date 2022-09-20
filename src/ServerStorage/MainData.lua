@@ -2,10 +2,11 @@ local compresser = require(game.ReplicatedStorage.Compresser)
 local SaveInStudio = false
 local DataStore 
 local MainGameStore 
+
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
 	MainGameStore = DataStore:GetDataStore("Test")
-	MainGameStore:ListKeysAsync()
+
 end
 
 local https = game:GetService("HttpService")
@@ -69,8 +70,8 @@ function Data.DeCompress(key,data)
 end
 function Data.GetChunkParent(Chunk)
 	local cx,cz = unpack(string.split(Chunk,"x"))
-	local x = math.floor(tonumber(cx)/200)
-	local z = math.floor(tonumber(cz)/200)
+	local x = math.floor(tonumber(cx)/50)
+	local z = math.floor(tonumber(cz)/50)
 	return x.."-"..z
 end
 function Data.CompressAllDC()
