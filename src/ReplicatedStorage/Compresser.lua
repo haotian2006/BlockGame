@@ -1,7 +1,7 @@
 local LocalizationService = game:GetService("LocalizationService")
 --Thank 1waffle1 for making this its such an life saver
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local amountofworkers = 30
+local amountofworkers = 20
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
 local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",amountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
@@ -113,19 +113,20 @@ local function queuecompress(key,text)
 	cqueue[key] = text
 	end
 	repeat
-		task.wait(0.1)
+		task.wait(0)
 	until cdone[key]
 	task.delay(.2,function()
 		cdone[key] = nil
 	end)
 	return cdone[key]
 end
+local once = true
 local function queuedecompress(key,text)
 	if not dqueue[key] then
 		dqueue[key] = text
 	end
 	repeat
-		task.wait(0.1)
+		task.wait(0)
 	until ddone[key]
 	task.delay(.2,function()
 		ddone[key] = nil
@@ -190,22 +191,28 @@ local function slowcomp(table,ad)
 	end
 	return new_table
 end
-task.spawn(function()
-	while true do
-		local splitted = divide(cqueue,amountofworkers)
-		for i,v in ipairs(splitted) do
-			task.spawn(function()
-				local newtable = Compress:DoWork(v)
-				for i,v in pairs(newtable)do
-					cdone[i] = v
-				end
-			end)
-			task.wait(0.5)
-		end
-		task.wait(.5)
+local function  CheckInQd(key)
+	if dqueue[key] then
+		return true
 	end
-end)
-task.spawn(function()
+	return false
+end
+local function start()
+	task.spawn(function()
+		while true do
+			local splitted = divide(cqueue,amountofworkers)
+			for i,v in ipairs(splitted) do
+				task.spawn(function()
+					local newtable = Compress:DoWork(v)
+					for i,v in pairs(newtable)do
+						cdone[i] = v
+					end
+				end)
+				task.wait(.3)
+			end
+			task.wait(.2)
+		end
+	end)
 	while true do
 		local splitted = divide(dqueue,amountofworkers)
 		for i,v in ipairs(splitted) do
@@ -215,11 +222,9 @@ task.spawn(function()
 					ddone[i] = v
 				end
 			end)
-			task.wait(0.5)
 		end
-		task.wait(.5)
+		task.wait(.2)
 	end
-end)
-
-return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress,cqueue= cqueue,dqueue=dqueue,slowcomp=slowcomp}
+end
+return {compress = queuecompress, decompress = queuedecompress,rcompress = compress, rdecompress = decompress,cqueue= cqueue,dqueue=dqueue,slowcomp=slowcomp,start = start,CheckInQd=CheckInQd}
 --return {compress = compress, decompress = decompress}

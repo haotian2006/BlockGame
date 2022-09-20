@@ -1,5 +1,9 @@
 require(game.ServerStorage.MainHandler)
 local maindata = require(game.ServerStorage.MainData)
+local compresser = require(game.ReplicatedStorage.Compresser)
+task.spawn(function()
+	compresser.start()
+end)
 local copy = { -- a uuid
 ["Name"] = "Mar",
 ["Age"] = "0",

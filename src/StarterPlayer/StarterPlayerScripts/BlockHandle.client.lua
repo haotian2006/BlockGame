@@ -368,7 +368,7 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 end)
 local oldchunk =""
 local char = game.Workspace.Entity:WaitForChild(lp.Name)
-	QuickRender(char.PrimaryPart)
+--	QuickRender(char.PrimaryPart)
 	while char do
 		local currentChunk,c = refunction.GetChunk(char.PrimaryPart.Position)
 		currentChunk = currentChunk.."x"..c

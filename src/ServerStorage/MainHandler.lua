@@ -224,7 +224,7 @@ function Main.GetChunk(Player,Chunk,firsttime)
 	if not maindata.GetChunk(Chunk) then
 			currentable = GenHandler.GetGeneration(Chunk)
 			maindata.DecodedChunks[Chunk] =currentable 
-			maindata.SetChunkTimer(Chunk)
+			--maindata.SetChunkTimer(Chunk)
 			--maindata.PlaceChunk(Chunk,currentable)
 		else
 			-- local run = coroutine.running()

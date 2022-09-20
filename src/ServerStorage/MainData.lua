@@ -1,11 +1,34 @@
+local LocalizationService = game:GetService("LocalizationService")
 local compresser = require(game.ReplicatedStorage.Compresser)
 local SaveInStudio = true
 local DataStore 
 local MainGameStore 
-
+local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test2")
+	MainGameStore = DataStore:GetDataStore("Test45")
+	-- local options = Instance.new("DataStoreOptions")
+	-- options.AllScopes  = true
+	-- local e =DataStore:GetDataStore("Test3","",options)
+	-- local pages 
+	-- task.spawn(function()
+	-- 	local sus,erro = pcall(function()
+	-- 		pages = e:ListKeysAsync()
+	-- 	end)
+	-- 	while sus do
+	-- 	local items = pages:GetCurrentPage()
+	-- 	local ammount = 0
+	-- 	for _, v in ipairs(items) do
+	-- 		ammount+=1
+	-- 		allkeys[v.KeyName] = true
+	-- 	end
+	-- 	if pages.IsFinished or ammount ==0 then
+	-- 		break
+	-- 	end
+	-- 	print(items)
+	-- 	pages:AdvanceToNextPageAsync()
+	-- end
+	-- end)
 
 end
 
@@ -132,9 +155,41 @@ function  Data.SetChunkTimer(Chunk)
 		end
 	end)
 end
+local oncea = true
 function Data.GetChunk(Chunk:string):table
 	if dc[Chunk] then
 		return dc[Chunk]
+	end
+	if not allkeys[Data.GetChunkParent(Chunk)]  and not Data.Chunk[Data.GetChunkParent(Chunk)] then
+		if compresser.CheckInQd(Data.GetChunkParent(Chunk).."x"..Chunk)then
+			print("c")
+			Data.Chunk[Data.GetChunkParent(Chunk)] = compresser.decompress(Data.GetChunkParent(Chunk).."x"..Chunk,{})
+		else
+		local sdata 
+		local sus,errors = pcall(function()
+			sdata = MainGameStore:GetAsync("Chunk "..Data.GetChunkParent(Chunk))
+		end)
+		if not sus then
+			sus = pcall(function()
+			   sdata = MainGameStore:GetAsync("Chunk "..Data.GetChunkParent(Chunk))
+		   end)
+	   end
+		if not sus then
+			print(errors)
+		else
+			allkeys[Data.GetChunkParent(Chunk)] = true
+			if sdata == nil then
+				print("a")
+			else
+				if oncea then
+				--print(sdata)
+				oncea = false
+				end
+			Data.Chunk[Data.GetChunkParent(Chunk)] = compresser.decompress(Data.GetChunkParent(Chunk).."x"..Chunk,sdata)
+			print("e")
+			end
+			end
+		end
 	end
 	if not Data.Chunk[Data.GetChunkParent(Chunk)] or not Data.Chunk[Data.GetChunkParent(Chunk)][Chunk] then
 		return nil
@@ -199,10 +254,8 @@ function Data.UpdateChunk(chunk:string,Deload:boolean)
 		cx = tonumber(cx)
 		cz = tonumber(cz)
 		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
-		if Deload and not refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close") then
+		if Deload  then
 			Data.DecodedChunks[chunk] = nil
-		elseif Deload then
-			Data.SetChunkTimer(chunk)
 		end
 		return 	Data.Chunk[parentc][chunk]
 	end
@@ -262,9 +315,18 @@ function Data.SaveAll()
 	local placehold = compresser.slowcomp(Data.DecodedChunks)
 	print("stage 0 done")
 	for i,v in pairs(placehold)do
-		if not tocompress[Data.GetChunkParent(i)]  then
-			print("i")
-		end
+		task.spawn(function()
+			local cx,cz = unpack(string.split(i,"x"))
+			cx = tonumber(cx)
+			cz = tonumber(cz)
+			local chunckpos = Vector3.new(cx*16*4,0,cz*16*4)
+			local closestplayer = refunctions.GetNearByPlayers(chunckpos,15*16*4,"Close")
+			if not closestplayer then
+				task.spawn(function()
+					Data.UpdateChunk(i,true)
+				end)
+			end
+		end)
 		tocompress[Data.GetChunkParent(i)]  = tocompress[Data.GetChunkParent(i)]  or {}
 		tocompress[Data.GetChunkParent(i)][i] = v
 	end
@@ -273,7 +335,17 @@ function Data.SaveAll()
 	print("stage 2 done")
 	local msg,sus
 	for i,v in pairs(tocompress)do
-			print("e")
+		task.spawn(function()
+			
+			local ccx,ccz = unpack(string.split(i,"|"))
+			ccx = tonumber(ccx)*6
+			ccz = tonumber(ccz)*6
+			local pos = Vector3.new(ccx*16*4,0,ccz*16*4)
+			local closestplayer = refunctions.GetNearByPlayers(pos,45*16*4,"Close")
+			if not closestplayer then
+				Data.Chunk[i] = nil
+			end
+		end)
 			local success, errorMessage = pcall(function()
 				MainGameStore:SetAsync("Chunk "..i,v)
 			end)
@@ -286,7 +358,7 @@ function Data.SaveAll()
 			end
 		task.wait(0.5)
 	end
-	print("stage 4 done",msg,sus)
+	print("stage 3 done",msg,sus)
 end
 task.spawn(function()
 	while true do
@@ -294,5 +366,6 @@ task.spawn(function()
 
 	end
 end)
+
 end)
 return Data

@@ -28,7 +28,7 @@ function func.GetGeneration(Chunk)
 	queue[Chunk] = refunction.XZCoordInChunk(Chunk)
     end
     repeat
-        task.wait(0.1)
+        task.wait(0)
     until done[Chunk]
     task.delay(.2,function()
         queue[Chunk] = nil
