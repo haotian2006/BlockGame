@@ -112,9 +112,9 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos)
 	pos = Function.convertPositionto(pos,"vector3")
 	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
 	local cx,cz = Function.GetChunk(Vector3.new(pos.X,y,pos.Z))
-	if maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][1] and not HasToBeLoaded then
+	if maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][2] and not HasToBeLoaded then
 		return maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][1] and HasToBeLoaded then
+	elseif maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][2] and HasToBeLoaded then
 		return maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	elseif not maindata.DecodedChunks[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
 		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z

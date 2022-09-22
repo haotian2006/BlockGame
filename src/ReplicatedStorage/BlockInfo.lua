@@ -12,6 +12,9 @@ local Blocks = {
 		["Override"] = true;
 		["IsTransparent"] = false;
 		["Id"] = 0;
+	},
+	["air"] = {
+		["IsTransparent"] = true;
 	}
 }
 return Blocks

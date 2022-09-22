@@ -162,12 +162,12 @@ local function convetcunktostring(cx,cz)
 	return cx..","..cz
 end
 local function can(position,tabl,player,blockdata)
-	if blockdata[1] == nil then
+	if  blockdata[1] == "air" or blockdata[1] == nil then
 		return false
 	end
 	local c = false
 	local splittedstring = string.split(position,",")
-	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
+	local x,y,z = tonumber(splittedstring[1]),tonumber(splittedstring[2]),tonumber(splittedstring[3])
 	local ch= convetcunktostring(refunction.GetChunk(position))
 	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
 	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
@@ -304,7 +304,7 @@ function Main.destroyblock(player,pos)
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
 	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
-		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {}
+		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {'air'}
 		 local placee = {}
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))

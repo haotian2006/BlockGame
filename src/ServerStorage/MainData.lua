@@ -6,7 +6,7 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test453")
+	MainGameStore = DataStore:GetDataStore("Test413")
 	-- local options = Instance.new("DataStoreOptions")
 	-- options.AllScopes  = true
 	-- local e =DataStore:GetDataStore("Test3","",options)
@@ -184,7 +184,7 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 		for chunk,v in pairs(blocks) do
 			Data.ChunkChanges[parent] = Data.ChunkChanges[parent] or {}
 			Data.ChunkChanges[parent][chunk] = v
-			print(next(v,"Settings"),chunk)
+			--print(next(v,"Settings"),chunk)
 		end
 	end
 	local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
@@ -193,7 +193,7 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 		data["Settings"] = {}
 		data["Settings"]["Version"] = 0.1
 	else
-		for id,value in ipairs(Data.ChunkChanges[parent][Chunk])do
+		for id,value in pairs(Data.ChunkChanges[parent][Chunk])do
 			data[id] = value
 		end
 	end
@@ -353,7 +353,6 @@ function Data.SaveAll()
 	local done,ad,reached = 0,0,false
 	for i,v in pairs(Data.Chunk)do
 		done += 1
-		print("e")
 		task.spawn(function()
 			local success, errorMessage = pcall(function()
 				MainGameStore:SetAsync("Chunk "..i,v)
