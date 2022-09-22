@@ -5,6 +5,7 @@ local amountofworkers = 20
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
 local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",amountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
+local SlowDeCompress = workers.New(script.Parent.cc2,"Slowdedoc",amountofworkers)
 local dictionary, length = {}, 0
 for i = 32, 127 do
 	if i ~= 34 and i ~= 92 then
@@ -171,6 +172,34 @@ local function slowcomp(table,ad)
 	for i,v in ipairs(splitted) do
 			task.spawn(function()
 				local e = SlowCompress:DoWork(v)
+				for ci,cv in pairs(e)do
+					new_table[ci] = cv
+				end
+				amount+=1
+				if amount ==#splitted then
+					coroutine.resume(current)
+					done = true
+					end
+				if i == #splitted then
+					if amount ==#splitted then
+					coroutine.resume(current)
+					end
+				end
+			end)
+	end
+	if not done then
+	coroutine.yield()
+	end
+	return new_table
+end
+local function slowdecomp(table,ad)
+	local splitted = divide(table,amountofworkers)
+	local new_table = {}
+	local current,done= coroutine.running(),false
+	local amount = 0
+	for i,v in ipairs(splitted) do
+			task.spawn(function()
+				local e = SlowDeCompress:DoWork(v)
 				for ci,cv in pairs(e)do
 					new_table[ci] = cv
 				end

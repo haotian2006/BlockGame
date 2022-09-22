@@ -311,30 +311,43 @@ function Data.DeLoadEntitysInChunk(Chunk:string)
 end
 function Data.SaveAll()
 	print("started")
-	local tocompress = deepCopy(Data.Chunk)
-	local placehold = compresser.slowcomp(Data.DecodedChunks)
-	print("stage 0 done")
-	for i,v in pairs(placehold)do
-		task.spawn(function()
-			local cx,cz = unpack(string.split(i,"x"))
-			cx = tonumber(cx)
-			cz = tonumber(cz)
-			local chunckpos = Vector3.new(cx*16*4,0,cz*16*4)
-			local closestplayer = refunctions.GetNearByPlayers(chunckpos,15*16*4,"Close")
-			if not closestplayer then
-				task.spawn(function()
-					Data.UpdateChunk(i,true)
-				end)
-			end
-		end)
-		tocompress[Data.GetChunkParent(i)]  = tocompress[Data.GetChunkParent(i)]  or {}
-		tocompress[Data.GetChunkParent(i)][i] = v
+	local decoded = compresser.slowdecod(Data.Chunk)
+	local newchunk = {}
+	for pchunk,blocks in pairs(decoded)do
+		for pos,data in pairs(blocks)do
+				local cx,cz = refunctions.GetChunk(pos)
+				local chunk = cx.."x"..cz
+				newchunk[chunk] = newchunk[chunk] or {}
+				newchunk[chunk][pos] = data
+		end
 	end
+	decoded = {}
+	print("stage 0 done")
+	for chunk,block in pairs(Data.DecodedChunks)do
+		local ifchange = block["IsChanged"]
+		if ifchange then
+			newchunk[chunk] = {}
+		end
+		for pos,bv in pairs(block)do
+			if pos == "IsChanged" then continue end
+			if bv[6] then
+				newchunk[chunk][pos] = bv
+			end
+		end
+	end
+	
 	print("stage 1 done")
-	tocompress = compresser.slowcomp(tocompress,true)
+	for chunk,dat in pairs(newchunk)do
+		local partent = Data.GetChunkParent(chunk)
+		decoded[partent] = decoded[partent] or {}
+		for pos,data in pairs(dat)do
+			decoded[partent][pos] = data
+		end
+	end
+	newchunk = compresser.slowcomp(decoded,true)
 	print("stage 2 done")
 	local msg,sus
-	for i,v in pairs(tocompress)do
+	for i,v in pairs(newchunk)do
 		task.spawn(function()
 			
 			local ccx,ccz = unpack(string.split(i,"|"))

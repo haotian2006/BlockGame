@@ -319,8 +319,7 @@ function Main.destroyblock(player,pos)
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
 	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
-		maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")]  = nil
-		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = nil
+		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {[6] = true}
 		 local placee = {}
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))

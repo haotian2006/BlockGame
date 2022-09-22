@@ -144,4 +144,15 @@ local function Slowdoc(table)
 	end
 	return newtable
 end
-return {rcompress = compress, rdecompress = decompress,doc= doc,dedoc=dedoc,Slowdoc = Slowdoc}
+local function Slowdedoc(table)
+		local newtable = {}
+		local index = 0 
+		for i,v in pairs(table)do
+			index +=1
+			 newtable[i] = game.HttpService:JSONDecode(decompress(v))
+				task.wait(.2)
+	
+		end
+		return newtable
+end
+return {rcompress = compress, rdecompress = decompress,doc= doc,dedoc=dedoc,Slowdoc = Slowdoc,Slowdedoc=Slowdedoc}
