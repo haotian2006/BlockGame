@@ -4,7 +4,7 @@ local HTTPs = game:GetService("HttpService")
 local refunction = require(RS.Functions)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
-local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
+--local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
 local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local pathfinding = require(game.ServerStorage.PathFinding)
 local maindata = require(game.ServerStorage.MainData)
@@ -162,7 +162,9 @@ local function convetcunktostring(cx,cz)
 	return cx..","..cz
 end
 local function can(position,tabl,player,blockdata)
-	
+	if blockdata[1] == nil then
+		return false
+	end
 	local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = splittedstring[1],splittedstring[2],splittedstring[3]
@@ -220,24 +222,7 @@ end
 function Main.GetChunk(Player,Chunk,firsttime)
 	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
-	local currentable = {}
-	if not maindata.GetChunk(Chunk) then
-			currentable = GenHandler.GetGeneration(Chunk)
-			maindata.DecodedChunks[Chunk] =currentable 
-			--maindata.SetChunkTimer(Chunk)
-			--maindata.PlaceChunk(Chunk,currentable)
-		else
-			-- local run = coroutine.running()
-			-- local should = false
-			-- task.spawn(function()
-				currentable = maindata.GetChunk(Chunk)
-			-- 	should = true
-			-- 	coroutine.resume(run)
-			-- end)
-			-- if not should then
-			-- 	coroutine.yield()
-			-- end
-		end
+	local currentable = maindata.GetChunk(Chunk)
 	return Main.GetSortedTable(currentable,Chunk,lc,Player )
 end
 
@@ -299,7 +284,7 @@ function Main.Place(player,block,Position,Orientation)
 	Position = refunction.ConvertPositionToReal(Position,"vector3")
 	local cx,cz = refunction.GetChunk(Position)
 	maindata.GetChunk(cx.."x"..cz)
-	if maindata.DecodedChunks[cx.."x"..cz] and not maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] then
+	if maindata.DecodedChunks[cx.."x"..cz] and (not maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] or maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")][1] == nil ) then
 		maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
 		maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
 		for i,v in ipairs(Main.GetPlayersWithChunk(Position)) do
@@ -318,8 +303,8 @@ function Main.destroyblock(player,pos)
 	pos = refunction.convertPositionto(pos,"table")
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
-	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] then
-		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {[6] = true}
+	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
+		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {}
 		 local placee = {}
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))
@@ -329,27 +314,27 @@ function Main.destroyblock(player,pos)
 		 local left = (refunction.GetBlock({pos[1],pos[2],pos[3]-4}))
 		 if top then
 			table.insert(placee,top)
-			top[6] = false
+			--top[6] = false
 		 end
 		 if bottem then
 			table.insert(placee,bottem)
-			bottem[6] = false
+			--bottem[6] = false
 		 end
 		 if front then
 			table.insert(placee,front)
-			front[6] = false
+			--front[6] = false
 		 end
 		 if back then
 			table.insert(placee,back)
-			back[6] = false
+			--back[6] = false
 		 end
 		 if right then
 			table.insert(placee,right)
-			right[6] = false
+			--right[6] = false
 		 end
 		 if left then
 			table.insert(placee,left)
-			left[6] = false
+			--left[6] = false
 		 end
 		 for i,v in ipairs(Main.GetPlayersWithChunk(pos)) do
 			RS.Events.Block.PlaceClient:FireClient(v,placee)
