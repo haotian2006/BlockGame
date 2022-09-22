@@ -313,6 +313,9 @@ function update.Movement(deltatime)
     if velocity[1] == 0 then
         velocity[1] = 0.0001
     end
+    if velocity[3] == 0 then
+        velocity[3] = 0.0001
+    end
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
     if Jump then
         controlls.Other.Jump()
@@ -333,7 +336,7 @@ function  update.HandleFall()
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = ((((0.98)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.3
+    local fallrate = ((((0.99)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.5
 
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then

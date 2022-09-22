@@ -2,8 +2,9 @@ local LocalizationService = game:GetService("LocalizationService")
 --Thank 1waffle1 for making this its such an life saver
 local workers = require(game.ReplicatedStorage.WorkerThreads)
 local amountofworkers = 20
+local slowamountofworkers = 5
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
-local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",amountofworkers)
+local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",slowamountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)
 local SlowDeCompress = workers.New(script.Parent.cc2,"Slowdedoc",amountofworkers)
 local dictionary, length = {}, 0
@@ -165,7 +166,7 @@ local function decompress(text,a)
 	return unescape(table.concat(sequence))
 end
 local function slowcomp(table,ad)
-	local splitted = divide(table,amountofworkers)
+	local splitted = divide(table,slowamountofworkers)
 	local new_table = {}
 	local current,done= coroutine.running(),false
 	local amount = 0
