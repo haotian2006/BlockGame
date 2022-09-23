@@ -19,7 +19,7 @@ local new
 local Main = {
 	
 }
-
+local blocksthatshouldbeloaded = {}
 local Connections = {}
 local function Echeckfornearbyplayers(uuid,Distance)
 	local deload = false
@@ -165,14 +165,18 @@ local function can(position,tabl,player,blockdata)
 	if  blockdata[1] == "air" or blockdata[1] == nil then
 		return false
 	end
+	if blocksthatshouldbeloaded[position] then
+		blocksthatshouldbeloaded[position] = nil
+		return true
+	end
 	local c = false
 	local splittedstring = string.split(position,",")
 	local x,y,z = tonumber(splittedstring[1]),tonumber(splittedstring[2]),tonumber(splittedstring[3])
 	local ch= convetcunktostring(refunction.GetChunk(position))
-	if tabl[pack2(x+4,y,z)] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and  not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and  not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
+	if tabl[pack2(x+4,y,z)] and Block_Info[tabl[pack2(x+4,y,z)][1]] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  tabl[pack2(x-4,y,z)][1] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and tabl[pack2(x,y+4,z)][1] and not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and tabl[pack2(x,y,z-4)][1] and not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and tabl[pack2(x,y,z+4)][1] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
 	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
 			c = true
-	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
+	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and tabl[pack2(x,y+4,z)][1] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
 			c = true
 	end
 	return c
@@ -223,6 +227,12 @@ function Main.GetChunk(Player,Chunk,firsttime)
 	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local lc = {}
 	local currentable = maindata.GetChunk(Chunk)
+	local timea = os.time()
+	for i,v in pairs(blocksthatshouldbeloaded)do
+		if timea - v > 30 then
+			blocksthatshouldbeloaded[i] = nil
+		end
+	end
 	return Main.GetSortedTable(currentable,Chunk,lc,Player )
 end
 
@@ -304,7 +314,7 @@ function Main.destroyblock(player,pos)
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
 	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
-		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {'air'}
+		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {}
 		 local placee = {}
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))
@@ -314,27 +324,39 @@ function Main.destroyblock(player,pos)
 		 local left = (refunction.GetBlock({pos[1],pos[2],pos[3]-4}))
 		 if top then
 			table.insert(placee,top)
-			--top[6] = false
+			top[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2]+4,pos[3]})] = os.time()
 		 end
 		 if bottem then
 			table.insert(placee,bottem)
-			--bottem[6] = false
+			bottem[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2]-4,pos[3]})] = os.time()
 		 end
 		 if front then
 			table.insert(placee,front)
-			--front[6] = false
+			front[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1]+4,pos[2],pos[3]})] = os.time()
 		 end
 		 if back then
 			table.insert(placee,back)
-			--back[6] = false
+			back[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1]-4,pos[2],pos[3]})] = os.time()
 		 end
 		 if right then
 			table.insert(placee,right)
-			--right[6] = false
+			right[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2],pos[3]+4})] = os.time()
 		 end
 		 if left then
 			table.insert(placee,left)
-			--left[6] = false
+			left[6] = false
+		else
+			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2],pos[3]-4})] = os.time()
 		 end
 		 for i,v in ipairs(Main.GetPlayersWithChunk(pos)) do
 			RS.Events.Block.PlaceClient:FireClient(v,placee)

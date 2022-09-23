@@ -6,7 +6,7 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test413")
+	MainGameStore = DataStore:GetDataStore("Test4c3")
 	-- local options = Instance.new("DataStoreOptions")
 	-- options.AllScopes  = true
 	-- local e =DataStore:GetDataStore("Test3","",options)
@@ -94,8 +94,8 @@ function Data.DeCompress(key,data)
 end
 function Data.GetChunkParent(Chunk)
 	local cx,cz = unpack(string.split(Chunk,"x"))
-	local x = math.floor(tonumber(cx)/6)
-	local z = math.floor(tonumber(cz)/6)
+	local x = math.floor(tonumber(cx)/7)
+	local z = math.floor(tonumber(cz)/7)
 	return x.."|"..z
 end
 -- function Data.GetChunkParentParent(Chunk)
@@ -119,7 +119,7 @@ local setted = {}
 local ab = true
 function  Data.SetChunkTimer(Chunk)
 	do
-		if true then
+		if false then
 		return true
 		end
 	end
@@ -137,7 +137,7 @@ function  Data.SetChunkTimer(Chunk)
 			end
 			task.wait(1)
 			time -= 1
-			local closestplayer = refunctions.GetNearByPlayers(chunckpos,5*16*4,"Close")
+			local closestplayer = refunctions.GetNearByPlayers(chunckpos,10*16*4,"Close")
 			if not closestplayer then
 				if Chunk == "-1x-1" then
 				end
@@ -151,7 +151,7 @@ function  Data.SetChunkTimer(Chunk)
 		end
 		setted[Chunk] = nil
 		if  Data.DecodedChunks[Chunk] then
-			Data.UpdateChunk(Chunk,true)
+			Data.ReturnChunk(Chunk,true)
 			Data.UpdateEntitysInChunk(Chunk,true)
 		end
 	end)
@@ -181,8 +181,8 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 	end
 	if Data.Chunk[parent] and not partdata then
 		local blocks = compresser.decompress(parent.."|",Data.Chunk[parent])
+		Data.ChunkChanges[parent] = Data.ChunkChanges[parent] or {}
 		for chunk,v in pairs(blocks) do
-			Data.ChunkChanges[parent] = Data.ChunkChanges[parent] or {}
 			Data.ChunkChanges[parent][chunk] = v
 			--print(next(v,"Settings"),chunk)
 		end
@@ -310,6 +310,17 @@ function Data.DeLoadEntitysInChunk(Chunk:string)
 	end
 	Data.Entitys[parent][Chunk] = nil
 end
+function Data.FullyDestroyTable(table:table)
+	for k, v in pairs(table) do
+		if type(v) == "table" then
+			v = deepCopy(v)
+			table[k] = nil
+		else
+			table[k] = nil
+		end
+	end
+	table = nil
+end
 function Data.ReturnChunk(chunk,destroy)
 	local parent = Data.GetChunkParent(chunk)
 	if Data.DecodedChunks[chunk] then
@@ -328,25 +339,42 @@ function Data.ReturnChunk(chunk,destroy)
 		end
 	end
 end
-function Data.CompressAllChanges(pchunk)
+function Data.CompressAllChanges(pchunk,fast)
 	if pchunk and Data.ChunkChanges[pchunk] then
 		local newcompressed = compresser.compress(pchunk.."|a",Data.ChunkChanges[pchunk])
 		Data.Chunk[pchunk] = newcompressed
 		return
 	end
+	if fast then
+		compresser.slowcomp(Data.ChunkChanges)
+		return
+	end
+	local done,ad,reached = 0,0,false
 	for chunk,block in pairs(Data.ChunkChanges)do
-		if Data.ChunkChanges[chunk] then
-		local newcompressed = compresser.compress(chunk.."|a",block)
-		Data.Chunk[chunk] = newcompressed
-		end
+		done +=1
+		task.spawn(function()
+			if Data.ChunkChanges[chunk] then
+			local newcompressed = compresser.compress(chunk.."|a",block)
+			Data.Chunk[chunk] = newcompressed				
+			end
+			if next(Data.ChunkChanges,chunk) == nil then
+				reached = true
+			end
+			ad +=1
+		end)
 	end	
+	repeat
+		task.wait()
+	until (done == ad and reached) or done == 0
 end
 function Data.SaveAll()
 	print("started")
+	local starttime = os.time()
 	for chunk,block in pairs(Data.DecodedChunks)do
 		Data.ReturnChunk(chunk)
 	end
 	print("stage 1/3 done")
+	task.wait(.4)
 	Data.CompressAllChanges()
 	print("stage 2/3 done")
 	local msg,sus
@@ -374,6 +402,7 @@ function Data.SaveAll()
 	repeat
 		task.wait()
 	until (done == ad and reached) or done == 0
+	print("It Took",os.time()- starttime,"Seconds To Save",done,"6x6 group chunks" )
 	print("stage 3/3 done",msg,sus)
 end
 task.spawn(function()

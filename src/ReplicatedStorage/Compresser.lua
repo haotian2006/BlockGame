@@ -2,7 +2,7 @@ local LocalizationService = game:GetService("LocalizationService")
 --Thank 1waffle1 for making this its such an life saver
 local workers = require(game.ReplicatedStorage.WorkerThreads)
 local amountofworkers = 20
-local slowamountofworkers = 5
+local slowamountofworkers = 40
 local Compress = workers.New(script.Parent.cc2,"doc",amountofworkers)
 local SlowCompress = workers.New(script.Parent.cc2,"Slowdoc",slowamountofworkers)
 local DeCompress = workers.New(script.Parent.cc2,"dedoc",amountofworkers)

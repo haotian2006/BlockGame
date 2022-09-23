@@ -223,7 +223,7 @@ local function frender(char)
 			end
 	end
 	task.spawn(function()
-		local nearbychunks = refunction.GetSurroundingChunk(char.Position,12)
+		local nearbychunks = refunction.GetSurroundingChunk(char.Position,9)
 		for i,v in pairs(storedchunk)do
 			if typeof(v) == "Instance" then
 				if table.find(nearbychunks,i)  then
@@ -242,7 +242,6 @@ local function frender(char)
 		table.insert(nearbychunks,v)	
 		end
 	end
-	local newchunks = {}
 	local thread = coroutine.running()
 	local threadsdone = 0
 	local done = false
@@ -341,11 +340,8 @@ local function frender(char)
 	if not done then 
 		coroutine.yield()
 	end
-	task.wait(0.5)
-	for i,v in ipairs(newchunks)do
-		v.Parent = workspace.Chunk
-		v = nil
-		task.wait(0.1)
+	if firsttime == false then
+		task.wait(2)
 	end
 	firsttime = true
 	return
