@@ -7,29 +7,6 @@ local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
 	MainGameStore = DataStore:GetDataStore("Test4c3")
-	-- local options = Instance.new("DataStoreOptions")
-	-- options.AllScopes  = true
-	-- local e =DataStore:GetDataStore("Test3","",options)
-	-- local pages 
-	-- task.spawn(function()
-	-- 	local sus,erro = pcall(function()
-	-- 		pages = e:ListKeysAsync()
-	-- 	end)
-	-- 	while sus do
-	-- 	local items = pages:GetCurrentPage()
-	-- 	local ammount = 0
-	-- 	for _, v in ipairs(items) do
-	-- 		ammount+=1
-	-- 		allkeys[v.KeyName] = true
-	-- 	end
-	-- 	if pages.IsFinished or ammount ==0 then
-	-- 		break
-	-- 	end
-	-- 	print(items)
-	-- 	pages:AdvanceToNextPageAsync()
-	-- end
-	-- end)
-
 end
 
 local https = game:GetService("HttpService")
@@ -98,16 +75,6 @@ function Data.GetChunkParent(Chunk)
 	local z = math.floor(tonumber(cz)/7)
 	return x.."|"..z
 end
--- function Data.GetChunkParentParent(Chunk)
--- 	local cx,cz = unpack(string.split(Chunk,"|"))
--- 	local x = math.floor(tonumber(cx)/2)
--- 	local z = math.floor(tonumber(cz)/2)
--- 	return x.."/"..z
--- end
--- local x = (tonumber(cx)/2)
--- 	local z = (tonumber(cz)/2)
--- 	x = x <0 and math.ceil(x) or math.floor(x)
--- 	z = z <0 and math.ceil(z) or math.floor(z)
 function Data.CompressAllDC()
 	for c,d in pairs(dc) do
 		local newcompressed = compresser.compress(c,dc[c])
@@ -143,7 +110,7 @@ function  Data.SetChunkTimer(Chunk)
 				end
 			end
 			if closestplayer then
-				time = math.clamp(100-90*#game.Players:GetPlayers(),10,100)
+				time = math.clamp(100-20*#game.Players:GetPlayers(),10,100)
 			end
 			if time <= 0 or not Data.DecodedChunks[Chunk] then
 				break
@@ -339,6 +306,31 @@ function Data.ReturnChunk(chunk,destroy)
 		end
 	end
 end
+function Data.DeloadPChunks(pchunk,compressed)
+	if pchunk and Data.ChunkChanges[pchunk]  then
+		local candeload = true
+		for name,data in pairs( Data.ChunkChanges[pchunk])do
+			local cx,cz = unpack(string.split(name,"x"))
+			cx = tonumber(cx)
+			cz = tonumber(cz)
+			local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
+			local closestplayer = refunctions.GetNearByPlayers(chunckpos,10*16*4,"Close")
+			if  closestplayer then
+				candeload = false
+				break
+			end
+		end
+		if candeload then
+			if compressed then
+				--Data.Chunk[pchunk] = compressed
+			else
+				--Data.Chunk[pchunk] = compresser.compress(pchunk.."|ac",Data.ChunkChanges[pchunk])
+			end
+			print("c")
+			Data.ChunkChanges[pchunk] = nil
+		end
+	end
+end
 function Data.CompressAllChanges(pchunk,fast)
 	if pchunk and Data.ChunkChanges[pchunk] then
 		local newcompressed = compresser.compress(pchunk.."|a",Data.ChunkChanges[pchunk])
@@ -346,7 +338,13 @@ function Data.CompressAllChanges(pchunk,fast)
 		return
 	end
 	if fast then
-		compresser.slowcomp(Data.ChunkChanges)
+		local datas = compresser.slowcomp(Data.ChunkChanges)
+		for chunk,compressed in pairs(datas)do
+			task.spawn(function()
+				Data.Chunk[chunk] = compressed	
+				Data.DeloadPChunks(chunk,compressed)
+			end)	
+		end
 		return
 	end
 	local done,ad,reached = 0,0,false
@@ -355,7 +353,10 @@ function Data.CompressAllChanges(pchunk,fast)
 		task.spawn(function()
 			if Data.ChunkChanges[chunk] then
 			local newcompressed = compresser.compress(chunk.."|a",block)
-			Data.Chunk[chunk] = newcompressed				
+			Data.Chunk[chunk] = newcompressed	
+			task.spawn(function()
+				Data.DeloadPChunks(chunk,newcompressed)
+			end)
 			end
 			if next(Data.ChunkChanges,chunk) == nil then
 				reached = true
@@ -375,7 +376,7 @@ function Data.SaveAll()
 	end
 	print("stage 1/3 done")
 	task.wait(.4)
-	Data.CompressAllChanges()
+	Data.CompressAllChanges(nil,true)
 	print("stage 2/3 done")
 	local msg,sus
 	local done,ad,reached = 0,0,false
