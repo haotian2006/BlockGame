@@ -6,7 +6,7 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test4c3")
+	MainGameStore = DataStore:GetDataStore("Test4aab3")
 end
 
 local https = game:GetService("HttpService")
@@ -14,7 +14,7 @@ local Data = {
     ["Chunk"] ={
 	--[[
 		["1-1"]={
-			["0x0"] = {"Stone",1,{0,90,0},{0,0,0},"0x0",false}--(name,State,rotation,Position,Chunk,IsNatural)
+			["0x0"] = {"Stone",1,{0,90,0},{0,0,0},"0x0",false,{},{}}--(name,State,rotation,Position,Chunk,IsNatural,SendToClient,ServerOnly)
 		}
 	]]
 	},
@@ -71,8 +71,8 @@ function Data.DeCompress(key,data)
 end
 function Data.GetChunkParent(Chunk)
 	local cx,cz = unpack(string.split(Chunk,"x"))
-	local x = math.floor(tonumber(cx)/7)
-	local z = math.floor(tonumber(cz)/7)
+	local x = math.floor(tonumber(cx)/6)
+	local z = math.floor(tonumber(cz)/6)
 	return x.."|"..z
 end
 function Data.CompressAllDC()
@@ -97,7 +97,7 @@ function  Data.SetChunkTimer(Chunk)
 		cx = tonumber(cx)
 		cz = tonumber(cz)
 		local chunckpos = Vector3.new(cx*16*4,"0",cz*16*4)
-		local time = math.clamp(100-20*#game.Players:GetPlayers(),50,100)
+		local time = math.clamp(50-10*#game.Players:GetPlayers(),10,100)
 		while true do
 			if Chunk == "-1x-1" then
 				print(time)
@@ -110,7 +110,7 @@ function  Data.SetChunkTimer(Chunk)
 				end
 			end
 			if closestplayer then
-				time = math.clamp(100-20*#game.Players:GetPlayers(),10,100)
+				time = math.clamp(50-10*#game.Players:GetPlayers(),10,100)
 			end
 			if time <= 0 or not Data.DecodedChunks[Chunk] then
 				break
@@ -154,15 +154,12 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 			--print(next(v,"Settings"),chunk)
 		end
 	end
-	local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
-	local data = GenHandler.GetGeneration(Chunk)
+	local data = {}
 	if  not Data.ChunkChanges[parent] or not Data.ChunkChanges[parent][Chunk] or next(Data.ChunkChanges[parent][Chunk]) == nil then
 		data["Settings"] = {}
-		data["Settings"]["Version"] = 0.1
+		data["Settings"]["Version"] = game.ReplicatedStorage.Version.Value
 	else
-		for id,value in pairs(Data.ChunkChanges[parent][Chunk])do
-			data[id] = value
-		end
+		data = Data.ChunkChanges[parent][Chunk]
 	end
 	Data.DecodedChunks[Chunk] = data
 	Data.LoadEntitysInChunk(Chunk)
@@ -306,6 +303,7 @@ function Data.ReturnChunk(chunk,destroy)
 		end
 	end
 end
+local pchunks_todestroy = {}
 function Data.DeloadPChunks(pchunk,compressed)
 	if pchunk and Data.ChunkChanges[pchunk]  then
 		local candeload = true
@@ -326,8 +324,8 @@ function Data.DeloadPChunks(pchunk,compressed)
 			else
 				--Data.Chunk[pchunk] = compresser.compress(pchunk.."|ac",Data.ChunkChanges[pchunk])
 			end
-			print("c")
 			Data.ChunkChanges[pchunk] = nil
+			pchunks_todestroy[pchunk] = true
 		end
 	end
 end
@@ -403,6 +401,10 @@ function Data.SaveAll()
 	repeat
 		task.wait()
 	until (done == ad and reached) or done == 0
+	for i,v in pairs(pchunks_todestroy)do
+		Data.Chunk[i] = nil
+		pchunks_todestroy[i] = v
+	end
 	print("It Took",os.time()- starttime,"Seconds To Save",done,"6x6 group chunks" )
 	print("stage 3/3 done",msg,sus)
 end

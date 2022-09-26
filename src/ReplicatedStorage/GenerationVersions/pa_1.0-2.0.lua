@@ -20,7 +20,7 @@ HEIGHT_SCALE = 40
 OCTAVES = 4
 LACUNARITY = 0
 PERSISTENCE = 2
-SEED = 123
+SEED = 12345
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement
@@ -30,6 +30,7 @@ function Generation.GetBlock(position:Vector3)
 	return (position.Y<Surface) and "Stone" or nil
 end
 function Generation.GetChunks(chuncks)
+	local versiontouse
 	local new = {}
 	for i,v in pairs(chuncks)do
 		for index,coord in ipairs(v) do

@@ -26,7 +26,7 @@ for i = 1, 34 do
 	local c, e = string.char(i), string.char(i + 31)
 	escapemap[c], escapemap[e] = e, c
 end
-local function divide(original,times)
+local function divide(original,times,dontdestroy)
 	local tables = {}
 	for i =1,times do
 		tables[i] = {}
@@ -40,7 +40,9 @@ local function divide(original,times)
 				break
 			end
 		end
-		original[i] = nil
+		if not dontdestroy then
+			original[i] = nil
+		end
 	end
 	return tables
 end
@@ -166,7 +168,7 @@ local function decompress(text,a)
 	return unescape(table.concat(sequence))
 end
 local function slowcomp(table,ad)
-	local splitted = divide(table,slowamountofworkers)
+	local splitted = divide(table,slowamountofworkers,true)
 	local new_table = {}
 	local current,done= coroutine.running(),false
 	local amount = 0
