@@ -11,7 +11,6 @@ local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
 --local KeyFramePlayer = require(game.ReplicatedStorage.Assests:WaitForChild("KeyFramePlayer"))
 --  KeyFramePlayer:LoadAnimation(aa.PlayerVeiwPort.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
 --  KeyFramePlayer:LoadAnimation(viewModel.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
-
 local Current_Entity 
 local oldentity
 local a = 3
@@ -243,8 +242,17 @@ function update.UpdatePosition(delta)
             total[2] += v[2]
             total[3] += v[3]
         end	
-        if total[2] > 0 then 
-            --print( total[2])
+        for i,v in pairs(total) do
+            total[i] = v*delta*60
+            if total[i] ~= total[i] then
+                total[i] = 0
+            end
+        end	
+        if total[1] == 0 then
+            total[1] = 0.00000001
+        end
+        if total[3] == 0 then
+            total[3] = 0.00000001
         end
         entity.Jumping = controlls.Jumping
         entity.Position = controlls.PlayerPosition
@@ -260,17 +268,19 @@ function controlls.Other.Jump()
     local e 
     local jumpedamount =0 
     local jumpheight = controlls.PlayerNbt.MaxJump or 5.9
+    local seconds2 = 0
     e = game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
-        local jump = jumpheight*deltaTime*4.5
+        -- seconds2 += deltaTime
+        -- if seconds2 >=1/60  then else return end
+        local jump = jumpheight*(1*deltaTime)*4.5
         if controlls.IsOnGround  and controlls.Jumping == false then
             if jumpedamount == 0 then
-                jumpedamount += jumpheight*deltaTime*4.5
-               -- jump = 4.1*deltatime
+                jumpedamount += jumpheight*(1*deltaTime)*4.5
             end 
            end
         if jumpedamount > 0 and jumpedamount <=jumpheight  then
-         jumpedamount += jumpheight*deltaTime*4.5
-         jump = jumpheight*deltaTime*4.5
+         jumpedamount += jumpheight*(deltaTime)*4.5
+         jump = jumpheight*(1*deltaTime)*4.5
          controlls.Jumping = true
          else
              controlls.Jumping = false
@@ -278,10 +288,13 @@ function controlls.Other.Jump()
              jumpedamount = 0
              e:Disconnect()
         end
-        controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,jump,0}
+        controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,(jump/deltaTime)/60,0}
+        if seconds2 >=1/60  then 
+            seconds2 =0
+        end
     end)
 end
-function update.Movement(deltatime)
+function update.Movement(deltaTime)
     if not controlls.PlayerNbt then   
        local b = game.ReplicatedStorage.Events.Entitys.GetPlayer:InvokeServer(controlls.PlayerPosition)     
        if b then
@@ -311,10 +324,10 @@ function update.Movement(deltatime)
     local Jump = keypressed[controlls.KeyBoard.Jump]
     velocity = refunction.convertPositionto(refunction.AddPosition(refunction.AddPosition(foward,Back),refunction.AddPosition(Right,Left)),"table")
     if velocity[1] == 0 then
-        velocity[1] = 0.0001
+      --  velocity[1] =0.00000001
     end
     if velocity[3] == 0 then
-        velocity[3] = 0.0001
+       --velocity[3] =0.00000001
     end
    controlls.PlayerNbt.NotSaved.Velocity.PlayerMovement = velocity
     if Jump then
@@ -326,7 +339,9 @@ function update.Movement(deltatime)
     --game:GetService("TweenService"):Create(workspace.Entity:FindFirstChild(Player.Name),TweenInfo.new(0),{CFrame= CFrame.new(refunction.convertPositionto(controlls.PlayerPosition,"vector3"))}):Play()
    end
 end
-function  update.HandleFall()
+local seconds = 0
+function  update.HandleFall(deltaTime)
+    seconds += deltaTime
     local entity =   controlls.PlayerNbt
     if not entity then return end 
     local pos =  controlls.PlayerPosition
@@ -336,7 +351,7 @@ function  update.HandleFall()
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = ((((0.99)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.5
+    local fallrate = (((((0.99)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.5)
 
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then
@@ -344,8 +359,13 @@ function  update.HandleFall()
         controlls.IsFalling = false
         controlls.FallTicks = 0
     elseif not controlls.IsOnGround and entity.CanFall then
-        controlls.FallTicks += 1
+      if seconds >= 1/60 then
+            controlls.FallTicks += 1
+        end
         entity.NotSaved.Velocity.Fall = {0,fallrate,0}
+    end
+    if seconds >= 1/60 then
+        seconds =0
     end
 end
 local elapsed = 0
@@ -486,7 +506,6 @@ local delayrun = {}
             end)
         end
     end)
-
 game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
     for i,v in pairs(update)do
         task.spawn(function()

@@ -236,8 +236,8 @@ local function start()
 			for i,v in ipairs(splitted) do
 				task.spawn(function()
 					local newtable = Compress:DoWork(v)
-					for i,v in pairs(newtable)do
-						cdone[i] = v
+					for ai,av in pairs(newtable)do
+						cdone[ai] = av
 					end
 				end)
 				task.wait(.3)
@@ -250,8 +250,8 @@ local function start()
 		for i,v in ipairs(splitted) do
 			task.spawn(function()
 				local newtable = DeCompress:DoWork(v)
-				for i,v in pairs(newtable)do
-					ddone[i] = v
+				for ai,av in pairs(newtable)do
+					ddone[ai] = av
 				end
 			end)
 		end

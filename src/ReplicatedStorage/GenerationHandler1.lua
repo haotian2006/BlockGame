@@ -1,10 +1,22 @@
 local workers = require(game.ReplicatedStorage.WorkerThreads)
 local amountofworkers = 20
-local getchunk = workers.New(script.Parent.GenerationHandler,"GetChunks",amountofworkers)
-local refunction = require(game.ReplicatedStorage.Functions)
+local getchunk = workers.New(script.Parent.GenerationVersions.GenerationHandler2,"DoStuff",amountofworkers)
+local g2 = require(script.Parent.GenerationVersions.GenerationHandler2)
 local func = {}
 local queue ={}
 local done = {}
+local Block_Info = require(game.ReplicatedStorage.BlockInfo)
+local refunction = require(game.ReplicatedStorage.Functions)
+local function deepCopy(original)
+	local copy = {}
+	for k, v in pairs(original) do
+		if type(v) == "table" then
+			v = deepCopy(v)
+		end
+		copy[k] = v
+	end
+	return copy
+end
 local function divide(original,times)
 	local tables = {}
 	for i =1,times do
@@ -41,13 +53,13 @@ task.spawn(function()
         local splitter = divide(queue,amountofworkers)
         for i,v in pairs(splitter)do
             task.spawn(function()
-               local newcs = getchunk:DoWork(v)
-               for i,v in pairs(newcs)do
-                done[i] = v
+			   local newcs = getchunk:DoWork("SendGen",Block_Info,refunction,"GetChunks",v)
+               for is,vs in pairs(newcs)do
+                done[is] = vs
                 end
             end)
         end
-        task.wait(.5)
+        task.wait(.2)
     end
 end)
 return func

@@ -6,7 +6,7 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("Test4aab3")
+	MainGameStore = DataStore:GetDataStore("a")
 end
 
 local https = game:GetService("HttpService")

@@ -16,6 +16,7 @@ local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
 local loadthread = workthingyt.New(script.Parent:WaitForChild("LoadChunkIdk"),"Load",100)
 local compresser = require(game.ReplicatedStorage.Compresser)
 local new 
+local g2 = require(RS.GenerationVersions.GenerationHandler2)
 local Main = {
 	
 }
@@ -223,17 +224,23 @@ function Main.GetFloor(pos,CanBeTransParent)
 	end
 	return nil
 end
+local function  converttuptocoord(cx,cy)
+	return cx.."x"..cy
+end
 function Main.GetChunk(Player,Chunk,firsttime)
 	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
-	local lc = {}
-	local currentable = maindata.GetChunk(Chunk)
+	local currentable = maindata.GetChunk(Chunk) or {}
 	local timea = os.time()
+	local should = {}
 	for i,v in pairs(blocksthatshouldbeloaded)do
+		if converttuptocoord(refunction.GetChunk(i)) == Chunk then
+			should[i] = true
+		end
 		if timea - v > 30 then
 			blocksthatshouldbeloaded[i] = nil
 		end
 	end
-	return Main.GetSortedTable(currentable,Chunk,lc,Player )
+	return currentable,should
 end
 
 function updateentitytable(Player,Distance,pos)
@@ -313,7 +320,7 @@ function Main.destroyblock(player,pos)
 	pos = refunction.convertPositionto(pos,"table")
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
-	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
+--	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
 		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {}
 		 local placee = {}
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
@@ -362,7 +369,7 @@ function Main.destroyblock(player,pos)
 			RS.Events.Block.PlaceClient:FireClient(v,placee)
 			RS.Events.Block.DestroyBlock:FireClient(v,{refunction.convertPositionto(pos,"string")})
 		end
-	end
+	--end
 end
 function Main.GetPlayer(player,Pos,a,neck,Body)
 	local player = maindata.LoadedEntitys[player.Name] 

@@ -61,10 +61,10 @@ function move.update(uuid,delta)
         total[3] += v[3]
     end	
     if total[1] == 0 then
-        total[1] = 0.0001
+        total[1] = 0.00000001
     end
     if total[3] == 0 then
-        total[3] = 0.0001
+        total[3] = 0.00000001
     end
     entity.IsOnGround = collision_handler.IsGrounded(entity)
     local pos = collision_handler.entityvsterrain(entity,total)

@@ -1,25 +1,38 @@
 local Generation = {}
-local Block_Info = require(game.ReplicatedStorage.BlockInfo)
-local refunction = require(game.ReplicatedStorage.Functions)
+local Block_Info 
+local refunction 
+local allmoudlescripts = {}
+local a,b = pcall(require,game.ReplicatedStorage.BlockInfo)
+if a then
+	Block_Info = b
+end
+task.delay(0.1,function()
+	local a,b = pcall(require,game.ReplicatedStorage.Functions)
+	if a then
+	refunction = b
+	end
+end)
 function Generation.GetVersion(versiontouse)
 	versiontouse = versiontouse or game.ReplicatedStorage.Version.Value
-	local latest,touse= 0,game.ReplicatedStorage.GenerationVersions["pa_1.0-2.0"] 
+	local latest,touse= 0,"pa_1.0-2.0"
    if versiontouse then
 	   for i,v in ipairs(game.ReplicatedStorage.GenerationVersions:GetChildren())do
-		   local typ,version = unpack(string.split(v.Name,"_"))
-		   local version = string.split(version,"-")
+		local unpacked = unpack(string.split(v.Name,"_"))
+		   local typ,version = unpacked[1],unpacked[2]
+		   version = version and string.split(version,"-")
+		   if not version then continue end
 		   local v1,v2 = version[1],version[2]
 		   v1,v2 = tonumber(v1),tonumber(v2)
 		   if v1 then
 			   if latest < v1 then
 				   latest = v1
-				   touse = v
+				   touse = v.Name
 			   end
 		   end
 		   if v2 then
 			   if latest < v2 then
 				   latest = v2
-				   touse = v
+				   touse = v.Name
 			   end
 		   end
 	   end		
@@ -59,11 +72,12 @@ function Generation.GetSortedTable(Data,Chunk)
 	end
 	return lc
 end
+
 function Generation.GetBlock(Block,versiontouse)
 	versiontouse = versiontouse or game.ReplicatedStorage.Version.Value
 	local genh = Generation.GetVersion(versiontouse)
 	if genh then
-		genh = require(genh)
+		genh = allmoudlescripts[genh]
 		genh.GetBlock(Block)
 	end
 
@@ -75,8 +89,9 @@ function Generation.GetChunks(chunck,alrloaded)
 	end
 	local data = {}
 	local genh = Generation.GetVersion(versiontouse)
+	genh =  allmoudlescripts[genh]
 	if genh then
-		genh = require(genh)
+
 		data = genh.GetChunks(chunck)
 		if alrloaded then
 			for pos,bdata in pairs(alrloaded) do
@@ -86,5 +101,13 @@ function Generation.GetChunks(chunck,alrloaded)
 	end
 
 	return data
+end
+function Generation.DoStuff(allss,sendgen,Block_Info1,refunction1,functiontocall,...)
+	refunction = refunction1
+	Block_Info = Block_Info1
+	allmoudlescripts = allss or allmoudlescripts
+	if Generation[functiontocall] then
+		return Generation[functiontocall](...)
+	end
 end
 return Generation

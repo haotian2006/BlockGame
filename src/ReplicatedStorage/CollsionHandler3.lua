@@ -98,7 +98,7 @@ function  collisions.entityvsterrain(entity,velocity)
         position[3] += placevelocity[3]
         if MinTime <1 then
             --epsilon 
-            if velocity[1] >0 then
+            if velocity[1] >0 and velocity[1] ~= 0.00000001 then
                 position[1] -= 0.001
             elseif velocity[1] <0 then
                 position[1] += 0.001
@@ -108,7 +108,7 @@ function  collisions.entityvsterrain(entity,velocity)
             elseif velocity[2] <0 then
                 position[2] += 0.001
             end
-            if velocity[3] >0 then
+            if velocity[3] >0 and velocity[3] ~= 0.00000001 then
                 position[3] -= 0.00001
             elseif velocity[3] <0 then
                 position[3] += 0.00001

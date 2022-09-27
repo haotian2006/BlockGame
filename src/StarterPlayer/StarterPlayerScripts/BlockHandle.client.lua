@@ -7,15 +7,16 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 5
+local render = 7
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
 local workthingyt = require(game.ReplicatedStorage.WorkerThreads)
 local storedchunk = require(script.Parent:WaitForChild("ChunksToBeLoaded"))
-local loadthread = workthingyt.New(script.Parent:WaitForChild("ChunksToBeLoaded"),"LoadChunk",100)
+local loadthread = workthingyt.New(script.Parent:WaitForChild("ChunksToBeLoaded"),"LoadChunk",40)
 local compressor = require(game.ReplicatedStorage.Compresser)
-local GenHandler = require(RS.GenerationMutit)
+local GenHandler = require(RS.GenerationHandler1)
+local g2 = require(RS.GenerationVersions.GenerationHandler2)
 local old
 local firsttime = false
 local function frender(char)
@@ -57,6 +58,7 @@ local function frender(char)
 	local threadsdone = 0
 	local done = false
 	local curentlyload = {}
+	
 	for i,chunk in ipairs(nearbychunks)do
 		if storedchunk[chunk] then
 			storedchunk[chunk].Parent = workspace.Chunk
@@ -91,13 +93,15 @@ local function frender(char)
 		done = true
 		continue
 	end
-	local Blocks
+	local Blocks,loaded
 	if i%1 == 0 then
-		Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
+		Blocks = GenHandler.GetGeneration(chunk)
+		loaded = events.Block.GetChunk:InvokeServer(chunk)
 	end
 	task.spawn(function()
-		if i%2 == 0 then
-			--Blocks = events.Block.GetChunk:InvokeServer(chunk,firsttime)
+		Blocks = g2.GetSortedTable(Blocks,chunk)
+		if i%3 == 0 then
+			task.wait(math.random(2,4)/10)
 		end
 		local currena = chunk
 		table.insert(curentlyload,currena)
@@ -157,7 +161,7 @@ local function frender(char)
 		coroutine.yield()
 	end
 	if firsttime == false then
-		task.wait(2)
+		--task.wait(2)
 	end
 	firsttime = true
 	return
