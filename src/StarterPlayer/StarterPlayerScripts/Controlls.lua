@@ -14,6 +14,7 @@ local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
 local Current_Entity 
 local oldentity
 local a = 3
+local fps = game.ReplicatedStorage.ClientFps
 local controlls = {
     KeyBoard = {
         Interact_Use  = "MouseButton2",
@@ -238,16 +239,16 @@ function update.UpdatePosition(delta)
         local total = {0,0,0}
         if  typeof(Velocity) ~= "table"  then return end
         for i,v in pairs(Velocity) do
-            total[1] += v[1]
-            total[2] += v[2]
-            total[3] += v[3]
+            total[1] += v[1] ~= v[1] and 0 or v[1]
+            total[2] += v[2] ~= v[2] and 0 or v[2]
+            total[3] += v[3] ~= v[3] and 0 or v[3]
         end	
-        for i,v in pairs(total) do
-            total[i] = v*delta*60
-            if total[i] ~= total[i] then
-                total[i] = 0
+        if fps.Value >62 then
+            print("e")
+            for i,v in pairs(total) do
+                total[i] = v*delta*60
             end
-        end	
+        end
         if total[1] == 0 then
             total[1] = 0.00000001
         end
@@ -261,7 +262,7 @@ function update.UpdatePosition(delta)
         local pos = collision_handler.entityvsterrain(entity,total)
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
-local speed = .5
+local speed = 1
 function controlls.Other.Jump()
     if  controlls.Jumping == true then return end
 
@@ -288,7 +289,8 @@ function controlls.Other.Jump()
              jumpedamount = 0
              e:Disconnect()
         end
-        controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,(jump/deltaTime)/60,0}
+        local touse = fps.Value>62 and (jump/deltaTime)/60 or jump
+        controlls.PlayerNbt.NotSaved.Velocity.Jump ={0,touse,0}
         if seconds2 >=1/60  then 
             seconds2 =0
         end

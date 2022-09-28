@@ -5,6 +5,10 @@ local allmoudlescripts = {}
 local a,b = pcall(require,game.ReplicatedStorage.BlockInfo)
 if a then
 	Block_Info = b
+	for i,v in ipairs(game.ReplicatedStorage.GenerationVersions:GetChildren()) do
+		if v.Name == "GenerationHandler2" then continue end
+		allmoudlescripts[v.Name] = require(v)
+	end
 end
 task.delay(0.1,function()
 	local a,b = pcall(require,game.ReplicatedStorage.Functions)
@@ -47,6 +51,7 @@ local function convetcunktostring(cx,cz)
 end
 local function can(position,tabl,player,blockdata)
 	if  blockdata[1] == "air" or blockdata[1] == nil then
+		
 		return false
 	end
 	local c = false
@@ -56,16 +61,21 @@ local function can(position,tabl,player,blockdata)
 	if tabl[pack2(x+4,y,z)] and Block_Info[tabl[pack2(x+4,y,z)][1]] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  tabl[pack2(x-4,y,z)][1] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and tabl[pack2(x,y+4,z)][1] and not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and tabl[pack2(x,y,z-4)][1] and not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and tabl[pack2(x,y,z+4)][1] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
 	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
 			c = true
-	elseif ( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and tabl[pack2(x,y+4,z)][1] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"])) or not blockdata[6]   then 
+	elseif (( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and tabl[pack2(x,y+4,z)][1] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]))) or not blockdata[6]  then 
 			c = true
+	elseif (tabl[pack2(x+4,y,z)] and not tabl[pack2(x+4,y,z)][1] or tabl[pack2(x-4,y,z)] and not tabl[pack2(x-4,y,z)][1]) or (tabl[pack2(x,y+4,z)] and not tabl[pack2(x,y+4,z)][1] or tabl[pack2(x,y-4,z)] and not tabl[pack2(x,y-4,z)][1]) or (tabl[pack2(x,y,z+4)] and not tabl[pack2(x,y,z+4)][1] or tabl[pack2(x,y,z-4)] and not tabl[pack2(x,y,z-4)][1]) then
+		c = true
 	end
 	return c
 end
-function Generation.GetSortedTable(Data,Chunk)
+function Generation.GetSortedTable(Data,Chunk,should)
 	local size = 0
 	local lc = {}
 	for coord,data in pairs(Data) do
-		if can(coord,Data,0,data)  then	
+		if coord == "-96,52,-124" then
+			--print(data[6])
+		end
+		if should[coord] or can(coord,Data,0,data)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		size +=1
@@ -78,7 +88,7 @@ function Generation.GetBlock(Block,versiontouse)
 	local genh = Generation.GetVersion(versiontouse)
 	if genh then
 		genh = allmoudlescripts[genh]
-		genh.GetBlock(Block)
+		return genh.GetBlock(Block)
 	end
 
 end

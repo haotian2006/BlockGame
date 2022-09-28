@@ -21,24 +21,29 @@ OCTAVES = 4
 LACUNARITY = 0
 PERSISTENCE = 2
 SEED = 12345
+local maxheight = 80
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement
 end
-function Generation.GetBlock(position:Vector3)
+function Generation.GetBlockName(position:Vector3)
 	local Surface = (2+ Generation.Noise(position.X,position.Z,OCTAVES,LACUNARITY,PERSISTENCE,NOISE_SCALE,SEED))*HEIGHT_SCALE
-	return (position.Y<Surface) and "Stone" or nil
+	return (position.Y<Surface and position.Y <=maxheight) and "Stone" or nil
+end
+function Generation.GetBlock(pos:Vector3)
+	local c =Generation.GetBlockName(pos)
+	return c and {c,0,{0,0,0},pack(pos)}
 end
 function Generation.GetChunks(chuncks)
 	local versiontouse
 	local new = {}
 	for i,v in pairs(chuncks)do
 		for index,coord in ipairs(v) do
-			for y = 0,80,4 do
+			for y = 0,maxheight,4 do
 				--task.spawn(function()
 					local coords = string.split(coord,"x")
 					local position = Vector3.new(coords[1],y,coords[2])
-					local block,id = Generation.GetBlock(position)
+					local block,id = Generation.GetBlockName(position)
 					id = 0
 					if  block ~= nil and block ~="Air" then
 						new[i] = new[i] or {}

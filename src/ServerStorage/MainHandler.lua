@@ -227,20 +227,30 @@ end
 local function  converttuptocoord(cx,cy)
 	return cx.."x"..cy
 end
-function Main.GetChunk(Player,Chunk,firsttime)
+function Main.GetChunk(Player,Chunks)
 	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
-	local currentable = maindata.GetChunk(Chunk) or {}
-	local timea = os.time()
 	local should = {}
 	for i,v in pairs(blocksthatshouldbeloaded)do
-		if converttuptocoord(refunction.GetChunk(i)) == Chunk then
+		if Chunks[converttuptocoord(refunction.GetChunk(i))]  then
 			should[i] = true
 		end
-		if timea - v > 30 then
+		if os.time() - v > 30 then
 			blocksthatshouldbeloaded[i] = nil
 		end
 	end
-	return currentable,should
+	local data = {}
+	local done = 0
+	for _,Chunk in ipairs(Chunks) do
+		task.spawn(function()
+			local currentable = maindata.GetChunk(Chunk) or {}
+			data[Chunk] = currentable
+			done+=1
+		end)
+	end
+	repeat
+		game:GetService("RunService").Heartbeat:Wait()
+	until done == #Chunks
+	return data,should
 end
 
 function updateentitytable(Player,Distance,pos)
@@ -320,59 +330,83 @@ function Main.destroyblock(player,pos)
 	pos = refunction.convertPositionto(pos,"table")
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
+	--print(maindata.DecodedChunks)
 --	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
-		 maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {}
-		 local placee = {}
-		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]}))
+	maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {nil,0,nil,refunction.convertPositionto(pos,"table")}
+		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]},nil,nil))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))
 		 local front = (refunction.GetBlock({pos[1]+4,pos[2],pos[3]}))
 		 local back = (refunction.GetBlock({pos[1]-4,pos[2],pos[3]}))
 		 local right = (refunction.GetBlock({pos[1],pos[2],pos[3]+4}))
 		 local left = (refunction.GetBlock({pos[1],pos[2],pos[3]-4}))
+		 local a = {}
+		-- print(top,bottem,front,back,right,left)
 		 if top then
-			table.insert(placee,top)
+			a[refunction.convertPositionto(top[4])] = top
 			top[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2]+4,pos[3]})] = os.time()
 		 end
 		 if bottem then
-			table.insert(placee,bottem)
+			a[refunction.convertPositionto(bottem[4])] = bottem
 			bottem[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2]-4,pos[3]})] = os.time()
 		 end
 		 if front then
-			table.insert(placee,front)
+			a[refunction.convertPositionto(front[4])] = front
 			front[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1]+4,pos[2],pos[3]})] = os.time()
 		 end
 		 if back then
-			table.insert(placee,back)
+			a[refunction.convertPositionto(back[4])] = back
 			back[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1]-4,pos[2],pos[3]})] = os.time()
 		 end
 		 if right then
-			table.insert(placee,right)
+			a[refunction.convertPositionto(right[4])] = right
 			right[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2],pos[3]+4})] = os.time()
 		 end
 		 if left then
-			table.insert(placee,left)
+			a[refunction.convertPositionto(left[4])] = left 
 			left[6] = false
 		else
 			blocksthatshouldbeloaded[refunction.convertPositionto({pos[1],pos[2],pos[3]-4})] = os.time()
 		 end
+		 local placee = {
+		  {pos[1],pos[2]+4,pos[3]},
+		  {pos[1],pos[2]-4,pos[3]},
+		  {pos[1]+4,pos[2],pos[3]},
+		  {pos[1]-4,pos[2],pos[3]},
+		  {pos[1],pos[2],pos[3]+4},
+		  {pos[1],pos[2],pos[3]-4},
+		}
+		--print(a)
+		local b = {}
+		for i,v in ipairs(placee)do
+			local c = refunction.GetChunk(v,true)
+			local pos = refunction.convertPositionto(v)
+			if maindata.DecodedChunks[c] and maindata.DecodedChunks[c]["Settings"] then
+				b[pos] = maindata.DecodedChunks[c]["Settings"]["Version"]
+			end
+		end
+		b["1"] = "Load"
+		b["2"] = a
 		 for i,v in ipairs(Main.GetPlayersWithChunk(pos)) do
-			RS.Events.Block.PlaceClient:FireClient(v,placee)
+			RS.Events.Block.PlaceClient:FireClient(v,b)
 			RS.Events.Block.DestroyBlock:FireClient(v,{refunction.convertPositionto(pos,"string")})
 		end
 	--end
 end
 function Main.GetPlayer(player,Pos,a,neck,Body)
 	local player = maindata.LoadedEntitys[player.Name] 
+	if player == nil then
+		 return nil
+	end
 	player.NotSaved.NeckRotation = neck
 	player.NotSaved.BodyRotation = Body
 	player.Position = Pos and refunction.convertPositionto(Pos,"table") or player.Position

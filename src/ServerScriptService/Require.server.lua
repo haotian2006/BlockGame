@@ -1,7 +1,6 @@
-require(game.ServerStorage.MainHandler)
-local maindata = require(game.ServerStorage.MainData)
-local compresser = require(game.ReplicatedStorage.Compresser)
+
 task.spawn(function()
+	local compresser = require(game.ReplicatedStorage.Compresser)
 	compresser.start()
 end)
 local copy = { -- a uuid
@@ -27,6 +26,7 @@ FallTicks = 0,
 MaxFallRate = 3.92,
 FallDistance = 0,
 }
+game.Players.PlayerAdded:Connect(function(player)
 local function deepCopy(original)
 	local copy = {}
 	for k, v in pairs(original) do
@@ -37,13 +37,14 @@ local function deepCopy(original)
 	end
 	return copy
 end
-game.Players.PlayerAdded:Connect(function(player)
+local maindata = require(game.ServerStorage.MainData)
   maindata.LoadedEntitys[player.Name] = deepCopy(copy)
   maindata.LoadedEntitys[player.Name].uuid = player.Name
   maindata.LoadedEntitys[player.Name].IsPlayer = true
   maindata.LoadedEntitys[player.Name].CustomName = player.Name
   maindata.LoadedEntitys[player.Name] = maindata.LoadedEntitys[player.Name]
 end)
+require(game.ServerStorage.MainHandler)
 game.ReplicatedStorage.Debuh.OnServerEvent:Connect(function()
 	require(game.ReplicatedStorage.Debughandler):printglobal()
 end)

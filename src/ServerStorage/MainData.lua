@@ -6,9 +6,18 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("a")
+	MainGameStore = DataStore:GetDataStore("dasc")
 end
-
+local exsisting = {}
+if MainGameStore then
+	local data
+	local sus = pcall(function()
+		data = MainGameStore:GetAsync("IfChunkE")
+	end)
+	if sus and data then
+		allkeys = compresser.decompress("IfChunkE",data)
+	end
+end
 local https = game:GetService("HttpService")
 local Data = {
     ["Chunk"] ={
@@ -100,7 +109,7 @@ function  Data.SetChunkTimer(Chunk)
 		local time = math.clamp(50-10*#game.Players:GetPlayers(),10,100)
 		while true do
 			if Chunk == "-1x-1" then
-				print(time)
+				--print(time)
 			end
 			task.wait(1)
 			time -= 1
@@ -125,8 +134,8 @@ function  Data.SetChunkTimer(Chunk)
 end
 local oncea = true
 function Data.GetChunk(Chunk:string,load:boolean):table
-	if dc[Chunk] then
-		return dc[Chunk]
+	if Data.DecodedChunks[Chunk] then
+		return Data.DecodedChunks[Chunk]
 	end
 	local parent = Data.GetChunkParent(Chunk)
 	local partdata
@@ -134,7 +143,7 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 		partdata = Data.ChunkChanges[parent][Chunk]
 	end
 	--Data.Chunk[Data.GetChunkParent(Chunk)] = compresser.decompress(Data.GetChunkParent(Chunk).."x"..Chunk,{})
-	if  not Data.Chunk[parent] and not partdata then
+	if  not Data.Chunk[parent] and not Data.ChunkChanges[parent] and not partdata and MainGameStore and allkeys[parent] then
 		local sdata 
 		local sus,errors = pcall(function()
 			sdata = MainGameStore:GetAsync("Chunk "..Data.GetChunkParent(Chunk))
@@ -144,7 +153,7 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 			   sdata = MainGameStore:GetAsync("Chunk "..Data.GetChunkParent(Chunk))
 		  	 end)
 		end
-		Data.Chunk[parent] = sdata
+		Data.Chunk[parent] = sdata 
 	end
 	if Data.Chunk[parent] and not partdata then
 		local blocks = compresser.decompress(parent.."|",Data.Chunk[parent])
@@ -159,7 +168,18 @@ function Data.GetChunk(Chunk:string,load:boolean):table
 		data["Settings"] = {}
 		data["Settings"]["Version"] = game.ReplicatedStorage.Version.Value
 	else
-		data = Data.ChunkChanges[parent][Chunk]
+		local datca ={}
+		for i,v in pairs(Data.ChunkChanges[parent][Chunk])do
+			for b,a in pairs(v)do
+			datca[i] = datca[i] or {}
+			if tonumber(b) then
+				datca[i][tonumber(b)] =a
+			else
+				datca[i][b] =a
+			end
+			end
+		end
+		data = datca
 	end
 	Data.DecodedChunks[Chunk] = data
 	Data.LoadEntitysInChunk(Chunk)
@@ -378,6 +398,20 @@ function Data.SaveAll()
 	print("stage 2/3 done")
 	local msg,sus
 	local done,ad,reached = 0,0,false
+	task.spawn(function()
+		for i,v in pairs(Data.Chunk) do
+			allkeys[i] = true
+		end
+		local IfChunkE = compresser.compress("IfChunkE",allkeys)
+		local success, errorMessage = pcall(function()
+			MainGameStore:SetAsync("IfChunkE",IfChunkE)
+		end)
+		if not success then
+			 success, errorMessage = pcall(function()
+				MainGameStore:SetAsync("IfChunkE",IfChunkE)
+			end)
+		end
+	end)
 	for i,v in pairs(Data.Chunk)do
 		done += 1
 		task.spawn(function()
@@ -387,7 +421,7 @@ function Data.SaveAll()
 			msg = not success and errorMessage or msg
 			sus = not success and success or sus
 			if not success then
-				local success, errorMessage = pcall(function()
+				 success, errorMessage = pcall(function()
 					MainGameStore:SetAsync("Chunk "..i,v)
 				end)
 			end

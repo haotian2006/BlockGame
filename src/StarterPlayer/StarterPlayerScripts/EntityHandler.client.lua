@@ -44,7 +44,7 @@ runservice.Stepped:Connect(function(time, deltaTime)
     else
         return
     end
-	local data = event:InvokeServer(17)
+	local data = event:InvokeServer(17) or {}
     for i,v in ipairs(workspace.Entity:GetChildren())do
         if data[v.Name] and v.Name ~= game.Players.LocalPlayer.Name  then
             local nametag = v.PrimaryPart.Nametag

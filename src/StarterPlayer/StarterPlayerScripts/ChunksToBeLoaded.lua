@@ -7,6 +7,9 @@ local folder = {}
     local part
     local name = data[1]
     local fr = 1
+    if not Block_Path[name] then
+      continue
+    end
     local model =  Block_Path[name].Model
     if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
         part = model
@@ -19,7 +22,7 @@ local folder = {}
         model = nil
     end
     local clonepart = fr ~=1 and part
-    local mesh = fr == 1 and nil or Instance.new("MeshPart")
+    local mesh = (fr == 1 and nil) or Instance.new("MeshPart")
     local offset = refunctions.convertPositionto(refunctions.GetOffset(name),"CFrame")
     local id = data[2]
     local ori = data[3]
