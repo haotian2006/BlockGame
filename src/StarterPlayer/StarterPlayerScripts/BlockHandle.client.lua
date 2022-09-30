@@ -8,7 +8,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 6
+local render = 4
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -26,9 +26,176 @@ task.spawn(function()
 		task.wait(1)
 		for i,v in ipairs(oldchunks)do
 			v:Destroy()
+			task.wait(.5)
 		end
 	end
 end)
+local function GetLoaded(char,Deload)
+	local renderedchunks = {}
+	for i,v in ipairs(workspace.Chunk:GetChildren())do
+		local splited = v.Name:split("x")
+		local vector = Vector2.new(splited[1],splited[2])
+		local currentvecotr = Vector2.new(refunction.GetChunk(char.Position))
+		if (vector-currentvecotr).Magnitude > (render+3) and Deload then
+			v.Parent = nil
+			table.insert(oldchunks,v)
+
+		else
+			renderedchunks[v.Name] = true
+			end
+	end
+	return renderedchunks
+end
+local function loadchunks(chunk,data)
+	if game.Workspace.Chunk:FindFirstChild(chunk) then return nil end
+	local blocktable = loadthread:DoWork(data)
+	local Folder = Instance.new("Folder")
+	Folder.Name = chunk
+	do
+		return Folder
+	end
+	for i,v in ipairs(blocktable)do
+				local model
+				if v[8] == 2 then
+					if v[7] then
+						model = v[7]:Clone()
+						if model:FindFirstChild("BasePart") then
+							model:FindFirstChild("BasePart"):Destroy()
+						end
+						v[1] = model:FindFirstChild("MainPart")
+
+					end
+				elseif v[8] == 3 then
+					if v[7] then
+						v[1] = v[7]:Clone()
+						model = v[1]
+					end
+				else
+					model = v[1]
+				end
+
+				v[1].CFrame = v[2]
+				model.Parent = Folder
+				model:SetAttribute("Name",v[3])
+				model:SetAttribute("State",v[4])
+				v[1].Anchored = true
+				if v[8] == 1 then
+					v[1].Size = v[5]
+				end
+				model.Name = refunction.convertPositionto(v[6],"string")
+				
+	end
+	return Folder
+end
+local function getgeneration(chunk,loaded,should,range)
+	local donefolders = {}	
+	local ammount,done,bool = 0,0,false
+	for i,chunks in ipairs(chunk) do
+		if game.Workspace.Chunk:FindFirstChild(chunks) then if  i == #chunk then bool = true end continue end
+		ammount +=1
+		if i%0 == 0 or range == 1 then
+			task.spawn(function()
+				local Blocks = GenHandler.GetGeneration(chunks)
+				if loaded and type(loaded) == "table" and loaded[chunk] then
+					for i,v in pairs(loaded[chunk])do
+						Blocks[i] = v
+					end
+				end
+				Blocks = g2.GetSortedTable(Blocks,chunks,should)
+				local parts = loadchunks(chunks,Blocks)
+				if game.Workspace.Chunk:FindFirstChild(parts.Name) then 
+					game.Workspace.Chunk:FindFirstChild(parts.Name).Parent = nil
+					table.insert(oldchunks,game.Workspace.Chunk:FindFirstChild(parts.Name))
+				end
+				parts.Parent = game.Workspace.Chunk
+				done +=1
+				if  i == #chunk then
+					bool = true
+				end
+			end)	
+		else
+			local Blocks = GenHandler.GetGeneration(chunks)
+			if loaded and type(loaded) == "table" and loaded[chunk] then
+				for i,v in pairs(loaded[chunk])do
+					Blocks[i] = v
+				end
+			end
+			Blocks = g2.GetSortedTable(Blocks,chunks,should)
+			local parts = loadchunks(chunks,Blocks)
+			if game.Workspace.Chunk:FindFirstChild(parts.Name) then 
+				game.Workspace.Chunk:FindFirstChild(parts.Name).Parent = nil
+				table.insert(oldchunks,game.Workspace.Chunk:FindFirstChild(parts.Name))
+			end
+			parts.Parent = game.Workspace.Chunk
+			done +=1
+			if  i == #chunk then
+				bool = true
+			end
+		end
+		task.wait()
+	end
+	repeat
+		workspace.a.Value = "2"..ammount..done..tostring(bool)
+		task.wait()
+	until (ammount == done and bool) or ammount == 0
+	workspace.a.Value = "3"
+	return donefolders
+end
+local function newload(char)
+	local currentChunk = refunction.GetChunk(char.Position,true)
+     --finds rendered chunks/deloads
+	 local AllChunks = {}
+	 local renderedchunks = GetLoaded(char,true)
+	 for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,render)) do
+		if not renderedchunks[v] then
+		 	table.insert(AllChunks,v)
+		end
+	 end
+	local loaded,should = events.Block.GetChunk:InvokeServer(AllChunks)
+	local sortedtoload = {}
+	for range = 1,render,1 do
+		local chunktable = {}
+		local GetSurroundingChunk = refunction.GetSurroundingChunk(char.Position,range)
+		for i,v in pairs(toload)do
+			local timea =v[2]
+			local data = v[1]
+			local c = refunction.GetChunk(i,true)
+			if table.find(GetSurroundingChunk,c) then
+				sortedtoload[c] = sortedtoload[c] or {}
+				sortedtoload[c][i] = data
+				toload[i] = nil
+			end
+			if os.clock()-timea >= 30 then
+				toload[i] = nil
+			end
+		end
+		for i,c in pairs(sortedtoload)do
+			for pos,v in pairs(c)do
+				loaded[c][pos] = v
+				should[pos] = true
+			end
+		end
+		for i,v in ipairs(renderedchunks) do
+			if table.find(GetSurroundingChunk,v) then
+				table.remove(GetSurroundingChunk,table.find(GetSurroundingChunk,v))
+			end		
+		end
+		local done  =getgeneration(GetSurroundingChunk,loaded,should,range)
+		for i,chunk in pairs(done)do
+			if game.Workspace.Chunk:FindFirstChild(chunk.Name) then 
+				game.Workspace.Chunk:FindFirstChild(chunk.Name).Parent = nil
+				table.insert(oldchunks,game.Workspace.Chunk:FindFirstChild(chunk.Name))
+			end
+			chunk.Parent = game.Workspace.Chunk
+		end
+		if currentChunk ~= refunction.GetChunk(char.Position,true) then return end
+		task.wait(.2)
+		renderedchunks = GetLoaded(char,true)
+	end
+	
+	
+end
+
 local function frender(char,FastLoad)
 	local currentChunk,c = refunction.GetChunk(char.Position)
 	currentChunk = currentChunk.."x"..c
@@ -46,6 +213,7 @@ local function frender(char,FastLoad)
 			end
 	end
 	local nearbychunks = {}
+	print(refunction.GetSurroundingChunk(char.Position,2))
 	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,2)) do
 		table.insert(nearbychunks,v)
 	end
@@ -240,7 +408,8 @@ local oldchunk =""
 local char = game.Workspace.Entity:WaitForChild(lp.Name)
 --	QuickRender(char.PrimaryPart)
 task.wait(.5)
-	frender(char.PrimaryPart,true)
+print("e")
+	newload(char.PrimaryPart)
 	print("done")
 	while char do
 		local currentChunk,c = refunction.GetChunk(char.PrimaryPart.Position)
@@ -248,9 +417,9 @@ task.wait(.5)
 		--shouldprint(currentChunk ~= oldchunk)
 		if currentChunk ~= oldchunk and true then
 			oldchunk = currentChunk
-			print("a")
-			frender(char.PrimaryPart)
-			print("c")
+			workspace.a.Value = "1"
+			newload(char.PrimaryPart)
+			--frender(char.PrimaryPart)
 		end
 	task.wait(0.1)
 end

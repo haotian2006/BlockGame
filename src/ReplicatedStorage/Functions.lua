@@ -136,7 +136,7 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos,top)
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(mainbb and mainbb.Orientation or blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
 		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
-			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
+			--return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
 		end
 		if  not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos then
 			--print(pcx ~= cx or pcz ~= cz) 
@@ -154,7 +154,7 @@ function Function.ConvertPositionToReal(position,typ)
 	end
 	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
 end 
-function Function.GetSurroundingChunk(Position:Vector3,render:number)
+function Function.OLDGetSurroundingChunk(Position:Vector3,render:number)
 	local cx,cz =  Function.GetChunk(Position)
 	local coords ={cx.."x"..cz}
 	for i = 1,render,1 do
@@ -166,6 +166,21 @@ function Function.GetSurroundingChunk(Position:Vector3,render:number)
 			if not table.find(coords,(x+1).."x"..z) then table.insert(coords,(x+1).."x"..z) end
 			if not table.find(coords,x.."x"..(z-1)) then table.insert(coords,x.."x"..(z-1)) end
 			if not table.find(coords,x.."x"..(z+1)) then table.insert(coords,x.."x"..(z+1)) end
+		end
+	end
+	return coords
+end
+function Function.GetSurroundingChunk(Position:Vector3,render:number)
+	local cx,cz =  Function.GetChunk(Position)
+	local coords ={cx.."x"..cz}
+	for i = 1,render,1 do
+		for x = cx-i,cx+i do
+			for z = cz-i,cz+i do
+				local combined = x.."x"..z
+				if not table.find(coords,combined) then
+					table.insert(coords,combined)
+				end
+			end
 		end
 	end
 	return coords
