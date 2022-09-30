@@ -1,5 +1,5 @@
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local amountofworkers = 20
+local amountofworkers = 40
 local getchunk = workers.New(script.Parent.GenerationVersions.GenerationHandler2,"DoStuff",amountofworkers)
 local g2 = require(script.Parent.GenerationVersions.GenerationHandler2)
 local func = {}
@@ -40,9 +40,9 @@ function func.GetGeneration(Chunk)
 	queue[Chunk] = refunction.XZCoordInChunk(Chunk)
     end
     repeat
-        task.wait(0)
+        task.wait(.01)
     until done[Chunk]
-    task.delay(.2,function()
+    task.delay(.1,function()
         queue[Chunk] = nil
 		done[Chunk] = nil
 	end)
@@ -59,7 +59,7 @@ task.spawn(function()
                 end
             end)
         end
-        task.wait(.2)
+        task.wait(.4)
     end
 end)
 return func

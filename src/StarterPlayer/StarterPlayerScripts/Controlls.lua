@@ -202,7 +202,7 @@ function controlls.Destroy(input,gameProcessedEvent)
     local Connection
     repeat
             remotes.Block.DestroyBlock:FireServer( currentlylookingat and currentlylookingat.Position)  
-            task.wait()
+            task.wait(.1)
     until keypressed[getkeyfromiput(input)] == nil
 end
 
@@ -244,7 +244,6 @@ function update.UpdatePosition(delta)
             total[3] += v[3] ~= v[3] and 0 or v[3]
         end	
         if fps.Value >62 then
-            print("e")
             for i,v in pairs(total) do
                 total[i] = v*delta*60
             end
@@ -345,7 +344,7 @@ local seconds = 0
 function  update.HandleFall(deltaTime)
     seconds += deltaTime
     local entity =   controlls.PlayerNbt
-    if not entity then return end 
+    if not entity  then return end 
     local pos =  controlls.PlayerPosition
     local ccx,ccz = refunction.GetChunk(pos)
     if not workspace.Chunk:FindFirstChild(ccx.."x"..ccz)  then return end

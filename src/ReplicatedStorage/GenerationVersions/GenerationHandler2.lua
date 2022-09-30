@@ -75,7 +75,7 @@ function Generation.GetSortedTable(Data,Chunk,should)
 		if coord == "-96,52,-124" then
 			--print(data[6])
 		end
-		if should[coord] or can(coord,Data,0,data)  then	
+		if (should and should[coord]) or can(coord,Data,0,data)  then	
 		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		size +=1

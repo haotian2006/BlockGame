@@ -1,5 +1,6 @@
 
 local HttpService = game:GetService("HttpService")
+local LocalizationService = game:GetService("LocalizationService")
 local ReplicatedFirst = game:GetService("ReplicatedFirst")
 local RS = game:GetService("ReplicatedStorage")
 local refunction = require(RS.Functions)
@@ -7,7 +8,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 10
+local render = 6
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -19,7 +20,16 @@ local g2 = require(RS.GenerationVersions.GenerationHandler2)
 local toload = {}
 local old
 local firsttime = false
-local function frender(char)
+local oldchunks = {}
+task.spawn(function()
+	while true do
+		task.wait(1)
+		for i,v in ipairs(oldchunks)do
+			v:Destroy()
+		end
+	end
+end)
+local function frender(char,FastLoad)
 	local currentChunk,c = refunction.GetChunk(char.Position)
 	currentChunk = currentChunk.."x"..c
 	local renderedchunks ={}
@@ -28,7 +38,8 @@ local function frender(char)
 		local vector = Vector2.new(splited[1],splited[2])
 		local currentvecotr = Vector2.new(refunction.GetChunk(char.Position))
 		if (vector-currentvecotr).Magnitude > (render+3) then
-			v:Destroy()
+			v.Parent = nil
+			table.insert(oldchunks,v)
 
 		else
 			renderedchunks[v.Name] = true
@@ -66,6 +77,7 @@ local function frender(char)
 	local done = false
 	local curentlyload = {}
 	local loaded,should = events.Block.GetChunk:InvokeServer(nearbychunks)
+	task.wait(.2)
 	local thread = coroutine.running()
 	for i,c in pairs(sortedtoload)do
 		for pos,v in pairs(c)do
@@ -87,29 +99,43 @@ local function frender(char)
 			coroutine.resume(thread)
 			done = true
 		end
-		if new ~= currentChunk and threadsdone >=13  then
+		if new ~= currentChunk and threadsdone >=5  then
 			repeat
 				task.wait()
 			until #curentlyload ==0
 			frender(char)
-			coroutine.resume(thread)
 			threadsdone = #nearbychunks
-			done = true
-			continue
+			return
 		end
 		local Blocks
-		if i%1 == 0 then
+		if i%2 == 0 and not FastLoad then
+			task.wait(.3)
 			Blocks = GenHandler.GetGeneration(chunk)
-		end
-		task.spawn(function()
-			if loaded and loaded[chunk] then
+			if loaded and type(loaded) == "table" and loaded[chunk] then
 				for i,v in pairs(loaded[chunk])do
 					Blocks[i] = v
 				end
 			end
 			Blocks = g2.GetSortedTable(Blocks,chunk,should)
-			if i%3 == 0 then
-				task.wait(math.random(2,4)/10)
+		end
+		task.spawn(function()
+			if i%2 ~= 0 and not FastLoad then
+				Blocks = GenHandler.GetGeneration(chunk)
+				if loaded and type(loaded) == "table" and loaded[chunk] then
+					for i,v in pairs(loaded[chunk])do
+						Blocks[i] = v
+					end
+				end
+				Blocks = g2.GetSortedTable(Blocks,chunk,should)
+			end
+			if  FastLoad then
+				Blocks = GenHandler.GetGeneration(chunk)
+				if loaded and type(loaded) == "table" and loaded[chunk] then
+				for i,v in pairs(loaded[chunk])do
+					Blocks[i] = v
+				end
+			end
+			Blocks = g2.GetSortedTable(Blocks,chunk,should)
 			end
 			local currena = chunk
 			table.insert(curentlyload,currena)
@@ -161,6 +187,7 @@ local function frender(char)
 			end
 			table.remove(curentlyload,table.find(curentlyload,currena))
 		end)
+		task.wait(.15)
 	if threadsdone == #nearbychunks then
 		coroutine.resume(thread)
 		done = true
@@ -168,9 +195,6 @@ local function frender(char)
 	end
 	if not done then 
 		coroutine.yield()
-	end
-	if firsttime == false then
-		--task.wait(2)
 	end
 	firsttime = true
 	return
@@ -215,12 +239,18 @@ end)
 local oldchunk =""
 local char = game.Workspace.Entity:WaitForChild(lp.Name)
 --	QuickRender(char.PrimaryPart)
+task.wait(.5)
+	frender(char.PrimaryPart,true)
+	print("done")
 	while char do
 		local currentChunk,c = refunction.GetChunk(char.PrimaryPart.Position)
 		currentChunk = currentChunk.."x"..c
+		--shouldprint(currentChunk ~= oldchunk)
 		if currentChunk ~= oldchunk and true then
 			oldchunk = currentChunk
+			print("a")
 			frender(char.PrimaryPart)
+			print("c")
 		end
 	task.wait(0.1)
 end
