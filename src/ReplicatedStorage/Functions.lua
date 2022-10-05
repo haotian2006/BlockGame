@@ -136,7 +136,7 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos,top)
 			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(mainbb and mainbb.Orientation or blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
 		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
-			--return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
+			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
 		end
 		if  not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos then
 			--print(pcx ~= cx or pcz ~= cz) 
@@ -154,7 +154,7 @@ function Function.ConvertPositionToReal(position,typ)
 	end
 	return Function.ConvertGridToReal(Function.GetBlockCoords(position,"table"),"table")
 end 
-function Function.OLDGetSurroundingChunk(Position:Vector3,render:number)
+function Function.aGetSurroundingChunk(Position:Vector3,render:number)
 	local cx,cz =  Function.GetChunk(Position)
 	local coords ={cx.."x"..cz}
 	for i = 1,render,1 do
@@ -205,17 +205,6 @@ end
 -- 	end
 -- 	return c
 -- end
-function Function.GetSortedTable(Data,Chunk)
-	local lc = {}
-	local size = 0
-	for coord,data in pairs(Data) do
-		if can(coord,Data,data)  then	
-		lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Path[data[1]]["IsTransparent"]}
-		end
-		size +=1
-	end
-	return lc
-end
 function Function.XZCoordInChunk(chunk:string)
 	local name =string.split(chunk,"x")
 	local cx,cz = name[1],name[2]

@@ -5,16 +5,10 @@ local data = {
             is_summonable = true
         },
         components ={
-            ["componet.on_interact"] ={
-                func = "SayHi"
-             },
             ["componet.Inventory"] ={
-                func = "SayHi"
+                slots = 10,
              },
 
-        },
-        component_groups = {
-            
         },
     },
     event ={
@@ -27,9 +21,18 @@ local data = {
         ["On_Destroy"] = {
 
         },
+        ["On_Touch"] = {
+
+        },
+        ["On_Land"] = {
+
+        },
+        ["On_Interact"] = {
+            func = "SayHi"
+        },
     },
     functions = {
-        SayHi = function(uuid)
+        SayHi = function(Position)
             print("Hi I'm Bob")
         end
     }

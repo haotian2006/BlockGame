@@ -261,7 +261,7 @@ function update.UpdatePosition(delta)
         local pos = collision_handler.entityvsterrain(entity,total)
        controlls.PlayerPosition = interpolate(controlls.PlayerPosition,pos,delta)
 end
-local speed = 1
+local speed = .5
 function controlls.Other.Jump()
     if  controlls.Jumping == true then return end
 
@@ -344,7 +344,7 @@ local seconds = 0
 function  update.HandleFall(deltaTime)
     seconds += deltaTime
     local entity =   controlls.PlayerNbt
-    if not entity or true then return end 
+    if not entity or false then return end 
     local pos =  controlls.PlayerPosition
     local ccx,ccz = refunction.GetChunk(pos)
     if not workspace.Chunk:FindFirstChild(ccx.."x"..ccz)  then return end
@@ -352,7 +352,7 @@ function  update.HandleFall(deltaTime)
     local ysize = entity.HitBoxSize.y or 0
 
     local fallendistance = entity.FallDistance
-    local fallrate = (((((0.99)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.5)
+    local fallrate = (((((0.99)^controlls.FallTicks)-1)*entity.MaxFallRate)/1.2)
 
    local ypos = pos[2]
     if controlls.IsOnGround or not entity.CanFall or controlls.Jumping == true then

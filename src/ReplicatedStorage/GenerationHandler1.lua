@@ -1,5 +1,5 @@
 local workers = require(game.ReplicatedStorage.WorkerThreads)
-local amountofworkers = 40
+local amountofworkers = 100
 local getchunk = workers.New(script.Parent.GenerationVersions.GenerationHandler2,"DoStuff",amountofworkers)
 local g2 = require(script.Parent.GenerationVersions.GenerationHandler2)
 local func = {}
@@ -50,8 +50,10 @@ function func.GetGeneration(Chunk)
 end
 task.spawn(function()
     while true do
+		local index = 0
         local splitter = divide(queue,amountofworkers)
-        for i,v in pairs(splitter)do
+        for i,v in pairs(splitter)do	
+			index +=1
             task.spawn(function()
 			   local newcs = getchunk:DoWork("SendGen",Block_Info,refunction,"GetChunks",v)
                for is,vs in pairs(newcs)do

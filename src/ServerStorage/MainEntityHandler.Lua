@@ -74,6 +74,7 @@ local function deepCopy(original)
 	end
 	return copy
 end
+
 local function getentityfromuuid(uuid)
 	return MainData.LoadedEntitys[uuid] 
 end
@@ -171,6 +172,21 @@ local function add(uuid_or_entity:string|table,bfullhname:string,data:table,isad
 	local splited_string = string.split(bfullhname,".")
 	if 	Data[splited_string[1]] and Data[splited_string[1]].add then
 		Data[splited_string[1]].add(entity,splited_string[2],data,isadd)
+	end
+end
+local function runfunct(uuid,functions,...)
+	if typeof(functions) =="function" then
+		task.spawn(functions,...)
+	elseif typeof(functions) == "string"then
+		local handler = getentityhandlerfromuuid(uuid)
+		local entity = getentityfromuuid(uuid)
+		if handler.functions[functions] then
+			handler.functions[functions](uuid)
+		end
+	elseif typeof(functions) == "table"then
+		for i,v in ipairs(functions) do
+			task.spawn(runfunct,uuid,v,...)
+		end
 	end
 end
 --<----statements---->
@@ -344,9 +360,8 @@ function  Data.Intereact(uuid,data)
 	local handler = getentityhandlerfromuuid(uuid)
 	local entity = getentityfromuuid(uuid)
 	if handler and entity and entity["on_interact"] then
-		if handler.functions[entity["on_interact"].func] then
-			handler.functions[entity["on_interact"].func](uuid)
-		end
+		runfunct(entity["on_interact"].func,uuid)
+		handler.functions[entity["on_interact"].func](uuid)
 	end
 end
 

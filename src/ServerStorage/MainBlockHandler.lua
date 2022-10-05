@@ -51,18 +51,6 @@ end
 
 --<----blockcomponets---->
 --true = add false == remove
-function Data.componet.ageable(blockdata,data,d)
-	local duration = data["duration"]
-	local feeditems = data["feeditems"]
-	local grow_up = data["grow_up"]
-	if d then
-		
-	else
-	
-	end
-end
-
-
 function  Data.OnPlaced(data)
 	local blockhandler = getBlockhandlerfromname(data[1])
 	if not blockhandler then return data end

@@ -6,7 +6,7 @@ local MainGameStore
 local allkeys = {}
 if SaveInStudio or not game:GetService("RunService"):IsStudio() then
 	DataStore = game:GetService("DataStoreService")
-	MainGameStore = DataStore:GetDataStore("dasc")
+	MainGameStore = DataStore:GetDataStore("bba")
 end
 local exsisting = {}
 if MainGameStore then

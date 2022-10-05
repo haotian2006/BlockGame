@@ -5,13 +5,11 @@ local Blocks = {
 		["Model"] = Blocks_Folder.Block;
 		["Override"] = true;
 		["IsTransparent"] = false;
-		["Id"] = 0;
 	},
 	["Slab"] = {
 		["Model"] = Blocks_Folder.Slab;
 		["Override"] = true;
 		["IsTransparent"] = false;
-		["Id"] = 0;
 	},
 	["air"] = {
 		["IsTransparent"] = true;
