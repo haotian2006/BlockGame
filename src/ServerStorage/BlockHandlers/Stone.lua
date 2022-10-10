@@ -24,11 +24,10 @@ local data = {
         ["On_Touch"] = {
 
         },
-        ["On_Land"] = {
-
-        },
         ["On_Interact"] = {
-            func = "SayHi"
+            func = function(blockdata)
+                print("c")
+            end
         },
     },
     functions = {

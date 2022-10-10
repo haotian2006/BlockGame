@@ -1,6 +1,10 @@
 local RunService = game:GetService("RunService")
 local collisions ={}
 local refunction = require(script.Parent.Functions)
+local blockhandler
+if RunService:IsServer() then
+    blockhandler = require(game.ServerStorage.MainBlockHandler)
+end
 local function getincreased(min,goal2,increased2)
 	local direaction = min - goal2
 	return goal2 +increased2*-math.sign(direaction)
@@ -57,6 +61,7 @@ end
 function  collisions.entityvsterrain(entity,velocity)
     local oldv = velocity
     local position = entity.Position
+    local oldp = {position[1],position[2],position[3]}
    -- print(velocity[2])
     local remainingtime = 1
     local MinTime
@@ -115,6 +120,12 @@ function  collisions.entityvsterrain(entity,velocity)
             end
         end
         remainingtime = 1.0-MinTime
+        if blockhandler then
+           -- print(bb and true,MinTime)
+        end
+        -- if bb and blockhandler and bb[1] then
+        --     task.spawn(blockhandler.OnTouched,bb[1],entity.uuid)
+        -- end
         if remainingtime <=0 then break end
         
     end
@@ -239,7 +250,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                         if collisiontime < 1 then
                             if collisiontime < currentmin  then
                                 currentmin = collisiontime
-                                                        zack = {n3,s3}
+                                    zack = {n3,s3}
                                 normal = newnormal
                             end
                         local a,b,c = collisions.shouldjump(entity,position,n2,s2)
@@ -254,7 +265,7 @@ function collisions.entityvsterrainloop(entity,position,velocity,whitelist,looop
                         if collisiontime < 1 then
                             if collisiontime < currentmin  then
                                 currentmin = collisiontime
-                                                        zack = {n4,s4}
+                                zack = {n4,s4}
                                 normal = newnormal
                             end
                         local a,b,c = collisions.shouldjump(entity,position,n2,s2)

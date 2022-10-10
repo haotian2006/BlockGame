@@ -49,23 +49,118 @@ end
 local function convetcunktostring(cx,cz)
 	return cx..","..cz
 end
+local function checkoneblock(tabl,direaction)
+	return tabl[direaction] and Block_Info[tabl[direaction][1]] and not Block_Info[tabl[direaction][1]]["IsTransparent"]
+end
+local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
+	local parts  = 0
+	ignore = ignore or {}
+	a = a or 0
+	local aa = {}
+	if checkoneblock(tabl,pack2(x+4,y,z))  then
+		parts+=1
+		table.insert(aa,"x4")
+	elseif ignore["x4"]  then
+		local block = refunction.GetBlock(pack2(x+4,y,z),nil,nil,true)
+		local ppt = {[pack2(x+4,y,z)] = block}
+		if checkoneblock(ppt,pack2(x+4,y,z)) then
+			parts+=1
+		end
+	end
+	if checkoneblock(tabl,pack2(x-4,y,z))  then
+		parts+=1
+		table.insert(aa,"x-4")
+	elseif ignore["x-4"]  then
+		local block = refunction.GetBlock(pack2(x-4,y,z),nil,nil,true)
+		local ppt = {[pack2(x-4,y,z)] = block}
+		if checkoneblock(ppt,pack2(x-4,y,z)) then
+			parts+=1
+		end
+	end
+	if checkoneblock(tabl,pack2(x,y+4,z)) then 
+		parts+=1
+		table.insert(aa,"y4")
+	end
+	if checkoneblock(tabl,pack2(x,y+4,z)) then 
+		parts+=1
+		table.insert(aa,"y-4")
+	end
+	if checkoneblock(tabl,pack2(x,y,z-4))  then  
+		parts+=1
+		table.insert(aa,"z-4")
+	elseif ignore["z-4"]  then
+		local block = refunction.GetBlock(pack2(x,y,z-4),nil,nil,true)
+		local ppt = {[pack2(x,y,z-4)] = block}
+		if checkoneblock(ppt,pack2(x,y,z-4)) then
+			parts+=1
+		end
+	end
+	if checkoneblock(tabl,pack2(x,y,z+4))  then
+		parts+=1
+		table.insert(aa,"z4")
+	elseif ignore["z4"]  then
+		local block = refunction.GetBlock(pack2(x,y,z+4),nil,nil,true)
+		local ppt = {[pack2(x,y,z+4)] = block}
+		if checkoneblock(ppt,pack2(x,y,z+4)) then
+			parts+=1
+		end
+	end
+	if debugm then
+		print(parts,a,aa,ignore)
+	end
+	return parts == (6)
+end
+local function checkifiswall(tabl,x,y,z)
+	local ch= convetcunktostring(refunction.GetChunk({x,y,z}))
+	local walls = {}
+	if convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) ~= ch then
+		table.insert(walls,"x4")
+	end
+	if 	convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) ~= ch then
+		table.insert(walls,"x-4")
+	end
+	if convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) ~= ch then
+		table.insert(walls,"z4")
+	end
+	if 	convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) ~= ch then
+		table.insert(walls,"z-4")
+	end
+	return not(#walls == 0),walls
+end
 local function can(position,tabl,player,blockdata)
 	if  blockdata[1] == "air" or blockdata[1] == nil then
-		
 		return false
 	end
-	local c = false
+	local c = true
 	local splittedstring = string.split(position,",")
 	local x,y,z = tonumber(splittedstring[1]),tonumber(splittedstring[2]),tonumber(splittedstring[3])
 	local ch= convetcunktostring(refunction.GetChunk(position))
-	if tabl[pack2(x+4,y,z)] and Block_Info[tabl[pack2(x+4,y,z)][1]] and not Block_Info[tabl[pack2(x+4,y,z)][1]]["IsTransparent"] and  tabl[pack2(x-4,y,z)] and  tabl[pack2(x-4,y,z)][1] and  not Block_Info[tabl[pack2(x-4,y,z)][1]]["IsTransparent"] and tabl[pack2(x,y+4,z)]and tabl[pack2(x,y+4,z)][1] and not Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"] and tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and not Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]  and  tabl[pack2(x,y,z-4)] and tabl[pack2(x,y,z-4)][1] and not Block_Info[tabl[pack2(x,y,z-4)][1]]["IsTransparent"] and  tabl[pack2(x,y,z+4)] and tabl[pack2(x,y,z+4)][1] and not Block_Info[tabl[pack2(x,y,z+4)][1]]["IsTransparent"] --[[and math.abs(player -y) <=16*(render)]] then
-	elseif convetcunktostring(refunction.GetChunk(pack2(x+4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x-4,y,z))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z+4))) == ch and  convetcunktostring(refunction.GetChunk(pack2(x,y,z-4))) == ch  then
-			c = true
-	elseif (( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and tabl[pack2(x,y+4,z)][1] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]))) or not blockdata[6]  then 
-			c = true
-	elseif (tabl[pack2(x+4,y,z)] and not tabl[pack2(x+4,y,z)][1] or tabl[pack2(x-4,y,z)] and not tabl[pack2(x-4,y,z)][1]) or (tabl[pack2(x,y+4,z)] and not tabl[pack2(x,y+4,z)][1] or tabl[pack2(x,y-4,z)] and not tabl[pack2(x,y-4,z)][1]) or (tabl[pack2(x,y,z+4)] and not tabl[pack2(x,y,z+4)][1] or tabl[pack2(x,y,z-4)] and not tabl[pack2(x,y,z-4)][1]) then
-		c = true
+	local wall,near = checkifiswall(tabl,x,y,z)
+	local tt = {}
+	if near[1] then
+		tt[near[1]] = true
 	end
+	if near[2] then
+		tt[near[2]] = true
+	end
+	if near[3] then
+		tt[near[3]] = true
+	end
+	if checksurroundblock(tabl,x,y,z,tt,#near) then -- checks if it is surrorunded
+		if position == "-36,36,-684" then
+			checksurroundblock(tabl,x,y,z,tt,#near,true)
+		end
+		return false
+	end
+	--if wall then
+	--	--return true
+	--end
+	--if (( not tabl[pack2(x,y+4,z)]  or (tabl[pack2(x,y+4,z)] and tabl[pack2(x,y+4,z)][1] and Block_Info[tabl[pack2(x,y+4,z)][1]]["IsTransparent"]))  or ( not tabl[pack2(x,y-4,z)]  or (tabl[pack2(x,y-4,z)] and tabl[pack2(x,y-4,z)][1] and Block_Info[tabl[pack2(x,y-4,z)][1]]["IsTransparent"]))) or not blockdata[6]  then 
+	--		c = true
+	--end
+	--if (tabl[pack2(x+4,y,z)] and not tabl[pack2(x+4,y,z)][1] or tabl[pack2(x-4,y,z)] and not tabl[pack2(x-4,y,z)][1]) or (tabl[pack2(x,y+4,z)] and not tabl[pack2(x,y+4,z)][1] or tabl[pack2(x,y-4,z)] and not tabl[pack2(x,y-4,z)][1]) or (tabl[pack2(x,y,z+4)] and not tabl[pack2(x,y,z+4)][1] or tabl[pack2(x,y,z-4)] and not tabl[pack2(x,y,z-4)][1]) then
+	--	c = true
+	--end
 	return c
 end
 function Generation.GetSortedTable(Data,Chunk,should)

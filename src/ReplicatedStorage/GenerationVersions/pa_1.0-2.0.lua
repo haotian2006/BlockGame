@@ -32,7 +32,7 @@ function Generation.GetBlockName(position:Vector3)
 end
 function Generation.GetBlock(pos:Vector3)
 	local c =Generation.GetBlockName(pos)
-	return c and {c,0,{0,0,0},pack(pos)}
+	return c and {c,0,{0,0,0},{pos.X,pos.Y,pos.Z}}
 end
 function Generation.GetChunks(chuncks)
 	local versiontouse

@@ -30,6 +30,9 @@ local Data = {
 
 }
 --<----localfunctions---->
+local function getentityfromuuid(uuid)
+	return MainData.LoadedEntitys[uuid] 
+end
 local function deepCopy(original)
 	local copy = {}
 	for k, v in pairs(original) do
@@ -45,12 +48,13 @@ local function addevent(event,entity,values,time)
 end
 local function getBlockhandlerfromname(name)
 	if not handlers[name] then return nil end
-	return require(name)
+	return require(handlers[name])
 end
 
 
 --<----blockcomponets---->
 --true = add false == remove
+--<----events---->
 function  Data.OnPlaced(data)
 	local blockhandler = getBlockhandlerfromname(data[1])
 	if not blockhandler then return data end
@@ -58,6 +62,24 @@ function  Data.OnPlaced(data)
 		
 	end
 	return data
+end
+function Data.OnInteract(Position)
+	local part = refunction.GetBlock(Position,nil,nil,true)
+	if not part then return end
+	local handler = getBlockhandlerfromname(part[1])
+	if handler["event"] and handler.event["On_Interact"] then
+		handler.event["On_Interact"].func(part)
+	end
+end
+function  Data.OnTouched(Position,id)
+	local part = refunction.GetBlock(Position,nil,nil,true)
+	local entity = getentityfromuuid(id)
+	if not entity then return end
+	local surface = refunction.getSurface(entity.Position,Position,part[3])
+	local handler = getBlockhandlerfromname(part[1])
+	if handler["event"] and handler.event["On_Touch"] then
+		handler.event["On_Touch"].func(part,entity,surface)
+	end
 end
 function  Data.OnUpdate(data)
 	local blockhandler = getBlockhandlerfromname(data[1])

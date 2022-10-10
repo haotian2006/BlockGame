@@ -11,7 +11,7 @@ local collision_handler = require(game.ReplicatedStorage.CollsionHandler3)
 --local KeyFramePlayer = require(game.ReplicatedStorage.Assests:WaitForChild("KeyFramePlayer"))
 --  KeyFramePlayer:LoadAnimation(aa.PlayerVeiwPort.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
 --  KeyFramePlayer:LoadAnimation(viewModel.Humanoid,game.ReplicatedStorage.Assests.a_PlayerVeiwPort):Play()
-local Current_Entity 
+local Current_Entity
 local oldentity
 local a = 3
 local fps = game.ReplicatedStorage.ClientFps
@@ -40,6 +40,7 @@ local controlls = {
     }
 }
 local keypressed = {}
+controlls.serverEntity  = nil
 controlls.FallTicks = 0
 controlls.PlayerNbt = nil
 controlls.PStuff = nil
@@ -101,7 +102,7 @@ local function getModel(part)
     local aaaa 
     if part:IsDescendantOf(game.Workspace.Chunk) then
         repeat
-            if parenta.Parent == game.Workspace.Workspace.Chunk then
+            if parenta.Parent == game.Workspace.Chunk then
                 aaaa = parenta
                 break
             end
@@ -388,7 +389,8 @@ function update.Entity(deltaTime)
      if a then
         a.Position = nil
      end
-       controlls.PlayerNbt = a
+       controlls.serverEntity = a
+       controlls.PlayerNbt =  controlls.PlayerNbt or a
         elapsed = 0
 	end
 end

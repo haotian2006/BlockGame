@@ -1,4 +1,5 @@
 local RS = game:GetService("ReplicatedStorage")
+local genhandler = require(RS.GenerationVersions.GenerationHandler2)
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Texture = RS.Block_Texture
@@ -104,29 +105,56 @@ end
 function Function.LoadCharacter(Player)
 	
 end
-function Function.GetBlock(pos,HasToBeLoaded,playerpos,top)
+function Function.getSurface(position1, Pos2,p2or)
+	position1 = Function.convertPositionto(position1,"Vector3")
+	Pos2 = Function.convertPositionto(Pos2,"CFrame")
+	p2or = p2or or {0,0,0}
+	p2or = Function.convertPositionto(p2or,"Table")
+	p2or = CFrame.fromOrientation(math.rad(p2or[1]),math.rad(p2or[2]),math.rad(p2or[3]))
+	local surfaces = {
+		Back = Pos2 * CFrame.new(0, 0, 4)*p2or;
+		Front = Pos2 * CFrame.new(0, 0, -4)*p2or;
+		Top = Pos2 * CFrame.new(0, 4, 0)*p2or;
+		Bottom = Pos2 * CFrame.new(0, -4, 0)*p2or;
+		Right = Pos2 * CFrame.new(4, 0, 0)*p2or;
+		Left = Pos2 * CFrame.new(-4, 0, 0)*p2or;
+	}
+	local surface = "back"
+	for side, cframe in pairs (surfaces) do
+		surface = ((position1 - cframe.Position).magnitude > (position1 - surfaces[surface].Position).Magnitude and surface or side)
+	end
+	return surface
+end
+function Function.GetBlock(pos,HasToBeLoaded,playerpos,Gen)
 	pos = Function.ConvertPositionToReal(pos,"table")
 	local pcx,pcz 
 	if playerpos then
 		pcx,pcz = Function.GetChunk(playerpos)
 
 	end
-	if maindata then  
+	if maindata then
 	pos = Function.convertPositionto(pos,"vector3")
 	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
 	local cx,cz = Function.GetChunk(Vector3.new(pos.X,y,pos.Z))
-	if top and maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] then
-		print( maindata.DecodedChunks[cx.."x"..cz] , maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] , maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][2])
+	local gen 
+	if Gen then
+		gen =  genhandler.GetBlock(Vector3.new(x,y,z))  
 	end
 	if maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][2]  then
 		return maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
 	elseif not maindata.DecodedChunks[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
 		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
+	elseif Gen and gen then
+	 	return gen,x..","..y..","..z
 	end
 	return nil
 	else
 		pos = Function.ConvertPositionToReal(pos,"string")
 		local cx,cz = Function.GetChunk(pos)
+		local gen 
+		if Gen then
+			gen =  genhandler.GetBlock(Function.ConvertPositionToReal(pos,"vector3"))  
+		end
 		if workspace.Chunk:FindFirstChild(cx.."x"..cz) and workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
 			local blocka = workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
 			local mainbb 
@@ -137,10 +165,13 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos,top)
 		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
 			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
+		elseif Gen and gen then
+			return gen
 		end
 		if  not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos then
 			--print(pcx ~= cx or pcz ~= cz) 
 		end
+		
 		return nil
 	end
 end
@@ -235,7 +266,7 @@ local rotationstuffaaaa = {
 }
 function Function.DealWithRotation(blockdata)
     local hpos = blockdata[4]
-    local orientation = blockdata[3]
+    local orientation = blockdata[3] or {0,0,0}
     local setup = {
         math.abs(orientation[1])== 90 and 1 or 0,
         math.abs(orientation[2])== 90 and 1 or 0,

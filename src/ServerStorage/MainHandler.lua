@@ -4,6 +4,7 @@ local HTTPs = game:GetService("HttpService")
 local refunction = require(RS.Functions)
 local Block_Modle = RS.Block_Models
 local Block_Info = require(RS.BlockInfo)
+local MainBlockHandler = require(game.ServerStorage.MainBlockHandler)
 --local GenHandler = require(game:GetService("ServerStorage").GenerationMutit)
 local entityhandler = require(game.ServerStorage.MainEntityHandler)
 local pathfinding = require(game.ServerStorage.PathFinding)
@@ -228,7 +229,7 @@ local function  converttuptocoord(cx,cy)
 	return cx.."x"..cy
 end
 function Main.GetChunk(Player,Chunks)
-	-- updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
+	 updateentitytable(Player,EntitysDeloadDistance-2,(maindata.LoadedEntitys[Player.Name]) or Player.Character.PrimaryPart.Position)	
 	local should = {}
 	for i,v in pairs(blocksthatshouldbeloaded)do
 		if Chunks[converttuptocoord(refunction.GetChunk(i))]  then
@@ -415,8 +416,9 @@ function Main.GetPlayer(player,Pos,a,neck,Body)
 end
  --name,CFrame,type(block or entity),newblockpos,newblockorienation,raycastinfo,IsCroucing
 function Main.OnInteract(player,data)
+	print(data[3])
 	if data[3] == "Block" then
-
+		MainBlockHandler.OnInteract(data[2])
 	elseif data[3] == "Entity" then
 		entityhandler.Intereact(data[1],data)
 	else 
