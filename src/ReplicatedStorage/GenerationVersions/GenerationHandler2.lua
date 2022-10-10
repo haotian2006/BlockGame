@@ -34,7 +34,7 @@ function Generation.GetVersion(versiontouse)
 			   end
 		   end
 		   if v2 then
-			   if latest < v2 then
+			   if latest < v2 then 
 				   latest = v2
 				   touse = v.Name
 			   end
