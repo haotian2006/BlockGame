@@ -17,6 +17,7 @@ local loadthread = workthingyt.New(script.Parent:WaitForChild("ChunksToBeLoaded"
 local compressor = require(game.ReplicatedStorage.Compresser)
 local GenHandler = require(RS.GenerationHandler1)
 local g2 = require(RS.GenerationVersions.GenerationHandler2)
+local chunkstorage = require(RS.ClientChunks)
 local toload = {}
 local old
 local firsttime = false
@@ -30,173 +31,124 @@ task.spawn(function()
 		end
 	end
 end)
-local function GetLoaded(char,Deload)
-	local renderedchunks = {}
+local function garbage(pos,size:number)
+	local currentChunk = refunction.GetChunk(pos,true)
+	local rendered = {}
 	for i,v in ipairs(workspace.Chunk:GetChildren())do
 		local splited = v.Name:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
-		local currentvecotr = Vector2.new(refunction.GetChunk(char.Position))
-		if (vector-currentvecotr).Magnitude > (render+3) and Deload then
+		local currentvecotr = Vector2.new(refunction.GetChunk(pos))
+		if (vector-currentvecotr).Magnitude > (size) then
 			v.Parent = nil
 			table.insert(oldchunks,v)
 
 		else
-			renderedchunks[v.Name] = true
+			rendered[v.Name] = true
 			end
 	end
-	return renderedchunks
+	for v,i in pairs(chunkstorage) do
+		local splited = v:split("x")
+		local vector = Vector2.new(splited[1],splited[2])
+		local currentvecotr = Vector2.new(refunction.GetChunk(pos))
+		if (vector-currentvecotr).Magnitude > (size-2) then
+			chunkstorage[v] = nil
+		else
+			rendered[v] = true
+			end
+	end
+	return rendered
 end
-local function getgeneration(chunk,should,loaded)
-	local donefolders = {}	
-	local ammount,done,bool = 0,0,false
-	for i,chunks in ipairs(chunk) do
-		if game.Workspace.Chunk:FindFirstChild(chunks) then if  next(chunk,i) == nil then bool = true end continue end
-		ammount +=1
-		if i%3 == 0 then
-			task.wait(.4)
+local function renderblock(chunk,blocktable)
+	local Folder = Instance.new("Folder")
+	Folder.Name = chunk
+	for i,v in ipairs(blocktable)do
+		local model
+		if v[8] == 2 then
+			if v[7] then
+				model = v[7]:Clone()
+				if model:FindFirstChild("BasePart") then
+					model:FindFirstChild("BasePart"):Destroy()
+				end
+				v[1] = model:FindFirstChild("MainPart")
+
+			end
+		elseif v[8] == 3 then
+			if v[7] then
+				v[1] = v[7]:Clone()
+				model = v[1]
+			end
+		else
+			model = v[1]
 		end
-		task.spawn(function()
-			local Blocks = GenHandler.GetGeneration(chunks)
-			if loaded and type(loaded) == "table" and loaded[chunks] then
-				for i,v in pairs(loaded[chunks])do
+
+		v[1].CFrame = v[2]
+		model.Parent = Folder
+		model:SetAttribute("Name",v[3])
+		model:SetAttribute("State",v[4])
+		v[1].Anchored = true
+		if v[8] == 1 then
+			v[1].Size = v[5]
+		end
+		model.Name = refunction.convertPositionto(v[6],"string")
+		
+	end
+	if game.Workspace.Chunk:FindFirstChild(Folder.Name) then
+		Folder:Destroy()
+	else
+		Folder.Parent = game.Workspace.Chunk
+	end
+end
+local function arender(char,range,FastLoad)
+	local rendered = garbage(range+3)
+	local nearbychunks = {}
+	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,3)) do
+		table.insert(nearbychunks,v)
+	end
+	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,range)) do
+		if not table.find(nearbychunks,v) then
+		table.insert(nearbychunks,v)	
+		end
+	end
+	for i,v in ipairs(nearbychunks)do
+		if rendered[v] then
+			table.remove(nearbychunks,i)
+		end
+	end
+	local sortedtoload = {}
+	for i,v in pairs(toload)do
+		local timea =v[2]
+		local data = v[1]
+		local c = refunction.GetChunk(i,true)
+		if table.find(nearbychunks,c) then
+			sortedtoload[c] = sortedtoload[c] or {}
+			sortedtoload[c][i] = data
+			toload[i] = nil
+		end
+		if os.clock()-timea >= 30 then
+			toload[i] = nil
+		end
+	end
+	local threadsdone,amm = 0,0
+	local done = false
+	local curentlyload = {}
+	local loaded,should = events.Block.GetChunk:InvokeServer(nearbychunks)
+	for i,c in pairs(sortedtoload)do
+		for pos,v in pairs(c)do
+			loaded[c][pos] = v
+			should[pos] = true
+		end
+	end
+	for i,chunk in ipairs(nearbychunks)do
+		local Blocks,air = GenHandler.GetGeneration(chunk,true)
+			if loaded and type(loaded) == "table" and loaded[chunk] then
+				for i,v in pairs(loaded[chunk])do
 					Blocks[i] = v
 				end
 			end
-			Blocks = g2.GetSortedTable(Blocks,chunks,should)
-			donefolders[chunks] = Blocks
-			done +=1
-			if  next(chunk,i) == nil then
-				bool = true
-			end
-		end)	
+		chunkstorage[chunk] = 	Blocks
 	end
-	repeat
-		task.wait()
-	until (ammount == done and bool) or ammount == 0
-	print(ammount)
-	return donefolders
+	return
 end
-local function loadchunks(chunk)
-	local donefolders = {}	
-	local ammount,bool = 0,false
-	for chunks,data in pairs(chunk) do
-		if game.Workspace.Chunk:FindFirstChild(chunks) then if  next(chunk,chunks) == nil then bool = true end continue end
-		ammount +=1
-		--task.spawn(function()
-			local currena = chunks
-			local blocktable = loadthread:DoWork(data)
-			data = nil
-			local Folder = Instance.new("Folder")
-			Folder.Name = chunks
-			for i,v in ipairs(blocktable)do
-				--do break end
-				local model
-				if v[8] == 2 then
-					if v[7] then
-						model = v[7]:Clone()
-						if model:FindFirstChild("BasePart") then
-							model:FindFirstChild("BasePart"):Destroy()
-						end
-						v[1] = model:FindFirstChild("MainPart")
-
-					end
-				elseif v[8] == 3 then
-					if v[7] then
-						v[1] = v[7]:Clone()
-						model = v[1]
-					end
-				else
-					model = v[1]
-				end
-
-				v[1].CFrame = v[2]
-				model.Parent = Folder
-				model:SetAttribute("Name",v[3])
-				model:SetAttribute("State",v[4])
-				v[1].Anchored = true
-				if v[8] == 1 then
-					v[1].Size = v[5]
-				end
-				model.Name = refunction.convertPositionto(v[6],"string")
-				
-			end
-			table.insert(donefolders,Folder)
-			if game.Workspace.Chunk:FindFirstChild(Folder.Name) then 
-				game.Workspace.Chunk:FindFirstChild(Folder.Name).Parent = nil
-				table.insert(oldchunks,game.Workspace.Chunk:FindFirstChild(Folder.Name))
-			end
-			Folder.Parent = game.Workspace.Chunk
-			if  next(chunk,chunks) == nil then
-				bool = true
-			end
-		--end)
-	end
-	repeat
-		task.wait()
-	until (ammount == #donefolders and bool) or ammount == 0
-	return donefolders
-end
-local function newload(char)
-	local currentChunk = refunction.GetChunk(char.Position,true)
-     --finds rendered chunks/deloads
-	 local AllChunks = {}
-	 local renderedchunks = GetLoaded(char,true)
-	 for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,render)) do
-		if not renderedchunks[v] then
-		 	table.insert(AllChunks,v)
-		end
-	 end
-	local loaded,should = events.Block.GetChunk:InvokeServer(AllChunks)
-	for range = 1,render,1 do
-		task.wait(.2)
-		renderedchunks = GetLoaded(char,true)
-		local chunktable = {}
-		local GetSurroundingChunk = refunction.GetSurroundingChunk(char.Position,range)
-		local sortedtoload = {}
-		for i,v in pairs(toload)do
-			local timea =v[2]
-			local data = v[1]
-			local c = refunction.GetChunk(i,true)
-			if table.find(GetSurroundingChunk,c) then
-				sortedtoload[c] = sortedtoload[c] or {}
-				sortedtoload[c][i] = data
-				toload[i] = nil
-			end
-			if os.clock()-timea >= 30 then
-				toload[i] = nil
-			end
-		end
-		for i,c in pairs(sortedtoload)do
-			for pos,v in pairs(c)do
-				loaded[c][pos] = v
-				should[pos] = true
-			end
-		end
-		for i,v in ipairs(renderedchunks) do
-			if table.find(GetSurroundingChunk,v) then
-				table.remove(GetSurroundingChunk,table.find(GetSurroundingChunk,v))
-			end		
-		end
-		print("c")
-		local data  =getgeneration(GetSurroundingChunk,should,loaded)
-		print("d")
-		task.wait(.5)
-		local done = loadchunks(data)
-		-- for i,chunk in ipairs(done)do
-		-- 	if game.Workspace.Chunk:FindFirstChild(chunk.Name) then 
-		-- 		game.Workspace.Chunk:FindFirstChild(chunk.Name).Parent = nil
-		-- 		table.insert(oldchunks,game.Workspace.Chunk:FindFirstChild(chunk.Name))
-		-- 	end
-		-- 	chunk.Parent = game.Workspace.Chunk
-		-- end
-		if currentChunk ~= refunction.GetChunk(char.Position,true) then
-			--return
-		end
-	end
-	
-	
-end
-
 local function frender(char,FastLoad)
 	local currentChunk,c = refunction.GetChunk(char.Position)
 	currentChunk = currentChunk.."x"..c
@@ -384,7 +336,7 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 			toload[Pos] = {nil,os.clock()}
 		end
 	end
-end)
+end) 
 local oldchunk =""
 local char = game.Workspace.Entity:WaitForChild(lp.Name)
 --	QuickRender(char.PrimaryPart)

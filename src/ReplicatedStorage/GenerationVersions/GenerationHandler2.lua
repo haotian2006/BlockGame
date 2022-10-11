@@ -151,7 +151,7 @@ local function can(position,tabl,player,blockdata)
 	local x,y,z = tonumber(splittedstring[1]),tonumber(splittedstring[2]),tonumber(splittedstring[3])
 	local wall,near,ammount = checkifiswall(tabl,x,y,z)
 	if position == "312,28,-596" then
-		print("C")
+		print("C") 
 		local part = Instance.new("Part",workspace)
 		part.Anchored = true
 		part.Position = Vector3.new(x,y,z)

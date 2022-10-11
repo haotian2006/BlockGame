@@ -518,7 +518,7 @@ game:GetService("RunService").Heartbeat:Connect(function(deltaTime)
                 delayrun[i] = false
             end
         end)
-    end
+    end 
 end)
 UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
     if  input.UserInputType  then
