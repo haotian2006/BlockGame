@@ -51,9 +51,9 @@ function Function.GetUnit(pos1,pos2)
 end
 function Function.GetBlockCoords(Position,retype)
 	local Position = Function.convertPositionto(Position,"vector3")
-	local x = Round((0 + Position.X)/4)
-	local z = Round((0 + Position.Z)/4)
-	local y = Round((0 + Position.Y)/4)
+	local x = Round((0 + Position.X)*0.25)
+	local z = Round((0 + Position.Z)*0.25)
+	local y = Round((0 + Position.Y)*0.25)
 	if retype then
 		return Function.convertPositionto({x,y,z},retype) 
 	end
@@ -62,8 +62,8 @@ end
 function Function.GetChunk(Position,converttostring)
 	Position = Function.convertPositionto(Position,"vector3")
 	local x,y,z = Function.GetBlockCoords(Position)
-	local cx =	Round(x/16)
-	local cz= 	Round(z/16)
+	local cx =	Round(x*0.0625)
+	local cz= 	Round(z*0.0625)
 	if converttostring then
 		return cx.."x"..cz
 	end

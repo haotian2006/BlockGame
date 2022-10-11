@@ -8,7 +8,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 3
+local render = 2
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -272,7 +272,7 @@ local function frender(char,FastLoad)
 		end
 		local Blocks
 		if i2%1 == 0 then
-			Blocks = GenHandler.GetGeneration(chunk)
+			Blocks = GenHandler.GetGeneration(chunk,true)
 			if loaded and type(loaded) == "table" and loaded[chunk] then
 				for i,v in pairs(loaded[chunk])do
 					Blocks[i] = v
@@ -283,7 +283,7 @@ local function frender(char,FastLoad)
 		end
 		task.spawn(function()
 			if  FastLoad then
-				Blocks = GenHandler.GetGeneration(chunk)
+				Blocks = GenHandler.GetGeneration(chunk,true)
 				if loaded and type(loaded) == "table" and loaded[chunk] then
 				for i,v in pairs(loaded[chunk])do
 					Blocks[i] = v
