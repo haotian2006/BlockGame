@@ -345,7 +345,7 @@ local seconds = 0
 function  update.HandleFall(deltaTime)
     seconds += deltaTime
     local entity =   controlls.PlayerNbt
-    if not entity or true then return end 
+    if not entity or false then return end 
     local pos =  controlls.PlayerPosition
     local ccx,ccz = refunction.GetChunk(pos)
     if not workspace.Chunk:FindFirstChild(ccx.."x"..ccz)  then return end

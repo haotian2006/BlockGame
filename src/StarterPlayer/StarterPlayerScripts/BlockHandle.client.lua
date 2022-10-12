@@ -8,7 +8,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 2
+local render = 4
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -22,6 +22,7 @@ local toload = {}
 local old
 local firsttime = false
 local oldchunks = {}
+local char = game.Workspace.Entity:WaitForChild(lp.Name,math.huge)
 task.spawn(function()
 	while true do
 		task.wait(1)
@@ -46,12 +47,12 @@ local function garbage(pos,size:number)
 			rendered[v.Name] = true
 			end
 	end
-	for v,i in pairs(chunkstorage) do
+	for v,i in pairs(chunkstorage.Chunk) do
 		local splited = v:split("x")
 		local vector = Vector2.new(splited[1],splited[2])
 		local currentvecotr = Vector2.new(refunction.GetChunk(pos))
-		if (vector-currentvecotr).Magnitude > (size-2) then
-			chunkstorage[v] = nil
+		if (vector-currentvecotr).Magnitude > (size-1) then
+			chunkstorage.Chunk[v] = nil
 		else
 			rendered[v] = true
 			end
@@ -59,6 +60,7 @@ local function garbage(pos,size:number)
 	return rendered
 end
 local function renderblock(chunk,blocktable)
+	blocktable = loadthread:DoWork(blocktable)
 	local Folder = Instance.new("Folder")
 	Folder.Name = chunk
 	for i,v in ipairs(blocktable)do
@@ -98,8 +100,48 @@ local function renderblock(chunk,blocktable)
 		Folder.Parent = game.Workspace.Chunk
 	end
 end
+local function findclosest(orig,chunks)
+	chunks = chunks or {}
+	local cx = orig:split("x")
+	local cx,cy = tonumber(cx[1]),tonumber(cx[2])
+	local tablea ={}
+	for i,v in chunks do
+		local vx = i:split("x")
+		local vx,vy = tonumber(vx[1]),tonumber(vx[2])
+		local mag = math.sqrt((vx-cx)^2+(vy+cy)^2)
+		table.insert(tablea,{i,mag})
+	end
+	table.sort(tablea,function(a,b)
+		return a[2] < b[2]
+	end)
+	return tablea 
+end
+task.spawn(function()
+	while true do
+		task.wait(.3)
+		for v,i in ipairs(findclosest(refunction.GetChunk(char.PrimaryPart.Position,true),chunkstorage.Chunk))do
+			local i = i[1]
+			local v = chunkstorage.Chunk[i]
+			if not game.Workspace.Chunk:FindFirstChild(i) then
+				local cx = i:split("x")
+				local cx,cy = cx[1],cx[2]
+				cx,cy = tonumber(cx),tonumber(cy) 
+				if chunkstorage.Chunk[(cx+1).."x"..cy] and chunkstorage.Chunk[(cx-1).."x"..cy] and chunkstorage.Chunk[(cx).."x"..(cy+1)] and chunkstorage.Chunk[(cx).."x"..(cy-1)] then
+					renderblock(i,g2.GetSortedTable(
+					v[1],i,v[2],{chunkstorage.Chunk[(cx+1).."x"..cy][1],
+					chunkstorage.Chunk[(cx-1).."x"..cy][1],
+					chunkstorage.Chunk[(cx).."x"..(cy+1)][1],
+					chunkstorage.Chunk[(cx).."x"..(cy-1)][1]
+				}))
+					break
+				end
+			end
+		end
+	end
+end)
 local function arender(char,range,FastLoad)
-	local rendered = garbage(range+3)
+	local ck = refunction.GetChunk(char.Position,true)
+	local rendered = garbage(char.Position,range+2)
 	local nearbychunks = {}
 	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,3)) do
 		table.insert(nearbychunks,v)
@@ -139,14 +181,20 @@ local function arender(char,range,FastLoad)
 		end
 	end
 	for i,chunk in ipairs(nearbychunks)do
+		if i > 7 and ck ~= refunction.GetChunk(char.Position,true) then
+			return
+		end
 		local Blocks,air = GenHandler.GetGeneration(chunk,true)
-			if loaded and type(loaded) == "table" and loaded[chunk] then
-				for i,v in pairs(loaded[chunk])do
-					Blocks[i] = v
+			task.spawn(function()
+				if loaded and type(loaded) == "table" and loaded[chunk] then
+					for i,v in pairs(loaded[chunk])do
+						Blocks[i] = v
+					end
 				end
-			end
-		chunkstorage[chunk] = 	Blocks
+				chunkstorage.Chunk[chunk] = 	{Blocks,should}
+			end)
 	end
+
 	return
 end
 local function frender(char,FastLoad)
@@ -313,11 +361,16 @@ game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(b
 		end
 		blocks["2"] = nil
 		for i,v in pairs(blocks)do
+			local cx,cz = refunction.GetChunk(i)
+			if chunkstorage.Chunk[cx..'x'..cz] and chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)]  then
+				chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)][100] = true
+			end
 			local data = g2.GetBlock(refunction.convertPositionto(i,"vector3"),v)
 			if data then
 				refunction.PlaceBlock(data[1],data[4],data[2],data[3])
 			end
 		end
+
 	end
 	for i,data in ipairs(blocks)do
 		local cx,cz = refunction.GetChunk(data[4])
@@ -325,6 +378,9 @@ game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(b
 			toload[refunction.convertPositionto(data[4])] = {data,os.clock()}
 		end
 		refunction.PlaceBlock(data[1],data[4],data[2],data[3])
+		if chunkstorage.Chunk[cx..'x'..cz] and chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(data[4])] then
+			chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(data[4])] = data
+		end
 	end
 end)
 game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(blocks)
@@ -335,15 +391,17 @@ game.ReplicatedStorage.Events.Block.DestroyBlock.OnClientEvent:Connect(function(
 		else
 			toload[Pos] = {nil,os.clock()}
 		end
+		if chunkstorage.Chunk[cx..'x'..cz] and chunkstorage.Chunk[cx..'x'..cz][Pos] then
+			chunkstorage.Chunk[cx..'x'..cz][Pos] = nil
+		end
 	end
 end) 
 local oldchunk =""
-local char = game.Workspace.Entity:WaitForChild(lp.Name)
 --	QuickRender(char.PrimaryPart)
 task.wait(.5)
 print("e")
 	--newload(char.PrimaryPart)
-	frender(char.PrimaryPart)
+	arender(char.PrimaryPart,render)
 	print("done")
 	while char do
 		local currentChunk,c = refunction.GetChunk(char.PrimaryPart.Position)
@@ -352,7 +410,7 @@ print("e")
 		if currentChunk ~= oldchunk and true then
 			oldchunk = currentChunk
 		--	newload(char.PrimaryPart)
-			frender(char.PrimaryPart)
+			arender(char.PrimaryPart,render)
 		end
 	task.wait(0.1)
 end

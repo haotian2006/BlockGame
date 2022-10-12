@@ -6,7 +6,7 @@ end)
 local copy = { -- a uuid
 ["Name"] = "Mar",
 ["Age"] = "0",
-["Position"] = {-68,90,-120},
+["Position"] = {-68,200,-120},
 HitBoxSize = {x =2.2,y=7.5,z=2.2},
 behaviors = {
 },

@@ -51,7 +51,7 @@ function Generation.CheckForCave(Position)
 	--local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
 	--local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
 
-	local n0 = 1--PerlinNoiseAPI.new({x,y,z},amplitude)
+	local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
 	--x +=noiseScale*0.5
 	--y +=noiseScale*0.5
 	--z +=noiseScale*0.5
@@ -69,7 +69,7 @@ function Generation.GetChunks(chuncks,getall)
 	local new = {}
 	for i,v in pairs(chuncks)do
 		for index,coord in ipairs(v) do
-			for y = 0,maxheight,4 do
+			for y = maxheight,0,-4 do
 				--task.spawn(function()
 				local coords = string.split(coord,"x")
 				local position = Vector3.new(coords[1],y,coords[2])

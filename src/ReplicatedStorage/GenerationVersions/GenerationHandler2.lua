@@ -52,7 +52,7 @@ end
 local function checkoneblock(tabl,direaction)
 	return tabl[direaction] and Block_Info[tabl[direaction][1]] and not Block_Info[tabl[direaction][1]]["IsTransparent"]
 end
-local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
+local function checksurroundblock(tabl,x,y,z,ignore,a,nearbychunks)
 	local parts  = 0
 	ignore = ignore or {}
 	a = a or 0
@@ -60,7 +60,7 @@ local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
 	if checkoneblock(tabl,pack2(x+4,y,z))  then
 		parts+=1
 	elseif ignore["x4"]  then
-		local block = refunction.GetBlock(pack2(x+4,y,z),nil,nil,true)
+		local block = nearbychunks[1][pack2(x+4,y,z)]
 		local ppt = {[pack2(x+4,y,z)] = block}
 		if checkoneblock(ppt,pack2(x+4,y,z)) then
 			parts+=1
@@ -69,7 +69,7 @@ local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
 	if checkoneblock(tabl,pack2(x-4,y,z))  then
 		parts+=1
 	elseif ignore["x-4"]  then
-		local block = refunction.GetBlock(pack2(x-4,y,z),nil,nil,true)
+		local block = nearbychunks[2][pack2(x-4,y,z)]
 		local ppt = {[pack2(x-4,y,z)] = block}
 		if checkoneblock(ppt,pack2(x-4,y,z)) then
 			parts+=1
@@ -84,7 +84,7 @@ local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
 	if checkoneblock(tabl,pack2(x,y,z-4))  then  
 		parts+=1
 	elseif ignore["z-4"]  then
-		local block = refunction.GetBlock(pack2(x,y,z-4),nil,nil,true)
+		local block = nearbychunks[4][pack2(x,y,z-4)]
 		local ppt = {[pack2(x,y,z-4)] = block}
 		if checkoneblock(ppt,pack2(x,y,z-4)) then
 			parts+=1
@@ -93,14 +93,11 @@ local function checksurroundblock(tabl,x,y,z,ignore,a,debugm)
 	if checkoneblock(tabl,pack2(x,y,z+4))  then
 		parts+=1
 	elseif ignore["z4"]  then
-		local block = refunction.GetBlock(pack2(x,y,z+4),nil,nil,true)
+		local block = nearbychunks[3][pack2(x,y,z+4)]
 		local ppt = {[pack2(x,y,z+4)] = block}
 		if checkoneblock(ppt,pack2(x,y,z+4)) then
 			parts+=1
 		end
-	end
-	if debugm then
-		print(parts,a,aa,ignore)
 	end
 	return parts == (6)
 end
@@ -142,8 +139,8 @@ local function checkifiswall(tabl,x,y,z)
 	--end
 	return not(#walls == 0),walls,ammount
 end
-local function can(position,tabl,player,blockdata)
-	if  blockdata[1] == "air" or blockdata[1] == nil then
+local function can(position,tabl,player,blockdata,nearbychunks)
+	if  blockdata[1] == "air" or blockdata[1] == nil or blockdata[100] then
 		return false
 	end
 	local c = true
@@ -156,12 +153,9 @@ local function can(position,tabl,player,blockdata)
 		part.Anchored = true
 		part.Position = Vector3.new(x,y,z)
 		part.Name = "cdas"
-		checksurroundblock(tabl,x,y,z,near,ammount,true)
+		checksurroundblock(tabl,x,y,z,near,ammount,nearbychunks)
 	end
-	if checksurroundblock(tabl,x,y,z,near,ammount) then -- checks if it is surrorunded
-		return false
-	end
-	do 
+	if checksurroundblock(tabl,x,y,z,near,ammount,nearbychunks) then -- checks if it is surrorunded
 		return false
 	end
 	--if wall then
@@ -175,14 +169,14 @@ local function can(position,tabl,player,blockdata)
 	--end
 	return c
 end
-function Generation.GetSortedTable(Data,Chunk,should)
+function Generation.GetSortedTable(Data,Chunk,should,nearbychunks)
 	local size = 0
 	local lc = {}
 	for coord,data in pairs(Data) do
 		if coord == "-96,52,-124" then
 			--print(data[6])
 		end
-		if (should and should[coord]) or can(coord,Data,0,data)  then	
+		if (should and should[coord]) or can(coord,Data,0,data,nearbychunks)  then	
 			lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		size +=1
