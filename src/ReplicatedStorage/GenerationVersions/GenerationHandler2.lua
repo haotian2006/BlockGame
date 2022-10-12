@@ -169,14 +169,16 @@ local function can(position,tabl,player,blockdata,nearbychunks)
 	--end
 	return c
 end
-function Generation.GetSortedTable(Data,Chunk,should,nearbychunks)
+function Generation.GetSortedTable(Data,Chunk,should,nearbychunks,other)
 	local size = 0
+	other = other or {}
 	local lc = {}
 	for coord,data in pairs(Data) do
 		if coord == "-96,52,-124" then
 			--print(data[6])
 		end
-		if (should and should[coord]) or can(coord,Data,0,data,nearbychunks)  then	
+		if (should and should[coord]) or can(coord,Data,0,data,nearbychunks) or other[coord] then	
+			other[coord] = nil
 			lc[coord] ={data[1],data[2],data[3],Chunk, not Block_Info[data[1]]["IsTransparent"]}
 		end
 		size +=1

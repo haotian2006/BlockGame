@@ -1,6 +1,6 @@
 local LocalizationService = game:GetService("LocalizationService")
 local compresser = require(game.ReplicatedStorage.Compresser)
-local SaveInStudio = true
+local SaveInStudio = false
 local DataStore 
 local MainGameStore 
 local allkeys = {}

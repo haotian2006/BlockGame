@@ -1,2 +1,2 @@
-local chunks = {Chunk = {}}
+local chunks = {Chunk = {},update = {}}
 return chunks

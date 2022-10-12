@@ -132,7 +132,7 @@ task.spawn(function()
 					chunkstorage.Chunk[(cx-1).."x"..cy][1],
 					chunkstorage.Chunk[(cx).."x"..(cy+1)][1],
 					chunkstorage.Chunk[(cx).."x"..(cy-1)][1]
-				}))
+				},chunkstorage.update ))
 					break
 				end
 			end
@@ -362,9 +362,10 @@ game.ReplicatedStorage.Events.Block.PlaceClient.OnClientEvent:Connect(function(b
 		blocks["2"] = nil
 		for i,v in pairs(blocks)do
 			local cx,cz = refunction.GetChunk(i)
-			if chunkstorage.Chunk[cx..'x'..cz] and chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)]  then
-				chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)][100] = true
-			end
+			--if chunkstorage.Chunk[cx..'x'..cz] and chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)]  then
+				chunkstorage.update[refunction.convertPositionto(i)] = true
+				--chunkstorage.Chunk[cx..'x'..cz][refunction.convertPositionto(i)][100] = true
+			--end
 			local data = g2.GetBlock(refunction.convertPositionto(i,"vector3"),v)
 			if data then
 				refunction.PlaceBlock(data[1],data[4],data[2],data[3])
