@@ -8,7 +8,7 @@ local Block_Textures = RS.Block_Texture
 local Block_Info = require(RS.BlockInfo)
 local events = RS.Events
 local lp = game.Players.LocalPlayer
-local render = 3
+local render = 4
 game.Lighting.FogStart = render*4*16
 game.Lighting.FogEnd = render*4*16*1.5
 local debug = require(game.ReplicatedStorage.Debughandler)
@@ -118,7 +118,7 @@ local function findclosest(orig,chunks)
 end
 task.spawn(function()
 	while true do
-		task.wait(.3)
+		task.wait(.2)
 		for v,i in ipairs(findclosest(refunction.GetChunk(char.PrimaryPart.Position,true),chunkstorage.Chunk))do
 			local i = i[1]
 			local v = chunkstorage.Chunk[i]
@@ -146,9 +146,15 @@ local function arender(char,range,FastLoad)
 	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,3)) do
 		table.insert(nearbychunks,v)
 	end
+	local c = 25
+	for i,v in ipairs(nearbychunks)do
+		if rendered[v] then
+			c -=1
+		end
+	end
 	for i,v in ipairs(refunction.GetSurroundingChunk(char.Position,range)) do
 		if not table.find(nearbychunks,v) then
-		table.insert(nearbychunks,v)	
+			table.insert(nearbychunks,v)	
 		end
 	end
 	for i,v in ipairs(nearbychunks)do
@@ -180,21 +186,34 @@ local function arender(char,range,FastLoad)
 			should[pos] = true
 		end
 	end
+	local done = 0 
 	for i,chunk in ipairs(nearbychunks)do
-		if i > 7 and ck ~= refunction.GetChunk(char.Position,true) then
+		if i > c and ck ~= refunction.GetChunk(char.Position,true) then
+			done +=1
 			return
 		end
-		local Blocks,air = GenHandler.GetGeneration(chunk,true)
-			task.spawn(function()
-				if loaded and type(loaded) == "table" and loaded[chunk] then
-					for i,v in pairs(loaded[chunk])do
-						Blocks[i] = v
+		task.spawn(function()
+			local Blocks,air = GenHandler.GetGeneration(chunk)
+			local p = Instance.new("Part",workspace)
+			p.Anchored = true
+			local cx = chunk:split("x")
+			local cx,cy = tonumber(cx[1])*16*4,tonumber(cx[2])*64
+			p.Position = Vector3.new(cx,120,cy) 
+			p.BrickColor = BrickColor.new("Bright orange")
+			p.Material = Enum.Material.Neon
+					if loaded and type(loaded) == "table" and loaded[chunk] then
+						for i,v in pairs(loaded[chunk])do
+							Blocks[i] = v
+						end
 					end
-				end
-				chunkstorage.Chunk[chunk] = 	{Blocks,should}
-			end)
+					chunkstorage.Chunk[chunk] = 	{Blocks,should}
+			done +=1
+		end)
+		task.wait(.1)
 	end
-
+	repeat
+		task.wait()
+	until done == #nearbychunks
 	return
 end
 local function frender(char,FastLoad)
