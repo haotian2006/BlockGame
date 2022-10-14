@@ -51,7 +51,7 @@ function Generation.CheckForCave(Position)
 	--local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
 	--local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
 
-	local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
+	local n0 = PerlinNoiseAPI.new({x,y,z,SEED},amplitude)
 	--x +=noiseScale*0.5
 	--y +=noiseScale*0.5
 	--z +=noiseScale*0.5

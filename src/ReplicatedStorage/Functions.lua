@@ -69,6 +69,39 @@ function Function.GetChunk(Position,converttostring)
 	end
 	return cx,cz
 end
+function Function.convert2p(cout,etype)
+	etype = etype or "string"
+    local ty = typeof(cout)
+	ty = string.lower(ty)
+	etype = string.lower(etype)
+    local x,y
+    local ret 
+	if ty == "string" then
+        local splited = string.split(cout,",")
+        x,y = unpack(splited)
+    elseif ty == "table" then
+        x,y = unpack(cout)
+    elseif ty =="vector3" or ty =="cframe" then
+        x,y = cout.X,cout.Y
+	else
+		warn(cout,"is a(n) "..ty.." which is not a valid input")
+		etype ="skip"
+    end
+	x,y = tonumber(x),tonumber(y)
+    if etype == "string" then
+        ret = x..","..y
+    elseif etype == "table" then
+        ret = {x,y}
+     elseif etype =="vector3" then
+        ret = Vector2.new(x,y)
+	elseif etype == "tuple" then
+		return x,y
+	elseif etype =="skip" then
+	 else
+		warn(etype,"is not a valid input")
+    end
+    return ret
+end
 function Function.convertPositionto(cout,etype)
 	etype = etype or "string"
     local ty = typeof(cout)
@@ -96,6 +129,8 @@ function Function.convertPositionto(cout,etype)
         ret = Vector3.new(x,y,z)
 	elseif etype =="cframe" then
 		ret = CFrame.new(x,y,z)
+	elseif etype == "tuple" then
+		return x,y,z
 	elseif etype =="skip" then
 	 else
 		warn(etype,"is not a valid input")
