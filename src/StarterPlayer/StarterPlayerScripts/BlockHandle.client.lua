@@ -71,25 +71,28 @@ local function renderblock(chunk,blocktable)
 				if model:FindFirstChild("BasePart") then
 					model:FindFirstChild("BasePart"):Destroy()
 				end
-				v[1] = model:FindFirstChild("MainPart")
+				v[1][1] = model:FindFirstChild("MainPart")
 
 			end
 		elseif v[8] == 3 then
 			if v[7] then
-				v[1] = v[7]:Clone()
-				model = v[1]
+				v[1][1] = v[7]:Clone()
+				model = v[1][1]
 			end
 		else
-			model = v[1]
+			model = v[1][1]
 		end
 
-		v[1].CFrame = v[2]
+		v[1][1].CFrame = v[2]
 		model.Parent = Folder
 		model:SetAttribute("Name",v[3])
 		model:SetAttribute("State",v[4])
-		v[1].Anchored = true
+		v[1][1].Anchored = true
 		if v[8] == 1 then
-			v[1].Size = v[5]
+			v[1][4].Parent = v[1][1]
+			v[1][1].Size = v[5]
+			v[1][4].MeshId = v[1][3] 
+			v[1][4].TextureId = v[1][2] 
 		end
 		model.Name = refunction.convertPositionto(v[6],"string")
 		

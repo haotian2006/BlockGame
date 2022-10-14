@@ -1,6 +1,7 @@
 local data = {}
 local refunctions = require(game.ReplicatedStorage.Functions)
 local Block_Path = require(game.ReplicatedStorage.BlockInfo)
+local tex = game.ReplicatedStorage.Block_Texture
 function data.LoadChunk(blocks)
 local folder = {}
   for pos,data in pairs(blocks)do
@@ -11,6 +12,8 @@ local folder = {}
       continue
     end
     local model =  Block_Path[name].Model
+    local sp 
+    local text,meshid = tex:FindFirstChild(name) and tex:FindFirstChild(name):FindFirstChild("Decal") and  tex:FindFirstChild(name):FindFirstChild("Decal").Texture
     if model and model:FindFirstChild("BasePart") and  model:FindFirstChild("MainPart") then
         part = model
         fr = 2
@@ -19,10 +22,12 @@ local folder = {}
       fr = 3
     elseif not model:IsA("Model") then
         part = Block_Path[name].Model
+        meshid = model.MeshId
         model = nil
+        sp = Instance.new("SpecialMesh")
     end
     local clonepart = fr ~=1 and part
-    local mesh = (fr == 1 and nil) or Instance.new("MeshPart")
+    local mesh = (fr == 1 and nil) or Instance.new("Part")
     local offset = refunctions.convertPositionto(refunctions.GetOffset(name),"CFrame")
     local id = data[2]
     local ori = data[3]
@@ -32,7 +37,7 @@ local folder = {}
 		ori = Vector3.new(0,0,0)
 	end
     local cframe = refunctions.convertPositionto(pos,"CFrame")* CFrame.Angles(math.rad(ori.X),math.rad(ori.Y),math.rad(ori.Z))*offset:Inverse()
-    table.insert(folder,{mesh,cframe,name,id,fr ==1 and part.Size,pos,clonepart,fr})
+    table.insert(folder,{{mesh,text,meshid,sp},cframe,name,id,fr ==1 and part.Size,pos,clonepart,fr})
   end
   return folder
 end

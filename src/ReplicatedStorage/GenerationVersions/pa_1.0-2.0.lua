@@ -22,36 +22,48 @@ PERSISTENCE = 2
 SEED = 12345
 
 amplitude = 100
-noiseScale =0.99
+noiseScale =0.99--40*2
 local maxheight = 40*4
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
 	return statement
 end
-function Generation.GetBlockName(position:Vector3)
-	local Surface = (2+ Generation.Noise(position.X,position.Z,OCTAVES,LACUNARITY,PERSISTENCE,NOISE_SCALE,SEED))*HEIGHT_SCALE
-	return (position.Y<Surface and position.Y <=maxheight and Generation.CheckForCave(position)or position.Y == 0) and "Stone" or nil
+local function pack2(x,y,z)
+	local statement = x..","..y..","..z
+	return statement
+end												
+function Generation.GetBlockName(position:Vector3,generated)
+	generated = generated or {}
+	local noneeffect = Generation.Noise(position.X,position.Z,OCTAVES,LACUNARITY,PERSISTENCE,NOISE_SCALE,SEED)
+	local Surface = (2+ noneeffect)*HEIGHT_SCALE
+	local blocktogen = "Stone"
+	local x,y,z = position.X,position.Y,position.Z
+	if generated and not generated[pack2(x,y+4,z)] then
+		blocktogen = "Grass"
+	elseif generated and generated[pack2(x,y+4,z)]  and generated[pack2(x,y+4,z)][1] and generated[pack2(x,y+4,z)][1] == "Grass" then
+		blocktogen = "Dirt"
+	end
+	return (position.Y<Surface and position.Y <=maxheight and Generation.CheckForCave(position)or position.Y == 0) and blocktogen or nil
 end
 function Generation.CheckForCave(Position)
-	--local x,y,z = Position.X,Position.Y,Position.Z
-	--local xNoise = math.noise(y/noiseScale,z/noiseScale,SEED) * amplitude
-	--local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
-	--local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
+	-- local x,y,z = Position.X,Position.Y,Position.Z
+	-- local xNoise = math.noise(y/noiseScale,z/noiseScale,SEED) * amplitude
+	-- local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
+	-- local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
 
-	--local density = xNoise + yNoise + zNoise
-	--return density < 20
-	local x,y,z = Position.X,Position.Y,Position.Z
-	x /= noiseScale
-	y /= noiseScale
-	z /= noiseScale
+	-- local density = xNoise + yNoise + zNoise
+	-- return density < 20
+		local x,y,z = Position.X,Position.Y,Position.Z
+		x /= noiseScale
+		y /= noiseScale
+		z /= noiseScale
+		local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
 	--x *= 0.9
 	--y *= 0.9
 	--z *= 0.9
 	--local xNoise = math.noise(y/noiseScale,z/noiseScale,SEED) * amplitude
 	--local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
 	--local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
-
-	local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
 	--x +=noiseScale*0.5
 	--y +=noiseScale*0.5
 	--z +=noiseScale*0.5
@@ -73,7 +85,7 @@ function Generation.GetChunks(chuncks,getall)
 				--task.spawn(function()
 				local coords = string.split(coord,"x")
 				local position = Vector3.new(coords[1],y,coords[2])
-				local block,id = Generation.GetBlockName(position)
+				local block,id = Generation.GetBlockName(position,new[i])
 				id = 0
 				if  (block ~= nil and block ~="Air")or getall then
 					new[i] = new[i] or {}
