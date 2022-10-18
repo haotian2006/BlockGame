@@ -1,4 +1,18 @@
 local Generation = {}
+function XZCoordInChunk(chunk:string)
+	local name =string.split(chunk,"x")
+	local cx,cz = name[1],name[2]
+	local coord0chunkoffset =  Vector3.new(cx*4*16,0,cz*4*16)
+	local coord0chunk = Vector3.new(0,0,0) + coord0chunkoffset
+	local Cornerx,Cornerz =Vector2.new(-32+cx*64,-32+cz*64) ,Vector2.new(28+cx*64,28+cz*64)
+	local pos = {}
+	for x = Cornerx.X, Cornerz.X,4 do
+		for z = Cornerx.Y,Cornerz.Y,4 do
+			table.insert(pos,x.."x"..z)
+		end
+	end
+	return pos
+end
 Generation.Noise = function(x, y, octaves, lacunarity, persistence, scale, seed)
 	local value = 0 
 	local x1 = x 
@@ -22,7 +36,7 @@ PERSISTENCE = 2
 SEED = 12345
 
 amplitude = 100
-noiseScale =0.99--40*2
+noiseScale =40*2--0.99
 local maxheight = 40*4
 local function pack(pos:Vector3)
 	local statement = pos.X..","..pos.Y..","..pos.Z
@@ -38,9 +52,10 @@ function Generation.GetBlockName(position:Vector3,generated)
 	local Surface = (2+ noneeffect)*HEIGHT_SCALE
 	local blocktogen = "Stone"
 	local x,y,z = position.X,position.Y,position.Z
-	if generated and not generated[pack2(x,y+4,z)] then
+	local above = (generated[x]  and generated[x][y+4] and generated[x][y+4][z])
+	if generated and not above then
 		blocktogen = "Grass"
-	elseif generated and generated[pack2(x,y+4,z)]  and generated[pack2(x,y+4,z)][1] and generated[pack2(x,y+4,z)][1] == "Grass" then
+	elseif generated and above  and above[1] and above[1] == "Grass" then
 		blocktogen = "Dirt"
 	end
 	return (position.Y<Surface and position.Y <=maxheight and Generation.CheckForCave(position)or position.Y == 0) and blocktogen or nil
@@ -53,37 +68,60 @@ function Generation.CheckForCave(Position)
 
 	-- local density = xNoise + yNoise + zNoise
 	-- return density < 20
-		local x,y,z = Position.X,Position.Y,Position.Z
-		x /= noiseScale
-		y /= noiseScale
-		z /= noiseScale
-		local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
+	return true
+	-- local x,y,z = Position.X,Position.Y,Position.Z
+	-- x /= noiseScale
+	-- y /= noiseScale
+	-- z /= noiseScale
+	--local n0 = PerlinNoiseAPI.new({x,y,z},amplitude)
 	--x *= 0.9
 	--y *= 0.9
 	--z *= 0.9
 	--local xNoise = math.noise(y/noiseScale,z/noiseScale,SEED) * amplitude
 	--local yNoise = math.noise(x/noiseScale,z/noiseScale,SEED) * amplitude
 	--local zNoise = math.noise(x/noiseScale,y/noiseScale,SEED) * amplitude	
-	local n0 = PerlinNoiseAPI.new({x,y,z,SEED},amplitude)
 
 	--x +=noiseScale*0.5
 	--y +=noiseScale*0.5
 	--z +=noiseScale*0.5
 	--local n1 = noise.new({x,y,z},amplitude)
-	local density = n0--math.min(n0,n1)
-	return density >0
+	-- local density = 1--math.min(n0,n1)
+	-- return density >0
 end
 
 function Generation.GetBlock(pos:Vector3)
 	local c =Generation.GetBlockName(pos)
 	return c and {c,0,{0,0,0},{pos.X,pos.Y,pos.Z},0,true}
 end
+function Generation.GetChunk(chunck,getall)
+	local versiontouse
+	local new = {}
+	local by = XZCoordInChunk(chunck)
+	for y = maxheight,0,-4 do
+		for index,coord in ipairs(by) do
+
+			--task.spawn(function()
+			local coords = string.split(coord,"x")
+			local position = Vector3.new(coords[1],y,coords[2])
+			local block,id = Generation.GetBlockName(position,new)
+			id = 0
+			if  (block ~= nil and block ~="Air")or getall then
+				local packpos = pack(position)
+				new[position.X] = new[position.X] or {}
+				new[position.X][position.Y] = new[position.X][position.Y] or {}
+				new[position.X][position.Y][position.Z] = {block,id,{0,0,0},packpos,chunck,true}
+			end
+		end
+	end
+	return new
+end
 function Generation.GetChunks(chuncks,getall)
 	local versiontouse
 	local new = {}
 	for i,v in pairs(chuncks)do
-		for index,coord in ipairs(v) do
-			for y = maxheight,0,-4 do
+		for y = maxheight,0,-4 do
+			for index,coord in ipairs(v) do
+
 				--task.spawn(function()
 				local coords = string.split(coord,"x")
 				local position = Vector3.new(coords[1],y,coords[2])
@@ -92,10 +130,16 @@ function Generation.GetChunks(chuncks,getall)
 				if  (block ~= nil and block ~="Air")or getall then
 					new[i] = new[i] or {}
 					local packpos = pack(position)
-					new[i][packpos] = {block,id,{0,0,0},packpos,i,true}
+					new[i][position.X] = new[i][position.X] or {}
+					new[i][position.X][position.Y] = new[i][position.X][position.Y] or {}
+					new[i][position.X][position.Y][position.Z] = {block,id,{0,0,0},packpos,i,true}
 				end
 			end
+			if y%30 == 0 then
+				task.wait()
+			end
 		end
+		task.wait(.1)
 	end
 	return new
 end

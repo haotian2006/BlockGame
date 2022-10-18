@@ -1,10 +1,16 @@
+local ProximityPromptService = game:GetService("ProximityPromptService")
 local data = {}
 local refunctions = require(game.ReplicatedStorage.Functions)
 local Block_Path = require(game.ReplicatedStorage.BlockInfo)
 local tex = game.ReplicatedStorage.Block_Texture
 function data.LoadChunk(blocks)
 local folder = {}
+local index = 0
   for pos,data in pairs(blocks)do
+    index +=1
+    if index%350==0 then
+      task.wait(.05)
+    end
     local part
     local name = data[1]
     local fr = 1
@@ -39,6 +45,7 @@ local folder = {}
     local cframe = refunctions.convertPositionto(pos,"CFrame")* CFrame.Angles(math.rad(ori.X),math.rad(ori.Y),math.rad(ori.Z))*offset:Inverse()
     table.insert(folder,{{mesh,text,meshid,sp},cframe,name,id,fr ==1 and part.Size,pos,clonepart,fr})
   end
+ -- print(index)
   return folder
 end
 return data

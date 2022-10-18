@@ -59,8 +59,15 @@ task.spawn(function()
 		refunctions = Data.refunctions
 		task.wait()
 	until refunctions
-	function Data.GetChunk(cx,cz)
+	function Data.Generate(cx,cz)
+		
+	end
+	function Data.GetChunk(cx,cz,Load)
 		Data.DecodedChunks[cx] = Data.DecodedChunks[cx] or {}
+		Data.DecodedChunks[cx][cz] = Data.DecodedChunks[cx][cz] or {}
+		if not Data.DecodedChunks[cx][cz] then
+			
+		end
 		return Data.DecodedChunks[cx][cz]
 	end
 	function Data.InsertChunk(cx,cz,data)

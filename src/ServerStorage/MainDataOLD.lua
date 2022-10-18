@@ -14,7 +14,7 @@ if MainGameStore then
 	local sus = pcall(function()
 		data = MainGameStore:GetAsync("IfChunkE")
 	end)
-	if sus and data then
+	if sus and data then 
 		allkeys = compresser.decompress("IfChunkE",data)
 	end
 end
@@ -195,7 +195,7 @@ function Data.PlaceChunk(chunk:string,data,deload)
 		Data.SetChunkTimer(chunk)
 		data = compresser.compress(chunk,data)
 		local parenta = Data.GetChunkParent(chunk)
-		Data.Chunk[parenta] = Data.Chunk[parenta] or {}
+		Data.Chunk[parenta] = Data.Chunk[parenta] or {} 
 		Data.Chunk[parenta][chunk] = data
 	return
 end

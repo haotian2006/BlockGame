@@ -3,6 +3,7 @@ local genhandler = require(RS.GenerationVersions.GenerationHandler2)
 local Block_Path = require(RS.BlockInfo)
 local Block_Modle = RS.Block_Models
 local Block_Texture = RS.Block_Texture
+local clientblock = require(game.ReplicatedStorage.ClientChunks)
 local maindata 
 local Function = {}
 if game:GetService("RunService"):IsServer() then
@@ -62,8 +63,8 @@ end
 function Function.GetChunk(Position,converttostring)
 	Position = Function.convertPositionto(Position,"vector3")
 	local x,y,z = Function.GetBlockCoords(Position)
-	local cx =	Round(x*0.0625)
-	local cz= 	Round(z*0.0625)
+	local cx =	tonumber(Round(x*0.0625))
+	local cz= 	tonumber(Round(z*0.0625))
 	if converttostring then
 		return cx.."x"..cz
 	end
@@ -168,21 +169,22 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos,Gen)
 
 	end
 	if maindata then
-	pos = Function.convertPositionto(pos,"vector3")
-	local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
-	local cx,cz = Function.GetChunk(Vector3.new(pos.X,y,pos.Z))
-	local gen 
-	if Gen then
-		gen =  genhandler.GetBlock(Vector3.new(x,y,z))  
-	end
-	if maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z] and maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z][2]  then
-		return maindata.DecodedChunks[cx.."x"..cz][x..","..y..","..z],x..","..y..","..z
-	elseif not maindata.DecodedChunks[cx.."x"..cz] and  playerpos and (pcx ~= cx or pcz ~= cz) then
-		return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
-	elseif Gen and gen then
-	 	return gen,x..","..y..","..z
-	end
-	return nil
+		pos = Function.convertPositionto(pos,"vector3")
+		local x,y,z = Function.returnDatastringcomponets(Function.ConvertGridToReal(Function.GetBlockCoords(pos,"table"),"string"))
+		local cx,cz = Function.GetChunk(Vector3.new(pos.X,y,pos.Z))
+		local gen 
+		if Gen then
+			gen =  genhandler.GetBlock(Vector3.new(x,y,z))  
+		end
+		local block = maindata.GetBlock(x,y,z,{cx,cz})
+		if block and block[2]  then
+			return block,x..","..y..","..z
+		elseif not maindata.GetChunk(cx,cz) and  playerpos and (pcx ~= cx or pcz ~= cz) then
+			return {"Stone",1,{0,0,0},{x,y,z}},x..","..y..","..z
+		elseif Gen and gen then
+			return gen,x..","..y..","..z
+		end
+		return nil
 	else
 		pos = Function.ConvertPositionToReal(pos,"string")
 		local cx,cz = Function.GetChunk(pos)
@@ -190,21 +192,15 @@ function Function.GetBlock(pos,HasToBeLoaded,playerpos,Gen)
 		if Gen then
 			gen =  genhandler.GetBlock(Function.ConvertPositionToReal(pos,"vector3"))  
 		end
-		if workspace.Chunk:FindFirstChild(cx.."x"..cz) and workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos) then
-			local blocka = workspace.Chunk:FindFirstChild(cx.."x"..cz):FindFirstChild(pos)
-			local mainbb 
-			if blocka:IsA("Model") then
-				mainbb = blocka:FindFirstChild("MainPart") or blocka.PrimaryPart or blocka
-			end
-			return {blocka:GetAttribute("Name"),blocka:GetAttribute("State"),Function.convertPositionto(mainbb and mainbb.Orientation or blocka.Orientation,"table"),Function.convertPositionto(pos,"table")},pos
-		elseif not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos and (pcx ~= cx or pcz ~= cz) then
+		local blocka = clientblock.GetBlock(Function.convertPositionto(pos,"table"),{cx,cz})
+		local ch = clientblock.GetChunk(cx,cz)
+		if blocka and blocka[2] then
+			return blocka,pos
+		elseif not ch and playerpos and (pcx ~= cx or pcz ~= cz) then
 			--("e")
 			return {"Stone",1,{0,0,0},Function.convertPositionto(pos,"table")},pos
 		elseif Gen and gen then
 			return gen
-		end
-		if  not workspace.Chunk:FindFirstChild(cx.."x"..cz) and playerpos then
-			--print(pcx ~= cx or pcz ~= cz) 
 		end
 		
 		return nil
@@ -461,7 +457,7 @@ function Function.GetFloor(pos,CanBeTransParent)
 	local cx,cz = Function.GetChunk(Vector3.new(pos.X,0,pos.Z))
 	--print(x,y,z,cx,cz)
 	for i = y , 0,-1 do
-		if maindata.DecodedChunks[cx.."x"..cz] and maindata.DecodedChunks[cx.."x"..cz][x..","..i..","..z] then
+		if maindata.GetBlock(x,i,z,{cx,cz}) then
 			return Vector3.new(x,i,z)
 		end
 	end

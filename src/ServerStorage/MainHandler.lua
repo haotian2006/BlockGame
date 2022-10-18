@@ -201,10 +201,11 @@ function Main.GetSurFace(X,Z)
 end
 function Main.CheckForBlock(x,y,z,CanBeTransParent)
 	local cx,cz = refunction.GetChunk(refunction.ConvertGridToReal(Vector3.new(x,0,z),"vector3"))
-	if not maindata.DecodedChunks[cx.."x"..cz] then
+
+	if maindata.GetChunk(cx,cz) then
 		return false
 	end
-	local bock = maindata.DecodedChunks[cx.."x"..cz][x..','..y..","..z]
+	local bock = maindata.GetBlock(x,y,z,{cx,cz}) 
 	if bock then
 		return true,bock[1],bock[2]
 	end
@@ -243,7 +244,7 @@ function Main.GetChunk(Player,Chunks)
 	local done = 0
 	for _,Chunk in ipairs(Chunks) do
 		task.spawn(function()
-			local currentable = maindata.GetChunk(Chunk) or {}
+			local currentable = {}--maindata.GetChunk(Chunk) or {}
 			data[Chunk] = currentable
 			done+=1
 		end)
@@ -311,10 +312,10 @@ function Main.Place(player,block,Position,Orientation)
 	local oldpos =Position
 	Position = refunction.ConvertPositionToReal(Position,"vector3")
 	local cx,cz = refunction.GetChunk(Position)
-	maindata.GetChunk(cx.."x"..cz)
-	if maindata.DecodedChunks[cx.."x"..cz] and (not maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] or maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")][1] == nil ) then
-		maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
-		maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
+	local block = maindata.GetBlock(unpack({refunction.convertPositionto(Position,"table"),{cx,cz}}))
+	if maindata.GetChunk(cx,cz) and (not block or block[1] == nil ) then
+		maindata.InsertBlock(unpack({refunction.convertPositionto(Position,"table"),{block,1,Orientation,refunction.convertPositionto(Position,"string")}}))
+		--maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")] = {block,1,Orientation,refunction.convertPositionto(Position,"string")}
 		for i,v in ipairs(Main.GetPlayersWithChunk(Position)) do
 			RS.Events.Block.PlaceClient:FireClient(v,{maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(Position,"string")]})
 		end
@@ -331,9 +332,7 @@ function Main.destroyblock(player,pos)
 	pos = refunction.convertPositionto(pos,"table")
 	local cx,cz = refunction.GetChunk(pos)
 	maindata.GetChunk(cx.."x"..cz)
-	--print(maindata.DecodedChunks)
---	if maindata.DecodedChunks[cx.."x"..cz] and  maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] and maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")][1] then
-	maindata.DecodedChunks[cx.."x"..cz][refunction.convertPositionto(pos,"string")] = {nil,0,nil,refunction.convertPositionto(pos,"table")}
+	maindata.InsertBlock(refunction.convertPositionto(pos,"table"),{nil,0,nil,refunction.convertPositionto(pos,"table")},cx,cz)
 		 local top = (refunction.GetBlock({pos[1],pos[2]+4,pos[3]},nil,nil))
 		 local bottem = (refunction.GetBlock({pos[1],pos[2]-4,pos[3]}))
 		 local front = (refunction.GetBlock({pos[1]+4,pos[2],pos[3]}))
@@ -389,10 +388,10 @@ function Main.destroyblock(player,pos)
 		--print(a)
 		local b = {}
 		for i,v in ipairs(placee)do
-			local c = refunction.GetChunk(v,true)
+			local vcx,vcy = refunction.GetChunk(v)
 			local pos = refunction.convertPositionto(v)
-			if maindata.DecodedChunks[c] and maindata.DecodedChunks[c]["Settings"] then
-				b[pos] = maindata.DecodedChunks[c]["Settings"]["Version"]
+			if maindata.GetChunk(vcx,vcy) and maindata.GetChunk(vcx,vcy)["Settings"] then
+				b[pos] = maindata.GetChunk(vcx,vcy)["Settings"]["Version"]
 			end
 		end
 		b["1"] = "Load"
@@ -431,12 +430,7 @@ function Main.GetBlock(Player,Pos)
 	local position = Player.Position
 	if refunction.GetMagnituide({position[1],position[2],position[3]},{Pos[1],position[2],Pos[3]}) <= 16*math.max(math.max(Player.HitBoxSize.x,Player.HitBoxSize.z),Player.HitBoxSize.y) then
 		local cx,cy = refunction.GetChunk(position)
-		maindata.GetChunk(cx.."x"..cy)
-		if maindata.DecodedChunks[cx.."x"..cy] and maindata.DecodedChunks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]] then
-			return maindata.DecodedChunks[cx.."x"..cy][Pos[1]..","..Pos[2]..","..Pos[3]],Pos[1]..","..Pos[2]..","..Pos[3]
-		else
-			return nil
-		end 
+		return maindata.GetBlock(Pos[1],Pos[2],Pos[3],{cx,cy})
 	end 
 end
 game.ReplicatedStorage.place.OnServerEvent:connect(function()
