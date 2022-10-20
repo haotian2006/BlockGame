@@ -156,7 +156,7 @@ end
 -- 	end
 -- end)
 task.spawn(function()
-	while true do
+	while false do
 		task.wait(.2)
 		for i,data in ipairs(findclosest(char.PrimaryPart.Position,chunkstorage.Chunk))do
 			local cx,cy = data[1][1],data[1][2]
